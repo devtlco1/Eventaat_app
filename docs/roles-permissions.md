@@ -19,6 +19,12 @@ Role direction from `docs/eventaat_blueprint_v1.md`:
 
 - `customer`
 
+## Mobile customer rules (Phase 3)
+
+- Phone number is the mobile login identity.
+- Any user created via mobile OTP verification is **always** assigned the `customer` role.
+- Customers must not access Filament panels (`/platform`, `/restaurant`).
+
 ## Panel access rules (Phase 1)
 
 ### `/platform`

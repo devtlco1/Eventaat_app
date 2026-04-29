@@ -70,3 +70,22 @@ Add the core restaurant operational foundation (models + Filament resources), wi
 - No mobile/customer API endpoints
 - No custom dashboard UI/widgets/cards/stats
 
+### Phase 3 goal
+
+Create a customer mobile authentication REST API foundation (OTP + tokens), without adding bookings or restaurant discovery.
+
+### Deliverables (Phase 3)
+
+- Mobile OTP request + verify endpoints
+- Customer-only API tokens using Laravel Sanctum
+- `GET /api/mobile/me` and `PATCH /api/mobile/me` profile foundation (name only)
+- Ensure mobile-created users are always `customer`
+- Tests for OTP flow, token auth, profile completion behavior, and panel lockout
+
+### Explicit non-goals (Phase 3)
+
+- No mobile UI
+- No WhatsApp/SMS provider integration (local/dev OTP only)
+- No bookings
+- No restaurant discovery endpoints
+

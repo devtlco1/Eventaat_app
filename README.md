@@ -1,10 +1,10 @@
-## Eventaat (Phase 2 in progress)
+## Eventaat (Phase 3 in progress)
 
 This repository is a rebuild of Eventaat following the phased plan in `docs/eventaat_blueprint_v1.md`.
 
 Source of truth: `docs/eventaat_blueprint_v1.md`.
 
-### What exists (Phases 0–2)
+### What exists (Phases 0–3)
 
 - **Backend**: Laravel app in `backend/`
 - **Database**: PostgreSQL configuration (see `backend/.env`)
@@ -65,6 +65,20 @@ Demo data includes:
 - No custom dashboard pages/cards/stats/widgets
 - No sidebar links to unimplemented features
 - No API work beyond the Laravel/Filament foundation
+
+### Phase 3: mobile customer auth API (dev only)
+
+Phase 3 adds a mobile/customer REST API foundation:
+- OTP request/verify (local/dev OTP sender logs OTP to app logs)
+- Sanctum token auth for mobile sessions
+- `GET /api/mobile/me`, `PATCH /api/mobile/me`, and logout
+
+Key endpoints (see `docs/api-reference.md` for full details):
+- `POST /api/mobile/auth/request-otp`
+- `POST /api/mobile/auth/verify-otp`
+- `GET /api/mobile/me`
+- `PATCH /api/mobile/me`
+- `POST /api/mobile/auth/logout`
 
 ### Local setup (backend)
 
