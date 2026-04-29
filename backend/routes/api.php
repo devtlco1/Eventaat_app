@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Mobile\AuthController;
 use App\Http\Controllers\Api\Mobile\MeController;
+use App\Http\Controllers\Api\Mobile\RestaurantDiscoveryController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('mobile')
@@ -20,6 +21,11 @@ Route::prefix('mobile')
             ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);
 
         Route::patch('me', [MeController::class, 'update'])
+            ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);
+
+        Route::get('restaurants', [RestaurantDiscoveryController::class, 'index'])
+            ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);
+        Route::get('restaurants/{restaurant:slug}', [RestaurantDiscoveryController::class, 'show'])
             ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);
     });
 

@@ -1,10 +1,10 @@
-## Eventaat (Phase 3 in progress)
+## Eventaat (Phase 4A in progress)
 
 This repository is a rebuild of Eventaat following the phased plan in `docs/eventaat_blueprint_v1.md`.
 
 Source of truth: `docs/eventaat_blueprint_v1.md`.
 
-### What exists (Phases 0–3)
+### What exists (Phases 0–4A)
 
 - **Backend**: Laravel app in `backend/`
 - **Database**: PostgreSQL configuration (see `backend/.env`)
@@ -79,6 +79,12 @@ Key endpoints (see `docs/api-reference.md` for full details):
 - `GET /api/mobile/me`
 - `PATCH /api/mobile/me`
 - `POST /api/mobile/auth/logout`
+
+### Phase 4A: mobile restaurant discovery API (dev only)
+
+Phase 4A adds authenticated customer restaurant discovery:
+- `GET /api/mobile/restaurants` (active only, search + pagination)
+- `GET /api/mobile/restaurants/{restaurant:slug}` (active only, includes nested branches/seating/tables)
 
 ### Local setup (backend)
 

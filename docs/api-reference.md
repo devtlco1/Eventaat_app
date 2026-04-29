@@ -122,5 +122,64 @@ Response:
 { "success": true }
 ```
 
+## Phase 4A: mobile restaurant discovery API
+
+Auth for all endpoints below:
+`Authorization: Bearer <token>` (customer token only)
+
+### GET `/api/mobile/restaurants`
+
+Query params:
+- `q` (optional): search by restaurant name
+- `per_page` (optional): pagination size (max 50)
+
+Response (paginated):
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Demo Restaurant A",
+      "slug": "demo-restaurant-a",
+      "active_branches_count": 1
+    }
+  ],
+  "links": { },
+  "meta": { }
+}
+```
+
+### GET `/api/mobile/restaurants/{restaurant:slug}`
+
+Response:
+
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "Demo Restaurant A",
+    "slug": "demo-restaurant-a",
+    "branches": [
+      {
+        "id": 10,
+        "name": "Main Branch",
+        "code": "main",
+        "seating_areas": [
+          {
+            "id": 100,
+            "name": "Indoor",
+            "type": "indoor",
+            "tables": [
+              { "id": 1000, "label": "T1", "capacity": 2 }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
 When API endpoints are introduced in later phases, this file must be updated in the same step, per `docs/eventaat_blueprint_v1.md`.
 

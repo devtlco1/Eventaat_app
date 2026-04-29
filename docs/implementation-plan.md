@@ -89,3 +89,20 @@ Create a customer mobile authentication REST API foundation (OTP + tokens), with
 - No bookings
 - No restaurant discovery endpoints
 
+### Phase 4A goal
+
+Add authenticated mobile customer **restaurant discovery API** (list + detail) using Phase 2 restaurant foundation data.
+
+### Deliverables (Phase 4A)
+
+- `GET /api/mobile/restaurants` (active only, search + pagination)
+- `GET /api/mobile/restaurants/{restaurant:slug}` (active only, nested branches/seating/tables)
+- Tests for auth + active-only visibility + nesting + no bookings endpoint
+- API docs updated with request/response examples
+
+### Explicit non-goals (Phase 4A)
+
+- No bookings endpoints or booking creation
+- No mobile UI
+- No Filament dashboard/UI changes
+
