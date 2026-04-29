@@ -45,3 +45,11 @@ Denied:
 - `operations_admin`
 - `customer`
 
+## Restaurant panel scoping (Phase 2)
+
+Phase 2 introduces restaurant operational data and scoping via `RestaurantStaffAssignment`:
+
+- `restaurant_owner`: restaurant-level access (all branches under assigned restaurant)
+- `branch_manager`: branch-scoped access (assigned branch)
+- `restaurant_host`: branch-scoped operational access (assigned branch)
+

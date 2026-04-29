@@ -50,3 +50,23 @@ Implement real authentication and **role-based panel access** (no restaurant res
 - No API endpoints
 - No custom dashboard UI/widgets/cards/stats
 
+### Phase 2 goal
+
+Add the core restaurant operational foundation (models + Filament resources), with strict scoping between Platform and Restaurant panels.
+
+### Deliverables (Phase 2)
+
+- Models: Restaurant, Branch, SeatingArea, RestaurantTable, RestaurantStaffAssignment
+- String-backed enums for statuses/types/roles
+- Filament resources for **both** panels (native only)
+- Restaurant panel scoping backed by `RestaurantStaffAssignment`
+- Idempotent demo data seeder
+- Focused tests for scoping (index + direct record URL)
+
+### Explicit non-goals (Phase 2)
+
+- No bookings
+- No mobile app work
+- No mobile/customer API endpoints
+- No custom dashboard UI/widgets/cards/stats
+

@@ -1,10 +1,10 @@
-## Eventaat (Phase 1 in progress)
+## Eventaat (Phase 2 in progress)
 
 This repository is a rebuild of Eventaat following the phased plan in `docs/eventaat_blueprint_v1.md`.
 
 Source of truth: `docs/eventaat_blueprint_v1.md`.
 
-### What exists (Phases 0–1)
+### What exists (Phases 0–2)
 
 - **Backend**: Laravel app in `backend/`
 - **Database**: PostgreSQL configuration (see `backend/.env`)
@@ -39,9 +39,27 @@ Default password for all test users: **`password`**
 Phase 0 user:
 - `admin@eventaat.test` is assigned **`super_admin`** by the Phase 1 seeder.
 
+### Phase 2: local demo restaurant data (dev only)
+
+Phase 2 adds restaurant operational foundation models/resources and demo data.
+
+Seed everything (roles/users + demo restaurants):
+
+```bash
+cd backend
+php artisan db:seed
+```
+
+Demo data includes:
+- 2 demo restaurants (`demo-restaurant-a`, `demo-restaurant-b`)
+- branches, seating areas, and tables
+- staff assignments for:
+  - `restaurant_owner@eventaat.test` (restaurant-level for Demo Restaurant A)
+  - `branch_manager@eventaat.test` (branch-scoped for Demo Restaurant A)
+  - `restaurant_host@eventaat.test` (branch-scoped for Demo Restaurant A)
+
 ### What does NOT exist yet
 
-- No restaurant resources/models
 - No bookings
 - No mobile app (`mobile/` not created)
 - No custom dashboard pages/cards/stats/widgets

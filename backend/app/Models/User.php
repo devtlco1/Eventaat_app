@@ -9,6 +9,7 @@ use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -28,6 +29,44 @@ class User extends Authenticatable implements FilamentUser
             'restaurant' => $this->hasAnyRole(['restaurant_owner', 'branch_manager', 'restaurant_host']),
             default => false,
         };
+    }
+
+    public function restaurantStaffAssignments(): HasMany
+    {
+        return $this->hasMany(RestaurantStaffAssignment::class);
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public function scopedRestaurantIds(): array
+    {
+        if (! $this->hasAnyRole(['restaurant_owner', 'branch_manager', 'restaurant_host'])) {
+            return [];
+        }
+
+        return $this->restaurantStaffAssignments()
+            ->select('restaurant_id')
+            ->distinct()
+            ->pluck('restaurant_id')
+            ->all();
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public function scopedBranchIds(): array
+    {
+        if (! $this->hasAnyRole(['branch_manager', 'restaurant_host'])) {
+            return [];
+        }
+
+        return $this->restaurantStaffAssignments()
+            ->whereNotNull('branch_id')
+            ->select('branch_id')
+            ->distinct()
+            ->pluck('branch_id')
+            ->all();
     }
 
     /**
