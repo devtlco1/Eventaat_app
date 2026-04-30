@@ -22,6 +22,8 @@ class BookingsTable
                 TextColumn::make('starts_at')->dateTime()->sortable(),
                 TextColumn::make('party_size')->sortable(),
                 TextColumn::make('branch.name')->label('Branch')->sortable(),
+                TextColumn::make('seatingArea.name')->label('Seating Area')->sortable(),
+                TextColumn::make('table.label')->label('Table')->sortable(),
                 TextColumn::make('customer.phone')->label('Customer phone')->searchable(),
                 TextColumn::make('created_at')->since(),
             ])

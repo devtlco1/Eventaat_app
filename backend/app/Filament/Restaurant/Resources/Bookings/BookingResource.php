@@ -22,6 +22,10 @@ class BookingResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Operations';
+
+    protected static ?int $navigationSort = 10;
+
     public static function getEloquentQuery(): Builder
     {
         /** @var \App\Models\User|null $user */

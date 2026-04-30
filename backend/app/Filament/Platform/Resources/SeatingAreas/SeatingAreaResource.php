@@ -6,6 +6,7 @@ use App\Filament\Platform\Resources\SeatingAreas\Pages\CreateSeatingArea;
 use App\Filament\Platform\Resources\SeatingAreas\Pages\EditSeatingArea;
 use App\Filament\Platform\Resources\SeatingAreas\Pages\ListSeatingAreas;
 use App\Filament\Platform\Resources\SeatingAreas\Pages\ViewSeatingArea;
+use App\Filament\Platform\Resources\SeatingAreas\RelationManagers\RestaurantTablesRelationManager;
 use App\Filament\Platform\Resources\SeatingAreas\Schemas\SeatingAreaForm;
 use App\Filament\Platform\Resources\SeatingAreas\Schemas\SeatingAreaInfolist;
 use App\Filament\Platform\Resources\SeatingAreas\Tables\SeatingAreasTable;
@@ -21,6 +22,10 @@ class SeatingAreaResource extends Resource
     protected static ?string $model = SeatingArea::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Restaurant Setup';
+
+    protected static ?int $navigationSort = 30;
 
     public static function form(Schema $schema): Schema
     {
@@ -40,7 +45,7 @@ class SeatingAreaResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RestaurantTablesRelationManager::class,
         ];
     }
 

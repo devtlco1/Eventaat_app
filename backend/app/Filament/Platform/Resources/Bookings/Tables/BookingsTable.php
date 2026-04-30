@@ -8,8 +8,10 @@ use App\Services\Bookings\BookingTransitionService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class BookingsTable
 {
@@ -23,6 +25,8 @@ class BookingsTable
                 TextColumn::make('party_size')->sortable(),
                 TextColumn::make('restaurant.name')->label('Restaurant')->sortable(),
                 TextColumn::make('branch.name')->label('Branch')->sortable(),
+                TextColumn::make('table.label')->label('Table')->sortable(),
+                TextColumn::make('customer.name')->label('Customer')->toggleable(),
                 TextColumn::make('customer.phone')->label('Customer phone')->searchable(),
                 TextColumn::make('created_at')->since(),
             ])
@@ -36,6 +40,16 @@ class BookingsTable
                     ->relationship('restaurant', 'name'),
                 SelectFilter::make('branch')
                     ->relationship('branch', 'name'),
+                Filter::make('starts_at_date')
+                    ->form([
+                        \Filament\Forms\Components\DatePicker::make('date')->label('Starts at (date)'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        $date = $data['date'] ?? null;
+                        return $date
+                            ? $query->whereDate('starts_at', $date)
+                            : $query;
+                    }),
             ])
             ->recordActions([
                 Action::make('accept')

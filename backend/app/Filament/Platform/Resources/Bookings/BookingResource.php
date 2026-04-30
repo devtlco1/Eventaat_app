@@ -19,6 +19,10 @@ class BookingResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Operations';
+
+    protected static ?int $navigationSort = 10;
+
     public static function canCreate(): bool
     {
         // Bookings are created by customers via the mobile API in Phase 5A.

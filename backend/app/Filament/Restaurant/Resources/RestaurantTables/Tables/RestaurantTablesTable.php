@@ -13,7 +13,8 @@ class RestaurantTablesTable
     {
         return $table
             ->columns([
-                TextColumn::make('seatingArea.name')->label('Seating Area'),
+                TextColumn::make('seatingArea.branch.name')->label('Branch')->sortable(),
+                TextColumn::make('seatingArea.name')->label('Seating Area')->sortable(),
                 TextColumn::make('label')->searchable()->sortable(),
                 TextColumn::make('capacity')->sortable(),
                 TextColumn::make('status')->badge(),

@@ -3,8 +3,11 @@
 namespace App\Filament\Platform\Resources\RestaurantStaffAssignments\Schemas;
 
 use App\Enums\RestaurantStaffRole;
+use App\Models\Branch;
 use Filament\Forms\Components\Select;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Illuminate\Validation\Rule;
 
 class RestaurantStaffAssignmentForm
 {
@@ -19,11 +22,31 @@ class RestaurantStaffAssignmentForm
                 Select::make('restaurant_id')
                     ->relationship('restaurant', 'name')
                     ->required()
-                    ->searchable(),
-                Select::make('branch_id')
-                    ->relationship('branch', 'name')
                     ->searchable()
-                    ->nullable(),
+                    ->reactive(),
+                Select::make('branch_id')
+                    ->label('Branch (optional)')
+                    ->options(function (Get $get) {
+                        $restaurantId = $get('restaurant_id');
+                        if (! $restaurantId) {
+                            return [];
+                        }
+
+                        return Branch::query()
+                            ->where('restaurant_id', $restaurantId)
+                            ->orderBy('name')
+                            ->pluck('name', 'id')
+                            ->all();
+                    })
+                    ->nullable()
+                    ->searchable()
+                    ->rule(function (Get $get) {
+                        $restaurantId = $get('restaurant_id');
+
+                        return $restaurantId
+                            ? Rule::exists(Branch::class, 'id')->where('restaurant_id', $restaurantId)
+                            : Rule::prohibitedIf(true);
+                    }),
                 Select::make('role')
                     ->required()
                     ->options(array_combine(

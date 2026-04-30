@@ -3,8 +3,12 @@
 namespace App\Filament\Platform\Resources\RestaurantTables\Schemas;
 
 use App\Enums\TableStatus;
+use App\Models\Branch;
+use App\Models\Restaurant;
+use App\Models\SeatingArea;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class RestaurantTableForm
@@ -13,8 +17,65 @@ class RestaurantTableForm
     {
         return $schema
             ->components([
+                Select::make('restaurant_id')
+                    ->label('Restaurant')
+                    ->options(fn () => Restaurant::query()->orderBy('name')->pluck('name', 'id')->all())
+                    ->searchable()
+                    ->reactive()
+                    ->dehydrated(false)
+                    ->afterStateHydrated(function (Select $component, $state, $record): void {
+                        /** @var \App\Models\RestaurantTable|null $record */
+                        if (! $record) {
+                            return;
+                        }
+
+                        $restaurantId = $record->seatingArea?->branch?->restaurant_id;
+                        if ($restaurantId) {
+                            $component->state($restaurantId);
+                        }
+                    }),
+                Select::make('branch_id')
+                    ->label('Branch')
+                    ->options(function (Get $get) {
+                        $restaurantId = $get('restaurant_id');
+                        if (! $restaurantId) {
+                            return [];
+                        }
+
+                        return Branch::query()
+                            ->where('restaurant_id', $restaurantId)
+                            ->orderBy('name')
+                            ->pluck('name', 'id')
+                            ->all();
+                    })
+                    ->searchable()
+                    ->reactive()
+                    ->dehydrated(false)
+                    ->afterStateHydrated(function (Select $component, $state, $record): void {
+                        /** @var \App\Models\RestaurantTable|null $record */
+                        if (! $record) {
+                            return;
+                        }
+
+                        $branchId = $record->seatingArea?->branch_id;
+                        if ($branchId) {
+                            $component->state($branchId);
+                        }
+                    }),
                 Select::make('seating_area_id')
-                    ->relationship('seatingArea', 'name')
+                    ->label('Seating Area')
+                    ->options(function (Get $get) {
+                        $branchId = $get('branch_id');
+                        if (! $branchId) {
+                            return [];
+                        }
+
+                        return SeatingArea::query()
+                            ->where('branch_id', $branchId)
+                            ->orderBy('name')
+                            ->pluck('name', 'id')
+                            ->all();
+                    })
                     ->required()
                     ->searchable(),
                 TextInput::make('label')

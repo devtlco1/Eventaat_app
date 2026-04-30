@@ -161,3 +161,11 @@ Add the first booking lifecycle foundation:
 - No mobile UI work
 - No custom dashboards/widgets/cards/stats
 
+### Phase 5B (polish): Filament resource hierarchy usability
+
+Non-feature usability step to make the hierarchy clearer in Filament using native components only:
+- add hierarchy columns (Restaurant/Branch/Seating Area/Table) where relevant
+- add native filters for Restaurant/Branch/Status and a simple date filter for bookings
+- improve forms with dependent selects (Restaurant → Branch → Seating Area)
+- add relation managers on the Platform panel for Restaurant → Branches → Seating Areas → Tables
+

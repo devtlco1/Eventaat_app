@@ -5,6 +5,7 @@ namespace App\Filament\Platform\Resources\Branches\Tables;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class BranchesTable
@@ -19,7 +20,14 @@ class BranchesTable
                 TextColumn::make('status')->badge(),
             ])
             ->filters([
-                //
+                SelectFilter::make('restaurant_id')
+                    ->label('Restaurant')
+                    ->relationship('restaurant', 'name'),
+                SelectFilter::make('status')
+                    ->options([
+                        'active' => 'active',
+                        'inactive' => 'inactive',
+                    ]),
             ])
             ->recordActions([
                 ViewAction::make(),

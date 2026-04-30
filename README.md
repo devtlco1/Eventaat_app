@@ -117,6 +117,12 @@ Key endpoints (see `docs/api-reference.md` for full details):
 Phase 5B adds:
 - simple conflict prevention when a `restaurant_table_id` is provided (prevents double-booking the same table/time)
 
+### Filament usability polish
+
+We periodically apply small **Filament-native** usability improvements (tables/filters/forms/relation managers/navigation grouping) to make the operational hierarchy clearer:
+
+Restaurant → Branch → Seating Area → Table → Booking
+
 ### Local setup (backend)
 
 Prerequisites:
