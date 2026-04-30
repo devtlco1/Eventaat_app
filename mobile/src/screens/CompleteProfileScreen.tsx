@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
 import { ApiErrorResponse } from "../api/client";
 import { updateMe } from "../api/endpoints";
+import { AuthScreenLayout } from "../components/auth/AuthScreenLayout";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { TextField } from "../components/TextField";
@@ -29,10 +29,10 @@ export function CompleteProfileScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Complete your profile</Text>
-      <Text style={styles.subtitle}>Please add your name to continue.</Text>
-
+    <AuthScreenLayout
+      title="Complete your profile"
+      subtitle="Add your name so restaurants know how to greet you."
+    >
       <ErrorBanner message={error} />
 
       <TextField
@@ -44,27 +44,10 @@ export function CompleteProfileScreen() {
       />
 
       <PrimaryButton
-        title={loading ? "Saving..." : "Save"}
+        title={loading ? "Saving..." : "Save and continue"}
         onPress={submit}
         disabled={loading || name.trim().length < 2}
       />
-    </View>
+    </AuthScreenLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    gap: 16,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#111827",
-  },
-  subtitle: {
-    color: "#4B5563",
-  },
-});
-

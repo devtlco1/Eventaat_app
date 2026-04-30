@@ -3,7 +3,9 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAuth } from "../auth/AuthContext";
 import { needsName } from "../auth/profile";
+import { SplashScreen } from "../screens/SplashScreen";
 import { PhoneEntryScreen } from "../screens/PhoneEntryScreen";
+import { SignUpScreen } from "../screens/SignUpScreen";
 import { OtpVerifyScreen } from "../screens/OtpVerifyScreen";
 import { CompleteProfileScreen } from "../screens/CompleteProfileScreen";
 import { HomeScreen } from "../screens/HomeScreen";
@@ -16,7 +18,8 @@ import { ProfileScreen } from "../screens/ProfileScreen";
 
 export type RootStackParamList = {
   PhoneEntry: undefined;
-  OtpVerify: { phone: string };
+  SignUp: undefined;
+  OtpVerify: { phone: string; name?: string };
   CompleteProfile: undefined;
   Home: undefined;
   Restaurants: undefined;
@@ -33,7 +36,7 @@ export function AppNavigator() {
   const { token, me, isBootstrapping } = useAuth();
 
   if (isBootstrapping) {
-    return null;
+    return <SplashScreen />;
   }
 
   const authed = !!token;
@@ -47,26 +50,31 @@ export function AppNavigator() {
             <Stack.Screen
               name="PhoneEntry"
               component={PhoneEntryScreen}
-              options={{ title: "Sign in" }}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="SignUp"
+              component={SignUpScreen}
+              options={{ headerShown: false }}
             />
             <Stack.Screen
               name="OtpVerify"
               component={OtpVerifyScreen}
-              options={{ title: "Verify OTP" }}
+              options={{ headerShown: false }}
             />
           </>
         ) : needProfile ? (
           <Stack.Screen
             name="CompleteProfile"
             component={CompleteProfileScreen}
-            options={{ title: "Complete profile" }}
+            options={{ headerShown: false }}
           />
         ) : (
           <>
             <Stack.Screen
               name="Home"
               component={HomeScreen}
-              options={{ title: "Eventaat" }}
+              options={{ headerShown: false }}
             />
             <Stack.Screen
               name="Restaurants"
@@ -104,4 +112,3 @@ export function AppNavigator() {
     </NavigationContainer>
   );
 }
-

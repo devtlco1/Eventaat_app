@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
+import { colors, radii } from "../theme/tokens";
 
 export function TextField({
   label,
@@ -36,19 +37,23 @@ export function TextField({
 
 const styles = StyleSheet.create({
   wrapper: {
-    gap: 6,
+    gap: 8,
   },
   label: {
-    color: "#111827",
+    color: colors.text,
     fontWeight: "600",
+    fontSize: 15,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    borderColor: colors.borderInput,
+    borderRadius: radii.input,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     fontSize: 16,
+    color: colors.text,
+    backgroundColor: colors.background,
+    minHeight: 48,
   },
 });
 

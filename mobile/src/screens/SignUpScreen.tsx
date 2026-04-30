@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { requestOtp } from "../api/endpoints";
 import { ApiErrorResponse } from "../api/client";
+import { requestOtp } from "../api/endpoints";
 import { AuthFooterLink } from "../components/auth/AuthFooterLink";
 import { AuthScreenLayout } from "../components/auth/AuthScreenLayout";
 import { ErrorBanner } from "../components/ErrorBanner";
@@ -9,9 +9,10 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { TextField } from "../components/TextField";
 import type { RootStackParamList } from "../navigation/AppNavigator";
 
-type Props = NativeStackScreenProps<RootStackParamList, "PhoneEntry">;
+type Props = NativeStackScreenProps<RootStackParamList, "SignUp">;
 
-export function PhoneEntryScreen({ navigation }: Props) {
+export function SignUpScreen({ navigation }: Props) {
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -21,7 +22,10 @@ export function PhoneEntryScreen({ navigation }: Props) {
     setError(null);
     try {
       await requestOtp(phone.trim());
-      navigation.navigate("OtpVerify", { phone: phone.trim() });
+      navigation.navigate("OtpVerify", {
+        phone: phone.trim(),
+        name: name.trim(),
+      });
     } catch (e) {
       const msg =
         e instanceof ApiErrorResponse ? e.message : "Failed to request OTP.";
@@ -31,19 +35,30 @@ export function PhoneEntryScreen({ navigation }: Props) {
     }
   };
 
+  const canSubmit =
+    name.trim().length >= 2 && phone.trim().length >= 6 && !loading;
+
   return (
     <AuthScreenLayout
-      title="Log in"
-      subtitle="Enter your phone number and we'll send you a one-time code."
+      title="Create account"
+      subtitle="Add your name and phone number. We'll send a code to verify it's you."
       footer={
         <AuthFooterLink
-          label="New to Eventaat?"
-          linkLabel="Sign up"
-          onPress={() => navigation.navigate("SignUp")}
+          label="Already have an account?"
+          linkLabel="Log in"
+          onPress={() => navigation.navigate("PhoneEntry")}
         />
       }
     >
       <ErrorBanner message={error} />
+
+      <TextField
+        label="Name"
+        value={name}
+        onChangeText={setName}
+        placeholder="Your full name"
+        autoCapitalize="words"
+      />
 
       <TextField
         label="Phone"
@@ -56,7 +71,7 @@ export function PhoneEntryScreen({ navigation }: Props) {
       <PrimaryButton
         title={loading ? "Sending..." : "Continue"}
         onPress={submit}
-        disabled={loading || phone.trim().length < 6}
+        disabled={!canSubmit}
       />
     </AuthScreenLayout>
   );
