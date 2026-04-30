@@ -7,12 +7,24 @@ import { PhoneEntryScreen } from "../screens/PhoneEntryScreen";
 import { OtpVerifyScreen } from "../screens/OtpVerifyScreen";
 import { CompleteProfileScreen } from "../screens/CompleteProfileScreen";
 import { HomeScreen } from "../screens/HomeScreen";
+import { RestaurantListScreen } from "../screens/RestaurantListScreen";
+import { RestaurantDetailsScreen } from "../screens/RestaurantDetailsScreen";
+import { CreateBookingScreen } from "../screens/CreateBookingScreen";
+import { MyBookingsScreen } from "../screens/MyBookingsScreen";
+import { BookingDetailsScreen } from "../screens/BookingDetailsScreen";
+import { ProfileScreen } from "../screens/ProfileScreen";
 
 export type RootStackParamList = {
   PhoneEntry: undefined;
   OtpVerify: { phone: string };
   CompleteProfile: undefined;
   Home: undefined;
+  Restaurants: undefined;
+  RestaurantDetails: { slug: string };
+  CreateBooking: { restaurantSlug?: string };
+  MyBookings: undefined;
+  BookingDetails: { bookingId: number };
+  Profile: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -50,11 +62,43 @@ export function AppNavigator() {
             options={{ title: "Complete profile" }}
           />
         ) : (
-          <Stack.Screen
-            name="Home"
-            component={HomeScreen}
-            options={{ title: "Eventaat" }}
-          />
+          <>
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{ title: "Eventaat" }}
+            />
+            <Stack.Screen
+              name="Restaurants"
+              component={RestaurantListScreen}
+              options={{ title: "Restaurants" }}
+            />
+            <Stack.Screen
+              name="RestaurantDetails"
+              component={RestaurantDetailsScreen}
+              options={{ title: "Restaurant" }}
+            />
+            <Stack.Screen
+              name="CreateBooking"
+              component={CreateBookingScreen}
+              options={{ title: "Create booking" }}
+            />
+            <Stack.Screen
+              name="MyBookings"
+              component={MyBookingsScreen}
+              options={{ title: "My bookings" }}
+            />
+            <Stack.Screen
+              name="BookingDetails"
+              component={BookingDetailsScreen}
+              options={{ title: "Booking" }}
+            />
+            <Stack.Screen
+              name="Profile"
+              component={ProfileScreen}
+              options={{ title: "Profile" }}
+            />
+          </>
         )}
       </Stack.Navigator>
     </NavigationContainer>

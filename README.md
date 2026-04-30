@@ -13,6 +13,9 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - **Restaurant panel**: `/restaurant`
 - **Docs**: implementation plan and role rules in `docs/`
 - **Mobile**: Expo React Native app in `mobile/` (Phase 4B auth UI foundation)
+- **Mobile UI (customer)**:
+  - Restaurant discovery UI (list + details)
+  - Booking UI (create + my bookings + booking details + cancel)
 - **Bookings (Phases 5–6)**:
   - Booking model + statuses: `pending|accepted|rejected|cancelled|arrived|seated|completed|no_show`
   - Filament BookingResource in `/platform` and `/restaurant`
@@ -69,7 +72,7 @@ Demo data includes:
 
 - No booking reschedule/update API
 - No payments/deposits
-- No mobile restaurant discovery UI (home is a placeholder only)
+- No advanced mobile UI kits/design system
 - No custom dashboard pages/cards/stats/widgets
 - No sidebar links to unimplemented features
 - No notifications/WhatsApp integration

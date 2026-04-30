@@ -4,3 +4,9 @@ Phase 0–6 focuses on foundation + role-based access + restaurant operational f
 
 Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
+### Mobile customer UI (current)
+
+- Auth + profile completion
+- Restaurant discovery UI (list + details)
+- Bookings UI (create + list + details + cancel)
+

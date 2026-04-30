@@ -14,6 +14,8 @@ class CreateBooking extends CreateRecord
 {
     protected static string $resource = BookingResource::class;
 
+    protected static bool $canCreateAnother = false;
+
     public function form(Schema $schema): Schema
     {
         return ManualBookingCreateForm::configure($schema);
@@ -35,5 +37,10 @@ class CreateBooking extends CreateRecord
             'customer_note' => $data['customer_note'] ?? null,
             'restaurant_note' => $data['restaurant_note'] ?? null,
         ]);
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResourceUrl();
     }
 }

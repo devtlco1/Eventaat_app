@@ -129,6 +129,23 @@ Create an Expo React Native mobile app foundation in `mobile/` and implement **c
 - No backend API changes
 - No UI kits / Redux / Zustand / design system
 
+### Mobile UI foundation (post Phase 4B) — implemented
+
+Mobile customer UI now includes:
+
+- Restaurant discovery UI:
+  - list: `GET /api/mobile/restaurants`
+  - details: `GET /api/mobile/restaurants/{restaurant:slug}`
+- Booking UI:
+  - create: `POST /api/mobile/bookings` (supports with and without table)
+  - list: `GET /api/mobile/bookings`
+  - details: `GET /api/mobile/bookings/{booking}`
+  - cancel: `POST /api/mobile/bookings/{booking}/cancel`
+
+Notes:
+- UI uses React Native core components only (no UI kits).
+- If API returns 401/403, the app clears token and returns to the auth flow.
+
 ### Phase 5A goal
 
 Add the first booking lifecycle foundation:
