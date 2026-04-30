@@ -8,6 +8,11 @@ use Illuminate\Support\Carbon;
 
 class BookingTransitionService
 {
+    private function hasFinalTimestamp(Booking $booking): bool
+    {
+        return (bool) ($booking->rejected_at || $booking->cancelled_at || $booking->completed_at || $booking->no_show_at);
+    }
+
     public function isFinal(Booking $booking): bool
     {
         return in_array($booking->status?->value, [
@@ -24,6 +29,10 @@ class BookingTransitionService
             return false;
         }
 
+        if ($this->hasFinalTimestamp($booking)) {
+            return false;
+        }
+
         return $booking->status?->value === BookingStatus::Pending->value;
     }
 
@@ -33,12 +42,20 @@ class BookingTransitionService
             return false;
         }
 
+        if ($booking->accepted_at || $this->hasFinalTimestamp($booking)) {
+            return false;
+        }
+
         return $booking->status?->value === BookingStatus::Pending->value;
     }
 
     public function canCancel(Booking $booking): bool
     {
         if ($this->isFinal($booking)) {
+            return false;
+        }
+
+        if ($booking->rejected_at || $booking->completed_at || $booking->no_show_at) {
             return false;
         }
 
@@ -115,6 +132,10 @@ class BookingTransitionService
             return false;
         }
 
+        if ($this->hasFinalTimestamp($booking)) {
+            return false;
+        }
+
         return $booking->status?->value === BookingStatus::Accepted->value;
     }
 
@@ -141,6 +162,10 @@ class BookingTransitionService
     public function canSeat(Booking $booking): bool
     {
         if ($this->isFinal($booking)) {
+            return false;
+        }
+
+        if ($this->hasFinalTimestamp($booking)) {
             return false;
         }
 
@@ -173,6 +198,10 @@ class BookingTransitionService
             return false;
         }
 
+        if ($booking->cancelled_at || $booking->rejected_at || $booking->no_show_at || $booking->completed_at) {
+            return false;
+        }
+
         return $booking->status?->value === BookingStatus::Seated->value;
     }
 
@@ -199,6 +228,10 @@ class BookingTransitionService
     public function canNoShow(Booking $booking): bool
     {
         if ($this->isFinal($booking)) {
+            return false;
+        }
+
+        if ($booking->cancelled_at || $booking->rejected_at || $booking->completed_at) {
             return false;
         }
 

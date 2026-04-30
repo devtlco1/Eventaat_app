@@ -153,8 +153,10 @@ class ManualBookingCreateForm
                 DateTimePicker::make('starts_at')
                     ->label('Starts at')
                     ->required()
+                    ->format('Y-m-d H:i')
                     ->seconds(false)
-                    ->minDate(Carbon::now()),
+                    ->minutesStep(1)
+                    ->minDate(Carbon::now()->addMinute()->startOfMinute()),
 
                 TextInput::make('party_size')
                     ->label('Party size')

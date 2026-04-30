@@ -4,9 +4,11 @@ namespace App\Filament\Platform\Resources\Bookings\Tables;
 
 use App\Enums\BookingStatus;
 use App\Models\Booking;
+use App\Services\Bookings\BookingTransitionException;
 use App\Services\Bookings\BookingTransitionService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -66,43 +68,92 @@ class BookingsTable
                     ->color('success')
                     ->requiresConfirmation()
                     ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canAccept($record))
-                    ->action(fn (Booking $record) => app(BookingTransitionService::class)->accept($record)),
+                    ->action(function (Booking $record): void {
+                        try {
+                            app(BookingTransitionService::class)->accept($record);
+                            Notification::make()->title('Booking accepted')->success()->send();
+                        } catch (BookingTransitionException $e) {
+                            Notification::make()->title('Cannot accept booking')->danger()->body($e->getMessage())->send();
+                        }
+                    }),
                 Action::make('reject')
                     ->label('Reject')
                     ->color('danger')
                     ->requiresConfirmation()
                     ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canReject($record))
-                    ->action(fn (Booking $record) => app(BookingTransitionService::class)->reject($record)),
+                    ->action(function (Booking $record): void {
+                        try {
+                            app(BookingTransitionService::class)->reject($record);
+                            Notification::make()->title('Booking rejected')->success()->send();
+                        } catch (BookingTransitionException $e) {
+                            Notification::make()->title('Cannot reject booking')->danger()->body($e->getMessage())->send();
+                        }
+                    }),
                 Action::make('cancel')
                     ->label('Cancel')
                     ->color('warning')
                     ->requiresConfirmation()
                     ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canCancel($record))
-                    ->action(fn (Booking $record) => app(BookingTransitionService::class)->cancel($record)),
+                    ->action(function (Booking $record): void {
+                        try {
+                            app(BookingTransitionService::class)->cancel($record);
+                            Notification::make()->title('Booking cancelled')->success()->send();
+                        } catch (BookingTransitionException $e) {
+                            Notification::make()->title('Cannot cancel booking')->danger()->body($e->getMessage())->send();
+                        }
+                    }),
                 Action::make('arrive')
                     ->label('Mark arrived')
                     ->color('info')
                     ->requiresConfirmation()
                     ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canArrive($record))
-                    ->action(fn (Booking $record) => app(BookingTransitionService::class)->arrive($record)),
+                    ->action(function (Booking $record): void {
+                        try {
+                            app(BookingTransitionService::class)->arrive($record);
+                            Notification::make()->title('Marked arrived')->success()->send();
+                        } catch (BookingTransitionException $e) {
+                            Notification::make()->title('Cannot mark arrived')->danger()->body($e->getMessage())->send();
+                        }
+                    }),
                 Action::make('seat')
                     ->label('Mark seated')
                     ->color('primary')
                     ->requiresConfirmation()
                     ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canSeat($record))
-                    ->action(fn (Booking $record) => app(BookingTransitionService::class)->seat($record)),
+                    ->action(function (Booking $record): void {
+                        try {
+                            app(BookingTransitionService::class)->seat($record);
+                            Notification::make()->title('Marked seated')->success()->send();
+                        } catch (BookingTransitionException $e) {
+                            Notification::make()->title('Cannot mark seated')->danger()->body($e->getMessage())->send();
+                        }
+                    }),
                 Action::make('complete')
                     ->label('Mark completed')
                     ->color('success')
                     ->requiresConfirmation()
                     ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canComplete($record))
-                    ->action(fn (Booking $record) => app(BookingTransitionService::class)->complete($record)),
+                    ->action(function (Booking $record): void {
+                        try {
+                            app(BookingTransitionService::class)->complete($record);
+                            Notification::make()->title('Marked completed')->success()->send();
+                        } catch (BookingTransitionException $e) {
+                            Notification::make()->title('Cannot mark completed')->danger()->body($e->getMessage())->send();
+                        }
+                    }),
                 Action::make('no_show')
                     ->label('Mark no-show')
                     ->color('danger')
                     ->requiresConfirmation()
                     ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canNoShow($record))
-                    ->action(fn (Booking $record) => app(BookingTransitionService::class)->noShow($record)),
+                    ->action(function (Booking $record): void {
+                        try {
+                            app(BookingTransitionService::class)->noShow($record);
+                            Notification::make()->title('Marked no-show')->success()->send();
+                        } catch (BookingTransitionException $e) {
+                            Notification::make()->title('Cannot mark no-show')->danger()->body($e->getMessage())->send();
+                        }
+                    }),
                 EditAction::make(),
             ])
             ->toolbarActions([

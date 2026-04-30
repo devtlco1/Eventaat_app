@@ -76,6 +76,30 @@ class BookingTransitionServiceTest extends TestCase
         $svc->reject($booking);
     }
 
+    public function test_can_accept_returns_false_when_final_timestamp_is_set_even_if_status_is_pending(): void
+    {
+        $booking = $this->makeBooking([
+            'status' => BookingStatus::Pending,
+            'cancelled_at' => now(),
+        ]);
+
+        $svc = app(BookingTransitionService::class);
+
+        $this->assertFalse($svc->canAccept($booking));
+    }
+
+    public function test_can_cancel_returns_false_when_final_timestamp_is_set_even_if_status_is_pending(): void
+    {
+        $booking = $this->makeBooking([
+            'status' => BookingStatus::Pending,
+            'rejected_at' => now(),
+        ]);
+
+        $svc = app(BookingTransitionService::class);
+
+        $this->assertFalse($svc->canCancel($booking));
+    }
+
     public function test_accepted_can_cancel_but_cannot_reject(): void
     {
         $booking = $this->makeBooking([
