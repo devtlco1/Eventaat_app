@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   RefreshControl,
   StyleSheet,
@@ -24,21 +23,6 @@ function formatBookingRow(b: MobileBooking): string {
   const r = b.restaurant?.name ?? "Restaurant";
   const br = b.branch?.name ?? "Branch";
   return `${r} — ${br}`;
-}
-
-function statusLabel(status: string | null): string {
-  if (!status) return "Unknown";
-  const map: Record<string, string> = {
-    pending: "Pending",
-    accepted: "Accepted",
-    rejected: "Rejected",
-    cancelled: "Cancelled",
-    arrived: "Arrived",
-    seated: "Seated",
-    completed: "Completed",
-    no_show: "No-show",
-  };
-  return map[status] ?? status;
 }
 
 function parseMs(iso: string | null): number | null {
@@ -102,10 +86,6 @@ export function MyBookingsScreen() {
 
   const empty = useMemo(() => items.length === 0, [items.length]);
 
-  if (isLoading) {
-    return <LoadingState message="Loading bookings…" />;
-  }
-
   const sorted = useMemo(() => {
     const now = Date.now();
     const arr = [...items];
@@ -122,6 +102,10 @@ export function MyBookingsScreen() {
     });
     return arr;
   }, [items]);
+
+  if (isLoading) {
+    return <LoadingState message="Loading bookings…" />;
+  }
 
   return (
     <View style={styles.container}>
