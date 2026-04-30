@@ -22,6 +22,10 @@ class Booking extends Model
         'accepted_at',
         'rejected_at',
         'cancelled_at',
+        'arrived_at',
+        'seated_at',
+        'completed_at',
+        'no_show_at',
     ];
 
     protected $casts = [
@@ -31,6 +35,10 @@ class Booking extends Model
         'accepted_at' => 'datetime',
         'rejected_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'arrived_at' => 'datetime',
+        'seated_at' => 'datetime',
+        'completed_at' => 'datetime',
+        'no_show_at' => 'datetime',
     ];
 
     public function customer(): BelongsTo

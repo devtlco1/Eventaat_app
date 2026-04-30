@@ -20,7 +20,16 @@ class BookingsTable
         return $table
             ->columns([
                 TextColumn::make('id')->sortable(),
-                TextColumn::make('status')->badge()->sortable(),
+                TextColumn::make('status')
+                    ->badge()
+                    ->formatStateUsing(function ($state): string {
+                        if ($state instanceof BookingStatus) {
+                            return $state->label();
+                        }
+
+                        return BookingStatus::tryFrom((string) $state)?->label() ?? (string) $state;
+                    })
+                    ->sortable(),
                 TextColumn::make('starts_at')->dateTime()->sortable(),
                 TextColumn::make('party_size')->sortable(),
                 TextColumn::make('restaurant.name')->label('Restaurant')->sortable(),
@@ -70,6 +79,30 @@ class BookingsTable
                     ->requiresConfirmation()
                     ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canCancel($record))
                     ->action(fn (Booking $record) => app(BookingTransitionService::class)->cancel($record)),
+                Action::make('arrive')
+                    ->label('Mark arrived')
+                    ->color('info')
+                    ->requiresConfirmation()
+                    ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canArrive($record))
+                    ->action(fn (Booking $record) => app(BookingTransitionService::class)->arrive($record)),
+                Action::make('seat')
+                    ->label('Mark seated')
+                    ->color('primary')
+                    ->requiresConfirmation()
+                    ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canSeat($record))
+                    ->action(fn (Booking $record) => app(BookingTransitionService::class)->seat($record)),
+                Action::make('complete')
+                    ->label('Mark completed')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canComplete($record))
+                    ->action(fn (Booking $record) => app(BookingTransitionService::class)->complete($record)),
+                Action::make('no_show')
+                    ->label('Mark no-show')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canNoShow($record))
+                    ->action(fn (Booking $record) => app(BookingTransitionService::class)->noShow($record)),
                 EditAction::make(),
             ])
             ->toolbarActions([

@@ -188,12 +188,16 @@ When API endpoints are introduced in later phases, this file must be updated in 
 Auth for all endpoints below:
 `Authorization: Bearer <token>` (customer token only)
 
-Booking statuses in Phase 5A:
+Booking statuses (Phase 5A–6):
 ```text
 pending
 accepted
 rejected
 cancelled
+arrived
+seated
+completed
+no_show
 ```
 
 ### POST `/api/mobile/bookings`
@@ -238,6 +242,10 @@ Response (201):
     "accepted_at": null,
     "rejected_at": null,
     "cancelled_at": null,
+    "arrived_at": null,
+    "seated_at": null,
+    "completed_at": null,
+    "no_show_at": null,
     "restaurant": { "id": 1, "name": "Demo Restaurant A", "slug": "demo-restaurant-a" },
     "branch": { "id": 10, "name": "Main Branch", "code": "main" },
     "seating_area": { "id": 100, "name": "Indoor", "code": "indoor", "type": "indoor" },
@@ -271,7 +279,7 @@ Conflict error example (422):
 List the authenticated customer's bookings only.
 
 Query params:
-- `status` (optional): one of `pending|accepted|rejected|cancelled`
+- `status` (optional): one of `pending|accepted|rejected|cancelled|arrived|seated|completed|no_show`
 - `per_page` (optional): pagination size (max 50)
 
 Response (paginated):
@@ -304,7 +312,11 @@ Response:
   "restaurant_note": null,
   "accepted_at": null,
   "rejected_at": null,
-  "cancelled_at": null
+  "cancelled_at": null,
+  "arrived_at": null,
+  "seated_at": null,
+  "completed_at": null,
+  "no_show_at": null
 }
 ```
 

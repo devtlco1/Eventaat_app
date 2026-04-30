@@ -13,6 +13,7 @@ use App\Models\RestaurantTable;
 use App\Models\SeatingArea;
 use App\Models\User;
 use Database\Seeders\RolesAndTestUsersSeeder;
+use App\Services\Bookings\BookingTransitionService;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
@@ -301,6 +302,47 @@ class MobileBookingsApiTest extends TestCase
             'starts_at' => $startsAt->toISOString(),
             'party_size' => 2,
         ])->assertStatus(201);
+    }
+
+    public function test_mobile_booking_api_returns_expanded_status_values_and_timestamps(): void
+    {
+        $data = $this->makeActiveRestaurantGraph();
+        $customer = $this->makeCustomer('phase6@mobile.eventaat.test', '+15550010111');
+        $token = $customer->createToken('mobile')->plainTextToken;
+
+        $booking = Booking::create([
+            'customer_id' => $customer->id,
+            'restaurant_id' => $data['restaurant']->id,
+            'branch_id' => $data['branch']->id,
+            'seating_area_id' => $data['area']->id,
+            'restaurant_table_id' => $data['table']->id,
+            'starts_at' => Carbon::now()->addHours(6),
+            'party_size' => 2,
+            'status' => BookingStatus::Accepted,
+            'accepted_at' => Carbon::now(),
+        ]);
+
+        app(BookingTransitionService::class)->arrive($booking, Carbon::parse('2026-01-01 11:00:00'));
+        $booking->refresh();
+
+        $detail = $this->withToken($token)->getJson("/api/mobile/bookings/{$booking->id}")
+            ->assertOk()
+            ->assertJsonPath('status', 'arrived');
+
+        $detail->assertJsonPath('arrived_at', '2026-01-01T11:00:00.000000Z');
+        $detail->assertJsonStructure([
+            'accepted_at',
+            'rejected_at',
+            'cancelled_at',
+            'arrived_at',
+            'seated_at',
+            'completed_at',
+            'no_show_at',
+        ]);
+
+        $this->withToken($token)->getJson('/api/mobile/bookings?status=arrived')
+            ->assertOk()
+            ->assertJsonFragment(['status' => 'arrived']);
     }
 }
 

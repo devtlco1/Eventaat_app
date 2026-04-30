@@ -22,25 +22,29 @@ class BookingTransitionServiceTest extends TestCase
 
     private function makeBooking(array $overrides = []): Booking
     {
+        static $seq = 1;
+
         $customer = User::create([
             'name' => '',
-            'phone' => '+15559990001',
-            'email' => 'transition_test@eventaat.test',
+            'phone' => '+1555999'.str_pad((string) $seq, 4, '0', STR_PAD_LEFT),
+            'email' => "transition_test_{$seq}@eventaat.test",
             'password' => Hash::make('x'),
         ]);
 
         $restaurant = Restaurant::create([
             'name' => 'R',
-            'slug' => 'r-transition',
+            'slug' => "r-transition-{$seq}",
             'status' => RestaurantStatus::Active,
         ]);
 
         $branch = Branch::create([
             'restaurant_id' => $restaurant->id,
             'name' => 'B',
-            'code' => 'b',
+            'code' => "b{$seq}",
             'status' => BranchStatus::Active,
         ]);
+
+        $seq++;
 
         return Booking::create(array_merge([
             'customer_id' => $customer->id,
@@ -90,7 +94,117 @@ class BookingTransitionServiceTest extends TestCase
         $svc->reject($booking);
     }
 
-    public function test_rejected_and_cancelled_are_final_in_phase_5a(): void
+    public function test_accepted_can_be_marked_arrived_and_timestamp_is_set(): void
+    {
+        $svc = app(BookingTransitionService::class);
+
+        $booking = $this->makeBooking([
+            'status' => BookingStatus::Accepted,
+            'accepted_at' => Carbon::parse('2026-01-01 10:00:00'),
+        ]);
+
+        $svc->arrive($booking, Carbon::parse('2026-01-01 11:00:00'));
+        $booking->refresh();
+        $this->assertSame('arrived', $booking->status->value);
+        $this->assertSame('2026-01-01 11:00:00', $booking->arrived_at?->format('Y-m-d H:i:s'));
+    }
+
+    public function test_accepted_can_be_marked_no_show_and_timestamp_is_set(): void
+    {
+        $svc = app(BookingTransitionService::class);
+
+        $booking = $this->makeBooking([
+            'status' => BookingStatus::Accepted,
+            'accepted_at' => Carbon::parse('2026-01-01 10:00:00'),
+        ]);
+
+        $svc->noShow($booking, Carbon::parse('2026-01-01 11:00:00'));
+        $booking->refresh();
+        $this->assertSame('no_show', $booking->status->value);
+        $this->assertSame('2026-01-01 11:00:00', $booking->no_show_at?->format('Y-m-d H:i:s'));
+    }
+
+    public function test_arrived_can_be_marked_seated_or_no_show_or_cancelled_and_timestamps_set(): void
+    {
+        $svc = app(BookingTransitionService::class);
+
+        $arrived = $this->makeBooking([
+            'status' => BookingStatus::Arrived,
+            'accepted_at' => Carbon::parse('2026-01-01 10:00:00'),
+            'arrived_at' => Carbon::parse('2026-01-01 11:00:00'),
+        ]);
+
+        $svc->seat($arrived, Carbon::parse('2026-01-01 11:05:00'));
+        $arrived->refresh();
+        $this->assertSame('seated', $arrived->status->value);
+        $this->assertSame('2026-01-01 11:05:00', $arrived->seated_at?->format('Y-m-d H:i:s'));
+
+        $arrived2 = $this->makeBooking([
+            'status' => BookingStatus::Arrived,
+            'accepted_at' => Carbon::parse('2026-01-01 10:00:00'),
+            'arrived_at' => Carbon::parse('2026-01-01 11:00:00'),
+        ]);
+
+        $svc->noShow($arrived2, Carbon::parse('2026-01-01 11:10:00'));
+        $arrived2->refresh();
+        $this->assertSame('no_show', $arrived2->status->value);
+        $this->assertSame('2026-01-01 11:10:00', $arrived2->no_show_at?->format('Y-m-d H:i:s'));
+
+        $arrived3 = $this->makeBooking([
+            'status' => BookingStatus::Arrived,
+            'accepted_at' => Carbon::parse('2026-01-01 10:00:00'),
+            'arrived_at' => Carbon::parse('2026-01-01 11:00:00'),
+        ]);
+
+        $svc->cancel($arrived3, Carbon::parse('2026-01-01 11:15:00'));
+        $arrived3->refresh();
+        $this->assertSame('cancelled', $arrived3->status->value);
+        $this->assertSame('2026-01-01 11:15:00', $arrived3->cancelled_at?->format('Y-m-d H:i:s'));
+    }
+
+    public function test_seated_can_be_marked_completed_and_timestamp_is_set(): void
+    {
+        $svc = app(BookingTransitionService::class);
+
+        $booking = $this->makeBooking([
+            'status' => BookingStatus::Seated,
+            'accepted_at' => Carbon::parse('2026-01-01 10:00:00'),
+            'arrived_at' => Carbon::parse('2026-01-01 11:00:00'),
+            'seated_at' => Carbon::parse('2026-01-01 11:05:00'),
+        ]);
+
+        $svc->complete($booking, Carbon::parse('2026-01-01 12:00:00'));
+        $booking->refresh();
+        $this->assertSame('completed', $booking->status->value);
+        $this->assertSame('2026-01-01 12:00:00', $booking->completed_at?->format('Y-m-d H:i:s'));
+    }
+
+    public function test_completed_no_show_rejected_and_cancelled_are_final_in_phase_6(): void
+    {
+        $svc = app(BookingTransitionService::class);
+
+        $completed = $this->makeBooking([
+            'status' => BookingStatus::Completed,
+            'completed_at' => now(),
+        ]);
+        $this->expectException(BookingTransitionException::class);
+        $svc->cancel($completed);
+    }
+
+    public function test_no_show_is_final_in_phase_6(): void
+    {
+        $svc = app(BookingTransitionService::class);
+
+        $noShow = $this->makeBooking([
+            'status' => BookingStatus::NoShow,
+            'no_show_at' => now(),
+        ]);
+
+        $this->expectException(BookingTransitionException::class);
+        $svc->seat($noShow);
+    }
+
+    public function test_rejected_and_cancelled_are_final_in_phase_6(): void
     {
         $svc = app(BookingTransitionService::class);
 

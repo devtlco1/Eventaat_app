@@ -24,6 +24,10 @@ class MobileBookingResource extends JsonResource
             'accepted_at' => optional($this->accepted_at)->toISOString(),
             'rejected_at' => optional($this->rejected_at)->toISOString(),
             'cancelled_at' => optional($this->cancelled_at)->toISOString(),
+            'arrived_at' => optional($this->arrived_at)->toISOString(),
+            'seated_at' => optional($this->seated_at)->toISOString(),
+            'completed_at' => optional($this->completed_at)->toISOString(),
+            'no_show_at' => optional($this->no_show_at)->toISOString(),
             'restaurant' => $this->whenLoaded('restaurant', fn () => [
                 'id' => $this->restaurant->id,
                 'name' => $this->restaurant->name,
