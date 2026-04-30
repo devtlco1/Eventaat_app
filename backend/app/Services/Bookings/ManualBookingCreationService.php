@@ -46,6 +46,14 @@ class ManualBookingCreationService
         $customerName = is_string($customerName) ? trim($customerName) : null;
         $customerName = $customerName !== '' ? $customerName : null;
 
+        /** @var User|null $existing */
+        $existing = User::query()->where('phone', $phone)->first();
+        if (! $existing && $customerName === null) {
+            throw ValidationException::withMessages([
+                'customer_name' => ['Customer name is required for a new customer.'],
+            ]);
+        }
+
         $customer = $this->resolveOrCreateCustomer($phone, $customerName);
 
         $result = $this->validator->validate([

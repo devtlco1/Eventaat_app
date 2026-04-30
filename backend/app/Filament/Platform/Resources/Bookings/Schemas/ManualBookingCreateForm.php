@@ -9,13 +9,17 @@ use App\Models\Branch;
 use App\Models\Restaurant;
 use App\Models\RestaurantTable;
 use App\Models\SeatingArea;
+use App\Models\User;
+use App\Services\Otp\MobileOtpService;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 class ManualBookingCreateForm
 {
@@ -23,12 +27,48 @@ class ManualBookingCreateForm
     {
         return $schema
             ->components([
+                TextInput::make('customer_lookup_message')
+                    ->dehydrated(false)
+                    ->hidden(),
+                TextInput::make('customer_exists')
+                    ->dehydrated(false)
+                    ->hidden(),
                 TextInput::make('customer_phone')
                     ->label('Customer phone')
                     ->required()
+                    ->debounce(600)
+                    ->afterStateUpdated(function ($state, Set $set, Get $get): void {
+                        $normalized = MobileOtpService::normalizePhone((string) $state);
+                        if ($normalized === '') {
+                            $set('customer_exists', false);
+                            $set('customer_lookup_message', null);
+                            return;
+                        }
+
+                        /** @var User|null $user */
+                        $user = User::query()->where('phone', $normalized)->first();
+
+                        if ($user) {
+                            $set('customer_exists', true);
+                            $set('customer_lookup_message', 'Existing customer found');
+
+                            $currentName = trim((string) ($get('customer_name') ?? ''));
+                            $userName = trim((string) $user->name);
+                            if ($currentName === '' && $userName !== '' && Str::lower($userName) !== 'customer') {
+                                $set('customer_name', $userName);
+                            }
+
+                            return;
+                        }
+
+                        $set('customer_exists', false);
+                        $set('customer_lookup_message', 'New customer will be created');
+                    })
+                    ->helperText(fn (Get $get) => $get('customer_lookup_message') ?: null)
                     ->maxLength(32),
                 TextInput::make('customer_name')
                     ->label('Customer name')
+                    ->required(fn (Get $get) => ! (bool) $get('customer_exists'))
                     ->maxLength(255),
 
                 Select::make('restaurant_id')

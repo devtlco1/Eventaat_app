@@ -16,6 +16,7 @@ use App\Models\SeatingArea;
 use App\Models\User;
 use App\Services\Bookings\ManualBookingCreationService;
 use Database\Seeders\RolesAndTestUsersSeeder;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
@@ -95,6 +96,24 @@ class ManualBookingCreationServiceTest extends TestCase
         $this->assertSame($customer->id, $booking->customer_id);
     }
 
+    public function test_manual_booking_new_phone_requires_customer_name(): void
+    {
+        $data = $this->makeActiveRestaurantGraph();
+
+        try {
+            app(ManualBookingCreationService::class)->create([
+                'customer_phone' => '+15550039901',
+                'restaurant_id' => $data['restaurant']->id,
+                'branch_id' => $data['branch']->id,
+                'starts_at' => Carbon::now()->addHours(3),
+                'party_size' => 2,
+            ]);
+            $this->fail('Expected ValidationException.');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('customer_name', $e->errors());
+        }
+    }
+
     public function test_manual_booking_with_existing_phone_reuses_user_and_optionally_updates_name(): void
     {
         $data = $this->makeActiveRestaurantGraph();
@@ -158,6 +177,7 @@ class ManualBookingCreationServiceTest extends TestCase
 
         $first = app(ManualBookingCreationService::class)->create([
             'customer_phone' => '+15550030004',
+            'customer_name' => 'First',
             'restaurant_id' => $data['restaurant']->id,
             'branch_id' => $data['branch']->id,
             'restaurant_table_id' => $data['table']->id,
@@ -168,6 +188,7 @@ class ManualBookingCreationServiceTest extends TestCase
         $this->expectException(ValidationException::class);
         app(ManualBookingCreationService::class)->create([
             'customer_phone' => '+15550030005',
+            'customer_name' => 'Second',
             'restaurant_id' => $data['restaurant']->id,
             'branch_id' => $data['branch']->id,
             'restaurant_table_id' => $data['table']->id,
@@ -179,6 +200,7 @@ class ManualBookingCreationServiceTest extends TestCase
 
         $ok = app(ManualBookingCreationService::class)->create([
             'customer_phone' => '+15550030006',
+            'customer_name' => 'Third',
             'restaurant_id' => $data['restaurant']->id,
             'branch_id' => $data['branch']->id,
             'restaurant_table_id' => $data['table']->id,
@@ -192,6 +214,7 @@ class ManualBookingCreationServiceTest extends TestCase
 
         $again = app(ManualBookingCreationService::class)->create([
             'customer_phone' => '+15550030007',
+            'customer_name' => 'Fourth',
             'restaurant_id' => $data['restaurant']->id,
             'branch_id' => $data['branch']->id,
             'restaurant_table_id' => $data['table']->id,
@@ -229,6 +252,7 @@ class ManualBookingCreationServiceTest extends TestCase
 
         $created = app(ManualBookingCreationService::class)->create([
             'customer_phone' => '+15550039991',
+            'customer_name' => 'Scoped',
             'restaurant_id' => $a['restaurant']->id,
             'branch_id' => $a['branch']->id,
             'starts_at' => Carbon::now()->addHours(3),
@@ -242,6 +266,7 @@ class ManualBookingCreationServiceTest extends TestCase
         $this->expectException(ValidationException::class);
         app(ManualBookingCreationService::class)->create([
             'customer_phone' => '+15550039992',
+            'customer_name' => 'OutOfScope',
             'restaurant_id' => $restaurantB->id,
             'branch_id' => $branchB->id,
             'starts_at' => Carbon::now()->addHours(3),
@@ -254,9 +279,14 @@ class ManualBookingCreationServiceTest extends TestCase
     public function test_platform_and_restaurant_create_pages_are_reachable_for_valid_roles(): void
     {
         $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
         $this->actingAs($admin);
         $this->get('/platform/bookings/create')
-            ->tap(fn ($resp) => $this->assertAllowedResponse($resp->getStatusCode()));
+            ->tap(fn ($resp) => $this->assertAllowedResponse($resp->getStatusCode()))
+            ->assertSee('Customer phone')
+            ->assertSee('Restaurant')
+            ->assertSee('Branch')
+            ->assertDontSee('Status');
 
         $data = $this->makeActiveRestaurantGraph();
         $owner = User::where('email', 'restaurant_owner@eventaat.test')->firstOrFail();
@@ -267,7 +297,12 @@ class ManualBookingCreationServiceTest extends TestCase
             'role' => RestaurantStaffRole::RestaurantOwner,
             'status' => 'active',
         ]);
+        Filament::setCurrentPanel('restaurant');
         $this->actingAs($owner);
+        // Warm up the panel context first.
+        $this->get('/restaurant')
+            ->tap(fn ($resp) => $this->assertAllowedResponse($resp->getStatusCode()));
+
         $this->get('/restaurant/bookings/create')
             ->tap(fn ($resp) => $this->assertAllowedResponse($resp->getStatusCode()));
     }

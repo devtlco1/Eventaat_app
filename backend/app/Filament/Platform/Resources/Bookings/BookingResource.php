@@ -6,7 +6,6 @@ use App\Filament\Platform\Resources\Bookings\Pages\EditBooking;
 use App\Filament\Platform\Resources\Bookings\Pages\CreateBooking;
 use App\Filament\Platform\Resources\Bookings\Pages\ListBookings;
 use App\Filament\Platform\Resources\Bookings\Schemas\BookingForm;
-use App\Filament\Platform\Resources\Bookings\Schemas\ManualBookingCreateForm;
 use App\Filament\Platform\Resources\Bookings\Tables\BookingsTable;
 use App\Models\Booking;
 use BackedEnum;
@@ -32,12 +31,6 @@ class BookingResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        $routeName = request()->route()?->getName() ?? '';
-
-        if (str_ends_with($routeName, '.create')) {
-            return ManualBookingCreateForm::configure($schema);
-        }
-
         return BookingForm::configure($schema);
     }
 

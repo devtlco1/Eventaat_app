@@ -3,14 +3,21 @@
 namespace App\Filament\Platform\Resources\Bookings\Pages;
 
 use App\Filament\Platform\Resources\Bookings\BookingResource;
+use App\Filament\Platform\Resources\Bookings\Schemas\ManualBookingCreateForm;
 use App\Services\Bookings\ManualBookingCreationService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Schemas\Schema;
 
 class CreateBooking extends CreateRecord
 {
     protected static string $resource = BookingResource::class;
+
+    public function form(Schema $schema): Schema
+    {
+        return ManualBookingCreateForm::configure($schema);
+    }
 
     protected function handleRecordCreation(array $data): Model
     {

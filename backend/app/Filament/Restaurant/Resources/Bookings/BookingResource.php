@@ -6,7 +6,6 @@ use App\Filament\Restaurant\Resources\Bookings\Pages\EditBooking;
 use App\Filament\Restaurant\Resources\Bookings\Pages\CreateBooking;
 use App\Filament\Restaurant\Resources\Bookings\Pages\ListBookings;
 use App\Filament\Restaurant\Resources\Bookings\Schemas\BookingForm;
-use App\Filament\Restaurant\Resources\Bookings\Schemas\ManualBookingCreateForm;
 use App\Filament\Restaurant\Resources\Bookings\Tables\BookingsTable;
 use App\Models\Booking;
 use App\Support\RestaurantPanelScope;
@@ -64,12 +63,6 @@ class BookingResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        $routeName = request()->route()?->getName() ?? '';
-
-        if (str_ends_with($routeName, '.create')) {
-            return ManualBookingCreateForm::configure($schema);
-        }
-
         return BookingForm::configure($schema);
     }
 
