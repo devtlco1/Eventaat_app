@@ -1,0 +1,70 @@
+import { API_BASE_URL } from "../config/env";
+import type { ApiError } from "./types";
+
+export class ApiErrorResponse extends Error {
+  status: number;
+  details?: unknown;
+
+  constructor(err: ApiError) {
+    super(err.message);
+    this.name = "ApiErrorResponse";
+    this.status = err.status;
+    this.details = err.details;
+  }
+}
+
+type ClientOptions = {
+  token?: string | null;
+};
+
+export async function apiRequest<T>(
+  path: string,
+  init: RequestInit,
+  options: ClientOptions = {}
+): Promise<T> {
+  const url = `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    ...(init.headers as Record<string, string> | undefined),
+  };
+
+  if (init.body && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const token = options.token;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const res = await fetch(url, { ...init, headers });
+
+  const text = await res.text();
+  const json = text ? safeJsonParse(text) : null;
+
+  if (!res.ok) {
+    const message =
+      (json && typeof json === "object" && "message" in json
+        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (json as any).message
+        : null) ?? `Request failed (${res.status}).`;
+
+    throw new ApiErrorResponse({
+      status: res.status,
+      message,
+      details: json ?? text,
+    });
+  }
+
+  return (json as T) ?? ({} as T);
+}
+
+function safeJsonParse(input: string): unknown {
+  try {
+    return JSON.parse(input);
+  } catch {
+    return null;
+  }
+}
+

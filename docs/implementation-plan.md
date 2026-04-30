@@ -106,3 +106,26 @@ Add authenticated mobile customer **restaurant discovery API** (list + detail) u
 - No mobile UI
 - No Filament dashboard/UI changes
 
+### Phase 4B goal
+
+Create an Expo React Native mobile app foundation in `mobile/` and implement **customer auth UI only** (no restaurant discovery UI yet).
+
+### Deliverables (Phase 4B)
+
+- Expo app initialized in `mobile/` (TypeScript)
+- Clean structure: `src/api`, `src/auth`, `src/screens`, `src/components`, `src/navigation`, `src/config`
+- API base URL via `EXPO_PUBLIC_API_BASE_URL` (example in `mobile/.env.example`)
+- Secure token storage using `expo-secure-store`
+- Auth flow screens:
+  - Phone entry
+  - OTP verification
+  - Complete profile (name only)
+  - Authenticated home placeholder + logout
+
+### Explicit non-goals (Phase 4B)
+
+- No mobile restaurant discovery UI (home remains placeholder)
+- No bookings
+- No backend API changes
+- No UI kits / Redux / Zustand / design system
+

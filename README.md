@@ -1,4 +1,4 @@
-## Eventaat (Phase 4A in progress)
+## Eventaat (Phase 4B complete)
 
 This repository is a rebuild of Eventaat following the phased plan in `docs/eventaat_blueprint_v1.md`.
 
@@ -12,6 +12,7 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - **Platform panel**: `/platform`
   - **Restaurant panel**: `/restaurant`
 - **Docs**: implementation plan and role rules in `docs/`
+- **Mobile**: Expo React Native app in `mobile/` (Phase 4B auth UI foundation)
 
 ### Phase 1: local test users (dev only)
 
@@ -61,10 +62,10 @@ Demo data includes:
 ### What does NOT exist yet
 
 - No bookings
-- No mobile app (`mobile/` not created)
+- No mobile restaurant discovery UI (home is a placeholder only)
 - No custom dashboard pages/cards/stats/widgets
 - No sidebar links to unimplemented features
-- No API work beyond the Laravel/Filament foundation
+- No new backend API changes beyond Phases 3–4A
 
 ### Phase 3: mobile customer auth API (dev only)
 
@@ -85,6 +86,14 @@ Key endpoints (see `docs/api-reference.md` for full details):
 Phase 4A adds authenticated customer restaurant discovery:
 - `GET /api/mobile/restaurants` (active only, search + pagination)
 - `GET /api/mobile/restaurants/{restaurant:slug}` (active only, includes nested branches/seating/tables)
+
+### Phase 4B: mobile app foundation + customer auth UI (dev only)
+
+Phase 4B adds an Expo mobile app in `mobile/` that consumes the existing Phase 3 auth/profile endpoints:
+- Phone entry -> request OTP
+- OTP verify -> stores token securely
+- Complete profile (name only) if `profile_completed=false`
+- Authenticated home placeholder + logout
 
 ### Local setup (backend)
 
@@ -122,4 +131,24 @@ php artisan serve
 Open:
 - `http://localhost:8000/platform`
 - `http://localhost:8000/restaurant`
+
+### Local setup (mobile)
+
+Prerequisites:
+- Node.js + npm
+- Expo Go (for quick device testing) or an iOS/Android simulator
+
+Configure API base URL for your environment (LAN IP or tunnel for physical devices):
+
+```bash
+cd mobile
+cp .env.example .env
+```
+
+Install + run:
+
+```bash
+npm install
+npm run start
+```
 
