@@ -114,6 +114,9 @@ Key endpoints (see `docs/api-reference.md` for full details):
 - `GET /api/mobile/bookings/{booking}`
 - `POST /api/mobile/bookings/{booking}/cancel`
 
+Phase 5B adds:
+- simple conflict prevention when a `restaurant_table_id` is provided (prevents double-booking the same table/time)
+
 ### Local setup (backend)
 
 Prerequisites:

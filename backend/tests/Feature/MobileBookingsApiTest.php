@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\BranchStatus;
+use App\Enums\BookingStatus;
 use App\Enums\RestaurantStatus;
 use App\Enums\TableStatus;
 use App\Models\Booking;
@@ -247,6 +248,59 @@ class MobileBookingsApiTest extends TestCase
 
         $this->withToken($token2)->postJson("/api/mobile/bookings/{$booking->id}/cancel")
             ->assertStatus(404);
+    }
+
+    public function test_booking_conflict_prevention_rejects_double_booking_same_table_and_time(): void
+    {
+        $data = $this->makeActiveRestaurantGraph();
+        $customer = $this->makeCustomer('conflict@mobile.eventaat.test', '+15550010010');
+        $token = $customer->createToken('mobile')->plainTextToken;
+
+        $startsAt = Carbon::now()->addHours(10)->toISOString();
+
+        $this->withToken($token)->postJson('/api/mobile/bookings', [
+            'restaurant_id' => $data['restaurant']->id,
+            'branch_id' => $data['branch']->id,
+            'restaurant_table_id' => $data['table']->id,
+            'starts_at' => $startsAt,
+            'party_size' => 2,
+        ])->assertStatus(201);
+
+        $this->withToken($token)->postJson('/api/mobile/bookings', [
+            'restaurant_id' => $data['restaurant']->id,
+            'branch_id' => $data['branch']->id,
+            'restaurant_table_id' => $data['table']->id,
+            'starts_at' => $startsAt,
+            'party_size' => 2,
+        ])->assertStatus(422)->assertJsonValidationErrors(['restaurant_table_id']);
+    }
+
+    public function test_cancelled_booking_does_not_block_new_booking_for_same_table_and_time(): void
+    {
+        $data = $this->makeActiveRestaurantGraph();
+        $customer = $this->makeCustomer('conflict2@mobile.eventaat.test', '+15550010011');
+        $token = $customer->createToken('mobile')->plainTextToken;
+
+        $startsAt = Carbon::now()->addHours(11);
+
+        Booking::create([
+            'customer_id' => $customer->id,
+            'restaurant_id' => $data['restaurant']->id,
+            'branch_id' => $data['branch']->id,
+            'restaurant_table_id' => $data['table']->id,
+            'starts_at' => $startsAt,
+            'party_size' => 2,
+            'status' => BookingStatus::Cancelled,
+            'cancelled_at' => Carbon::now(),
+        ]);
+
+        $this->withToken($token)->postJson('/api/mobile/bookings', [
+            'restaurant_id' => $data['restaurant']->id,
+            'branch_id' => $data['branch']->id,
+            'restaurant_table_id' => $data['table']->id,
+            'starts_at' => $startsAt->toISOString(),
+            'party_size' => 2,
+        ])->assertStatus(201);
     }
 }
 

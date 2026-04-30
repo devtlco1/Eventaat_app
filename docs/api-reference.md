@@ -222,6 +222,7 @@ Rules:
 - seating area (if provided) must belong to the branch and be active
 - table (if provided) must belong to the seating area / branch and be active
 - if table is provided, `party_size` must not exceed `table.capacity`
+- **Conflict prevention (Phase 5B)**: if a table is provided, a booking is rejected when another `pending` or `accepted` booking exists for the same table within a fixed conflict window (simple block model).
 
 Response (201):
 
@@ -253,6 +254,15 @@ Validation error example (422):
 {
   "message": "The party size field must not exceed table capacity.",
   "errors": { "party_size": ["Party size must not exceed table capacity."] }
+}
+```
+
+Conflict error example (422):
+
+```json
+{
+  "message": "The restaurant table id field is invalid.",
+  "errors": { "restaurant_table_id": ["Table is not available at the selected time."] }
 }
 ```
 
