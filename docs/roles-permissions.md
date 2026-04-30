@@ -67,3 +67,7 @@ Phase 5A introduces booking operations:
 - **Restaurant panel** (`restaurant_owner`, `branch_manager`, `restaurant_host`): can view and act on bookings in their scoped restaurant/branch only.
 - **Customers**: can create/list/view/cancel their own bookings via the mobile API, and can never access Filament panels.
 
+Manual booking creation (Filament):
+- Platform and Restaurant panel users can create bookings manually using customer phone (phone-first input), within their allowed scope.
+- Manual creation can create/reuse customer users by phone and assigns only the `customer` role.
+

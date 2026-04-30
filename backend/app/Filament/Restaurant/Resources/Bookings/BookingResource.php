@@ -3,8 +3,10 @@
 namespace App\Filament\Restaurant\Resources\Bookings;
 
 use App\Filament\Restaurant\Resources\Bookings\Pages\EditBooking;
+use App\Filament\Restaurant\Resources\Bookings\Pages\CreateBooking;
 use App\Filament\Restaurant\Resources\Bookings\Pages\ListBookings;
 use App\Filament\Restaurant\Resources\Bookings\Schemas\BookingForm;
+use App\Filament\Restaurant\Resources\Bookings\Schemas\ManualBookingCreateForm;
 use App\Filament\Restaurant\Resources\Bookings\Tables\BookingsTable;
 use App\Models\Booking;
 use App\Support\RestaurantPanelScope;
@@ -40,8 +42,7 @@ class BookingResource extends Resource
 
     public static function canCreate(): bool
     {
-        // Bookings are created by customers via the mobile API in Phase 5A.
-        return false;
+        return true;
     }
 
     public static function canDelete($record): bool
@@ -63,6 +64,12 @@ class BookingResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
+        $routeName = request()->route()?->getName() ?? '';
+
+        if (str_ends_with($routeName, '.create')) {
+            return ManualBookingCreateForm::configure($schema);
+        }
+
         return BookingForm::configure($schema);
     }
 
@@ -82,6 +89,7 @@ class BookingResource extends Resource
     {
         return [
             'index' => ListBookings::route('/'),
+            'create' => CreateBooking::route('/create'),
             'edit' => EditBooking::route('/{record}/edit'),
         ];
     }

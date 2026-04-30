@@ -1,0 +1,162 @@
+<?php
+
+namespace App\Filament\Restaurant\Resources\Bookings\Schemas;
+
+use App\Enums\BranchStatus;
+use App\Enums\RestaurantStatus;
+use App\Enums\TableStatus;
+use App\Models\Branch;
+use App\Models\Restaurant;
+use App\Models\RestaurantTable;
+use App\Models\SeatingArea;
+use Filament\Facades\Filament;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
+use Illuminate\Support\Carbon;
+
+class ManualBookingCreateForm
+{
+    public static function configure(Schema $schema): Schema
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Filament::auth()->user();
+        $scopedRestaurantIds = $user?->scopedRestaurantIds() ?? [];
+        $scopedBranchIds = $user?->scopedBranchIds() ?? [];
+
+        $singleRestaurantId = count($scopedRestaurantIds) === 1 ? (int) $scopedRestaurantIds[0] : null;
+        $singleBranchId = count($scopedBranchIds) === 1 ? (int) $scopedBranchIds[0] : null;
+
+        return $schema
+            ->components([
+                TextInput::make('customer_phone')
+                    ->label('Customer phone')
+                    ->required()
+                    ->maxLength(32),
+                TextInput::make('customer_name')
+                    ->label('Customer name')
+                    ->maxLength(255),
+
+                Select::make('restaurant_id')
+                    ->label('Restaurant')
+                    ->required()
+                    ->searchable()
+                    ->reactive()
+                    ->default($singleRestaurantId)
+                    ->hidden(fn () => $singleRestaurantId !== null)
+                    ->options(function () use ($scopedRestaurantIds) {
+                        $query = Restaurant::query()
+                            ->where('status', RestaurantStatus::Active->value)
+                            ->orderBy('name');
+
+                        if ($scopedRestaurantIds !== []) {
+                            $query->whereIn('id', $scopedRestaurantIds);
+                        }
+
+                        return $query->pluck('name', 'id')->all();
+                    }),
+
+                Select::make('branch_id')
+                    ->label('Branch')
+                    ->required()
+                    ->searchable()
+                    ->reactive()
+                    ->default($singleBranchId)
+                    ->hidden(fn () => $singleBranchId !== null)
+                    ->options(function (Get $get) use ($scopedBranchIds) {
+                        $restaurantId = $get('restaurant_id');
+                        if (! $restaurantId) {
+                            return [];
+                        }
+
+                        $query = Branch::query()
+                            ->where('restaurant_id', (int) $restaurantId)
+                            ->where('status', BranchStatus::Active->value)
+                            ->orderBy('name');
+
+                        if ($scopedBranchIds !== []) {
+                            $query->whereIn('id', $scopedBranchIds);
+                        }
+
+                        return $query->pluck('name', 'id')->all();
+                    }),
+
+                Select::make('seating_area_id')
+                    ->label('Seating Area (optional)')
+                    ->nullable()
+                    ->searchable()
+                    ->reactive()
+                    ->options(function (Get $get) {
+                        $branchId = $get('branch_id');
+                        if (! $branchId) {
+                            return [];
+                        }
+
+                        return SeatingArea::query()
+                            ->where('branch_id', (int) $branchId)
+                            ->where('status', 'active')
+                            ->orderBy('name')
+                            ->pluck('name', 'id')
+                            ->all();
+                    }),
+
+                Select::make('restaurant_table_id')
+                    ->label('Table (optional)')
+                    ->nullable()
+                    ->searchable()
+                    ->options(function (Get $get) {
+                        $branchId = $get('branch_id');
+                        if (! $branchId) {
+                            return [];
+                        }
+
+                        $seatingAreaId = $get('seating_area_id');
+
+                        $query = RestaurantTable::query()
+                            ->where('status', TableStatus::Active->value)
+                            ->whereHas('seatingArea', function ($q) use ($branchId, $seatingAreaId) {
+                                $q->where('branch_id', (int) $branchId)
+                                    ->where('status', 'active');
+
+                                if ($seatingAreaId) {
+                                    $q->whereKey((int) $seatingAreaId);
+                                }
+                            })
+                            ->orderBy('label');
+
+                        return $query
+                            ->get()
+                            ->mapWithKeys(fn (RestaurantTable $t) => [$t->id => "{$t->label} (cap {$t->capacity})"])
+                            ->all();
+                    }),
+
+                DateTimePicker::make('starts_at')
+                    ->label('Starts at')
+                    ->required()
+                    ->seconds(false)
+                    ->minDate(Carbon::now()),
+
+                TextInput::make('party_size')
+                    ->label('Party size')
+                    ->numeric()
+                    ->required()
+                    ->minValue(1)
+                    ->maxValue(100)
+                    ->default(2),
+
+                Textarea::make('customer_note')
+                    ->label('Customer note (optional)')
+                    ->maxLength(2000)
+                    ->columnSpanFull(),
+
+                Textarea::make('restaurant_note')
+                    ->label('Restaurant note (optional)')
+                    ->maxLength(2000)
+                    ->columnSpanFull(),
+            ]);
+    }
+}
+

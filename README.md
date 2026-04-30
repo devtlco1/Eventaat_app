@@ -1,10 +1,10 @@
-## Eventaat (Phase 5A complete)
+## Eventaat (Phase 6 complete)
 
 This repository is a rebuild of Eventaat following the phased plan in `docs/eventaat_blueprint_v1.md`.
 
 Source of truth: `docs/eventaat_blueprint_v1.md`.
 
-### What exists (Phases 0–5A)
+### What exists (Phases 0–6)
 
 - **Backend**: Laravel app in `backend/`
 - **Database**: PostgreSQL configuration (see `backend/.env`)
@@ -13,9 +13,11 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - **Restaurant panel**: `/restaurant`
 - **Docs**: implementation plan and role rules in `docs/`
 - **Mobile**: Expo React Native app in `mobile/` (Phase 4B auth UI foundation)
-- **Bookings (Phase 5A)**:
-  - Booking model + statuses: `pending|accepted|rejected|cancelled`
+- **Bookings (Phases 5–6)**:
+  - Booking model + statuses: `pending|accepted|rejected|cancelled|arrived|seated|completed|no_show`
   - Filament BookingResource in `/platform` and `/restaurant`
+    - Lifecycle actions: Accept / Reject / Cancel / Mark arrived / Mark seated / Mark completed / Mark no-show
+    - Manual booking creation (phone-first) in both panels
   - Customer bookings API (create/list/detail/cancel)
 
 ### Phase 1: local test users (dev only)
@@ -65,7 +67,6 @@ Demo data includes:
 
 ### What does NOT exist yet
 
-- No day-of booking statuses (`arrived`, `seated`, `completed`, `no_show`)
 - No booking reschedule/update API
 - No payments/deposits
 - No mobile restaurant discovery UI (home is a placeholder only)
@@ -116,6 +117,13 @@ Key endpoints (see `docs/api-reference.md` for full details):
 
 Phase 5B adds:
 - simple conflict prevention when a `restaurant_table_id` is provided (prevents double-booking the same table/time)
+
+### Phase 6: day-of booking operations (dev only)
+
+Phase 6 extends restaurant day-of operations:
+- Statuses: `arrived|seated|completed|no_show` (in addition to Phase 5 statuses)
+- Timestamps: `arrived_at|seated_at|completed_at|no_show_at`
+- Native Filament actions for day-of transitions (scoped in Restaurant panel)
 
 ### Filament usability polish
 

@@ -169,3 +169,18 @@ Non-feature usability step to make the hierarchy clearer in Filament using nativ
 - improve forms with dependent selects (Restaurant → Branch → Seating Area)
 - add relation managers on the Platform panel for Restaurant → Branches → Seating Areas → Tables
 
+### Phase 6: day-of booking operations
+
+Adds visit-day operational statuses and actions for bookings:
+- Statuses: `arrived`, `seated`, `completed`, `no_show`
+- Nullable timestamps: `arrived_at`, `seated_at`, `completed_at`, `no_show_at`
+- Native Filament actions in both panels for day-of transitions (Restaurant panel remains strictly scoped)
+
+### Operational improvement: manual booking creation in Filament
+
+Adds manual booking creation in Filament for operational/testing use:
+- Phone-first customer input (`customer_phone` required, `customer_name` optional)
+- Creates/reuses customer users by phone (customer role only)
+- Dependent selects: Restaurant → Branch → Seating Area → Table
+- Reuses the same validation and conflict-prevention rules as the mobile booking API
+
