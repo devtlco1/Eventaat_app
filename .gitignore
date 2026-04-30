@@ -1,3 +1,6 @@
 # Local-only docs (avoid accidental pushes)
 docs/local-test-credentials.md
 
+# Cursor IDE (local)
+.cursor/
+

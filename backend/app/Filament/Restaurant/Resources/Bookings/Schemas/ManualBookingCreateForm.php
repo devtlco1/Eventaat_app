@@ -24,9 +24,25 @@ use Illuminate\Support\Str;
 
 class ManualBookingCreateForm
 {
+    private static function seatingAreaOptionLabel(SeatingArea $area): string
+    {
+        $parts = [$area->name];
+        if (filled($area->code)) {
+            $parts[] = '('.$area->code.')';
+        }
+        $type = $area->type;
+        if ($type instanceof \BackedEnum) {
+            $parts[] = '['.$type->value.']';
+        } elseif (filled($type)) {
+            $parts[] = '['.(string) $type.']';
+        }
+
+        return implode(' ', $parts);
+    }
+
     public static function configure(Schema $schema): Schema
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Filament::auth()->user();
         $scopedRestaurantIds = $user?->scopedRestaurantIds() ?? [];
         $scopedBranchIds = $user?->scopedBranchIds() ?? [];
@@ -51,6 +67,7 @@ class ManualBookingCreateForm
                         if ($normalized === '') {
                             $set('customer_exists', false);
                             $set('customer_lookup_message', null);
+
                             return;
                         }
 
@@ -84,9 +101,16 @@ class ManualBookingCreateForm
                     ->label('Restaurant')
                     ->required()
                     ->searchable()
-                    ->reactive()
+                    ->preload()
+                    ->live()
+                    ->afterStateUpdated(function (Set $set): void {
+                        $set('branch_id', null);
+                        $set('seating_area_id', null);
+                        $set('restaurant_table_id', null);
+                    })
                     ->default($singleRestaurantId)
                     ->hidden(fn () => $singleRestaurantId !== null)
+                    ->dehydrated(true)
                     ->options(function () use ($scopedRestaurantIds) {
                         $query = Restaurant::query()
                             ->where('status', RestaurantStatus::Active->value)
@@ -103,9 +127,15 @@ class ManualBookingCreateForm
                     ->label('Branch')
                     ->required()
                     ->searchable()
-                    ->reactive()
+                    ->preload()
+                    ->live()
+                    ->afterStateUpdated(function (Set $set): void {
+                        $set('seating_area_id', null);
+                        $set('restaurant_table_id', null);
+                    })
                     ->default($singleBranchId)
                     ->hidden(fn () => $singleBranchId !== null)
+                    ->dehydrated(true)
                     ->options(function (Get $get) use ($scopedBranchIds) {
                         $restaurantId = $get('restaurant_id');
                         if (! $restaurantId) {
@@ -128,7 +158,12 @@ class ManualBookingCreateForm
                     ->label('Seating Area (optional)')
                     ->nullable()
                     ->searchable()
-                    ->reactive()
+                    ->preload()
+                    ->live()
+                    ->helperText(fn (Get $get): ?string => $get('branch_id') ? null : 'Select a branch first.')
+                    ->afterStateUpdated(function (Set $set): void {
+                        $set('restaurant_table_id', null);
+                    })
                     ->options(function (Get $get) {
                         $branchId = $get('branch_id');
                         if (! $branchId) {
@@ -139,7 +174,8 @@ class ManualBookingCreateForm
                             ->where('branch_id', (int) $branchId)
                             ->where('status', 'active')
                             ->orderBy('name')
-                            ->pluck('name', 'id')
+                            ->get()
+                            ->mapWithKeys(fn (SeatingArea $a) => [$a->id => self::seatingAreaOptionLabel($a)])
                             ->all();
                     }),
 
@@ -147,6 +183,18 @@ class ManualBookingCreateForm
                     ->label('Table (optional)')
                     ->nullable()
                     ->searchable()
+                    ->preload()
+                    ->live()
+                    ->helperText(function (Get $get): ?string {
+                        if (! $get('branch_id')) {
+                            return 'Select a branch first.';
+                        }
+                        if (! $get('seating_area_id')) {
+                            return 'Active tables for this branch (all seating areas). Choose a seating area above to narrow the list.';
+                        }
+
+                        return null;
+                    })
                     ->options(function (Get $get) {
                         $branchId = $get('branch_id');
                         if (! $branchId) {
@@ -201,4 +249,3 @@ class ManualBookingCreateForm
             ]);
     }
 }
-

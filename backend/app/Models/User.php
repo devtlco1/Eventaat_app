@@ -21,6 +21,7 @@ class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens;
+
     use HasFactory, Notifiable;
     use HasRoles;
 
@@ -47,10 +48,13 @@ class User extends Authenticatable implements FilamentUser
             return [];
         }
 
-        return $this->restaurantStaffAssignments()
+        return collect($this->restaurantStaffAssignments()
             ->select('restaurant_id')
             ->distinct()
-            ->pluck('restaurant_id')
+            ->pluck('restaurant_id'))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
             ->all();
     }
 
@@ -63,11 +67,14 @@ class User extends Authenticatable implements FilamentUser
             return [];
         }
 
-        return $this->restaurantStaffAssignments()
+        return collect($this->restaurantStaffAssignments()
             ->whereNotNull('branch_id')
             ->select('branch_id')
             ->distinct()
-            ->pluck('branch_id')
+            ->pluck('branch_id'))
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
             ->all();
     }
 
