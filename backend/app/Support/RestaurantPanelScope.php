@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Branch;
+use App\Models\Booking;
 use App\Models\Restaurant;
 use App\Models\RestaurantStaffAssignment;
 use App\Models\RestaurantTable;
@@ -52,6 +53,20 @@ class RestaurantPanelScope
             $query->where(function (Builder $q) use ($branchIds) {
                 $q->whereNull('branch_id')->orWhereIn('branch_id', $branchIds);
             });
+        }
+
+        return $query;
+    }
+
+    public static function bookings(User $user): Builder
+    {
+        $branchIds = $user->scopedBranchIds();
+
+        $query = Booking::query()
+            ->whereIn('restaurant_id', $user->scopedRestaurantIds());
+
+        if (count($branchIds)) {
+            $query->whereIn('branch_id', $branchIds);
         }
 
         return $query;

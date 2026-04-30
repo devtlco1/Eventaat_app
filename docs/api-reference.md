@@ -183,3 +183,139 @@ Response:
 
 When API endpoints are introduced in later phases, this file must be updated in the same step, per `docs/eventaat_blueprint_v1.md`.
 
+## Phase 5A: mobile customer bookings API
+
+Auth for all endpoints below:
+`Authorization: Bearer <token>` (customer token only)
+
+Booking statuses in Phase 5A:
+```text
+pending
+accepted
+rejected
+cancelled
+```
+
+### POST `/api/mobile/bookings`
+
+Create a booking request. Status always starts as `pending`.
+
+Request:
+
+```json
+{
+  "restaurant_id": 1,
+  "branch_id": 10,
+  "seating_area_id": 100,
+  "restaurant_table_id": 1000,
+  "starts_at": "2026-05-01T19:00:00.000Z",
+  "party_size": 2,
+  "customer_note": "Window seat if possible"
+}
+```
+
+Rules:
+- `customer_id` is always taken from the authenticated user (not provided by client)
+- restaurant and branch must be active
+- branch must belong to restaurant
+- `starts_at` must be in the future
+- seating area (if provided) must belong to the branch and be active
+- table (if provided) must belong to the seating area / branch and be active
+- if table is provided, `party_size` must not exceed `table.capacity`
+
+Response (201):
+
+```json
+{
+  "booking": {
+    "id": 1,
+    "status": "pending",
+    "starts_at": "2026-05-01T19:00:00.000000Z",
+    "party_size": 2,
+    "customer_note": "Window seat if possible",
+    "restaurant_note": null,
+    "accepted_at": null,
+    "rejected_at": null,
+    "cancelled_at": null,
+    "restaurant": { "id": 1, "name": "Demo Restaurant A", "slug": "demo-restaurant-a" },
+    "branch": { "id": 10, "name": "Main Branch", "code": "main" },
+    "seating_area": { "id": 100, "name": "Indoor", "code": "indoor", "type": "indoor" },
+    "table": { "id": 1000, "label": "T2", "capacity": 4 },
+    "created_at": "2026-05-01T10:00:00.000000Z",
+    "updated_at": "2026-05-01T10:00:00.000000Z"
+  }
+}
+```
+
+Validation error example (422):
+
+```json
+{
+  "message": "The party size field must not exceed table capacity.",
+  "errors": { "party_size": ["Party size must not exceed table capacity."] }
+}
+```
+
+### GET `/api/mobile/bookings`
+
+List the authenticated customer's bookings only.
+
+Query params:
+- `status` (optional): one of `pending|accepted|rejected|cancelled`
+- `per_page` (optional): pagination size (max 50)
+
+Response (paginated):
+
+```json
+{
+  "data": [
+    { "id": 1, "status": "pending", "starts_at": "2026-05-01T19:00:00.000000Z", "party_size": 2 }
+  ],
+  "links": { },
+  "meta": { }
+}
+```
+
+### GET `/api/mobile/bookings/{booking}`
+
+Get booking details for the authenticated customer.
+
+If the booking belongs to another customer, the API returns `404`.
+
+Response:
+
+```json
+{
+  "id": 1,
+  "status": "pending",
+  "starts_at": "2026-05-01T19:00:00.000000Z",
+  "party_size": 2,
+  "customer_note": "Window seat if possible",
+  "restaurant_note": null,
+  "accepted_at": null,
+  "rejected_at": null,
+  "cancelled_at": null
+}
+```
+
+### POST `/api/mobile/bookings/{booking}/cancel`
+
+Cancel a booking for the authenticated customer.
+
+Rules:
+- Customer can cancel only their own booking
+- Allowed only when status is `pending` or `accepted`
+- Sets `status=cancelled` and `cancelled_at`
+
+Response:
+
+```json
+{
+  "booking": {
+    "id": 1,
+    "status": "cancelled",
+    "cancelled_at": "2026-05-01T12:00:00.000000Z"
+  }
+}
+```
+

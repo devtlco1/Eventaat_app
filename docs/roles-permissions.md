@@ -59,3 +59,11 @@ Phase 2 introduces restaurant operational data and scoping via `RestaurantStaffA
 - `branch_manager`: branch-scoped access (assigned branch)
 - `restaurant_host`: branch-scoped operational access (assigned branch)
 
+## Bookings (Phase 5A)
+
+Phase 5A introduces booking operations:
+
+- **Platform panel** (`super_admin`, `operations_admin`): can view and act (accept/reject/cancel) on all bookings.
+- **Restaurant panel** (`restaurant_owner`, `branch_manager`, `restaurant_host`): can view and act on bookings in their scoped restaurant/branch only.
+- **Customers**: can create/list/view/cancel their own bookings via the mobile API, and can never access Filament panels.
+

@@ -129,3 +129,35 @@ Create an Expo React Native mobile app foundation in `mobile/` and implement **c
 - No backend API changes
 - No UI kits / Redux / Zustand / design system
 
+### Phase 5A goal
+
+Add the first booking lifecycle foundation:
+- Customer creates booking requests via API
+- Restaurant staff accepts/rejects/cancels via Filament (native actions)
+- Platform monitors all bookings via Filament
+
+### Deliverables (Phase 5A)
+
+- Booking model + `BookingStatus` enum (`pending|accepted|rejected|cancelled`)
+- Bookings migration (FKs + indexes)
+- Shared transition logic (accept/reject/cancel) used by Filament + API
+- Platform `/platform` BookingResource (native tables/forms/actions/badges only)
+- Restaurant `/restaurant` BookingResource with strict scoping via `RestaurantStaffAssignment`
+- Mobile customer bookings API:
+  - `POST /api/mobile/bookings`
+  - `GET /api/mobile/bookings`
+  - `GET /api/mobile/bookings/{booking}`
+  - `POST /api/mobile/bookings/{booking}/cancel`
+- Tests for API + ownership + scoping + transitions
+- API docs updated
+
+### Explicit non-goals (Phase 5A)
+
+- No day-of statuses (`arrived`, `seated`, `completed`, `no_show`)
+- No reschedule/update booking endpoint
+- No availability engine
+- No payments/deposits
+- No notifications / WhatsApp integration
+- No mobile UI work
+- No custom dashboards/widgets/cards/stats
+

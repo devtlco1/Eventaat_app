@@ -1,10 +1,10 @@
-## Eventaat (Phase 4B complete)
+## Eventaat (Phase 5A complete)
 
 This repository is a rebuild of Eventaat following the phased plan in `docs/eventaat_blueprint_v1.md`.
 
 Source of truth: `docs/eventaat_blueprint_v1.md`.
 
-### What exists (Phases 0–4A)
+### What exists (Phases 0–5A)
 
 - **Backend**: Laravel app in `backend/`
 - **Database**: PostgreSQL configuration (see `backend/.env`)
@@ -13,6 +13,10 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - **Restaurant panel**: `/restaurant`
 - **Docs**: implementation plan and role rules in `docs/`
 - **Mobile**: Expo React Native app in `mobile/` (Phase 4B auth UI foundation)
+- **Bookings (Phase 5A)**:
+  - Booking model + statuses: `pending|accepted|rejected|cancelled`
+  - Filament BookingResource in `/platform` and `/restaurant`
+  - Customer bookings API (create/list/detail/cancel)
 
 ### Phase 1: local test users (dev only)
 
@@ -61,11 +65,13 @@ Demo data includes:
 
 ### What does NOT exist yet
 
-- No bookings
+- No day-of booking statuses (`arrived`, `seated`, `completed`, `no_show`)
+- No booking reschedule/update API
+- No payments/deposits
 - No mobile restaurant discovery UI (home is a placeholder only)
 - No custom dashboard pages/cards/stats/widgets
 - No sidebar links to unimplemented features
-- No new backend API changes beyond Phases 3–4A
+- No notifications/WhatsApp integration
 
 ### Phase 3: mobile customer auth API (dev only)
 
@@ -94,6 +100,19 @@ Phase 4B adds an Expo mobile app in `mobile/` that consumes the existing Phase 3
 - OTP verify -> stores token securely
 - Complete profile (name only) if `profile_completed=false`
 - Authenticated home placeholder + logout
+
+### Phase 5A: core booking backend + dashboards + customer API (dev only)
+
+Phase 5A adds the first booking lifecycle foundation:
+- Customer creates booking request via API (status starts `pending`)
+- Restaurant staff accepts/rejects/cancels via Filament actions
+- Platform can monitor and act on any booking via Filament actions
+
+Key endpoints (see `docs/api-reference.md` for full details):
+- `POST /api/mobile/bookings`
+- `GET /api/mobile/bookings`
+- `GET /api/mobile/bookings/{booking}`
+- `POST /api/mobile/bookings/{booking}/cancel`
 
 ### Local setup (backend)
 

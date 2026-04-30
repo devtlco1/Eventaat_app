@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Mobile\AuthController;
+use App\Http\Controllers\Api\Mobile\BookingController;
 use App\Http\Controllers\Api\Mobile\MeController;
 use App\Http\Controllers\Api\Mobile\RestaurantDiscoveryController;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,15 @@ Route::prefix('mobile')
         Route::get('restaurants', [RestaurantDiscoveryController::class, 'index'])
             ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);
         Route::get('restaurants/{restaurant:slug}', [RestaurantDiscoveryController::class, 'show'])
+            ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);
+
+        Route::get('bookings', [BookingController::class, 'index'])
+            ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);
+        Route::post('bookings', [BookingController::class, 'store'])
+            ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);
+        Route::get('bookings/{booking}', [BookingController::class, 'show'])
+            ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);
+        Route::post('bookings/{booking}/cancel', [BookingController::class, 'cancel'])
             ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);
     });
 

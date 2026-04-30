@@ -139,10 +139,5 @@ class MobileRestaurantDiscoveryApiTest extends TestCase
         $this->withToken($token)->getJson('/api/mobile/restaurants/hidden-restaurant')->assertStatus(404);
     }
 
-    public function test_bookings_endpoint_does_not_exist_in_phase_4a(): void
-    {
-        $token = $this->authCustomer();
-        $this->withToken($token)->getJson('/api/mobile/bookings')->assertStatus(404);
-    }
 }
 
