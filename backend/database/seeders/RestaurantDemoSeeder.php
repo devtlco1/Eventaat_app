@@ -8,6 +8,7 @@ use App\Enums\RestaurantStatus;
 use App\Enums\SeatingAreaType;
 use App\Enums\TableStatus;
 use App\Models\Branch;
+use App\Models\BranchAvailabilityRule;
 use App\Models\Restaurant;
 use App\Models\RestaurantStaffAssignment;
 use App\Models\RestaurantTable;
@@ -41,6 +42,28 @@ class RestaurantDemoSeeder extends Seeder
             ['restaurant_id' => $restaurantB->id, 'code' => 'main'],
             ['name' => 'Main Branch', 'status' => BranchStatus::Active],
         );
+
+        foreach ([$branchA1, $branchB1] as $branch) {
+            BranchAvailabilityRule::updateOrCreate(
+                ['branch_id' => $branch->id],
+                [
+                    'is_booking_enabled' => true,
+                    'booking_duration_minutes' => 90,
+                    'min_advance_minutes' => 60,
+                    'max_advance_days' => 30,
+                    'open_time' => '10:00:00',
+                    'close_time' => '23:00:00',
+                    'mon' => true,
+                    'tue' => true,
+                    'wed' => true,
+                    'thu' => true,
+                    'fri' => true,
+                    'sat' => true,
+                    'sun' => true,
+                    'notes' => null,
+                ]
+            );
+        }
 
         $areaAIndoor = SeatingArea::updateOrCreate(
             ['branch_id' => $branchA1->id, 'code' => 'indoor'],
@@ -107,4 +130,3 @@ class RestaurantDemoSeeder extends Seeder
         }
     }
 }
-

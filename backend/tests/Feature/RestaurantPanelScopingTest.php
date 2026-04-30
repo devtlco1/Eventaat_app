@@ -8,12 +8,14 @@ use App\Enums\RestaurantStatus;
 use App\Enums\SeatingAreaType;
 use App\Enums\TableStatus;
 use App\Models\Branch;
+use App\Models\BranchAvailabilityRule;
 use App\Models\Restaurant;
 use App\Models\RestaurantStaffAssignment;
 use App\Models\RestaurantTable;
 use App\Models\SeatingArea;
 use App\Models\User;
 use Database\Seeders\RolesAndTestUsersSeeder;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -189,5 +191,44 @@ class RestaurantPanelScopingTest extends TestCase
         $this->get("/restaurant/restaurants/{$data['a']->id}")
             ->tap(fn ($resp) => $this->assertDeniedOrNotFound($resp->getStatusCode()));
     }
-}
 
+    public function test_scoped_branch_view_shows_booking_availability_relation_tab(): void
+    {
+        $data = $this->seedRestaurants();
+
+        BranchAvailabilityRule::create([
+            'branch_id' => $data['aBranch']->id,
+            'is_booking_enabled' => true,
+            'booking_duration_minutes' => 90,
+            'min_advance_minutes' => 60,
+            'max_advance_days' => 30,
+            'open_time' => '10:00:00',
+            'close_time' => '23:00:00',
+            'mon' => true,
+            'tue' => true,
+            'wed' => true,
+            'thu' => true,
+            'fri' => true,
+            'sat' => true,
+            'sun' => true,
+            'notes' => null,
+        ]);
+
+        $manager = User::where('email', 'branch_manager@eventaat.test')->firstOrFail();
+
+        RestaurantStaffAssignment::create([
+            'user_id' => $manager->id,
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => $data['aBranch']->id,
+            'role' => RestaurantStaffRole::BranchManager,
+            'status' => 'active',
+        ]);
+
+        Filament::setCurrentPanel('restaurant');
+        $this->actingAs($manager);
+
+        $this->get("/restaurant/branches/{$data['aBranch']->id}")
+            ->assertOk()
+            ->assertSee('Booking availability');
+    }
+}

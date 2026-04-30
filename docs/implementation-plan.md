@@ -204,3 +204,17 @@ Adds manual booking creation in Filament for operational/testing use:
 - Dependent selects: Restaurant → Branch → Seating Area → Table
 - Reuses the same validation and conflict-prevention rules as the mobile booking API
 
+### Phase 8A: branch booking availability rules
+
+Adds practical branch-level booking constraints shared across mobile booking creation and Filament manual booking creation:
+
+- Model `BranchAvailabilityRule` (**one row per branch**, optional — branches without a rule keep legacy behavior)
+- Filament relation manager **Booking availability** on Branch resources (Platform + Restaurant panels), respecting restaurant panel branch scoping
+- Validation lives in `BookingCreationValidator`: booking disabled flag, min/max advance window, weekday toggles, optional daily open/close window (single shift)
+- Demo seed attaches a **default rule** to demo branches (10:00–23:00, all weekdays, min advance 60 minutes, max advance 30 days, duration 90 minutes stored for future use)
+
+### Explicit non-goals (Phase 8A)
+
+- No holidays/exceptions, multi-shift hours, slot grids, or capacity-based availability engines
+- No dedicated mobile availability picker UI (API returns normal `422` validation messages)
+

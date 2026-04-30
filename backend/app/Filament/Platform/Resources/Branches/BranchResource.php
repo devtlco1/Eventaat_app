@@ -6,6 +6,7 @@ use App\Filament\Platform\Resources\Branches\Pages\CreateBranch;
 use App\Filament\Platform\Resources\Branches\Pages\EditBranch;
 use App\Filament\Platform\Resources\Branches\Pages\ListBranches;
 use App\Filament\Platform\Resources\Branches\Pages\ViewBranch;
+use App\Filament\Platform\Resources\Branches\RelationManagers\BranchAvailabilityRulesRelationManager;
 use App\Filament\Platform\Resources\Branches\RelationManagers\SeatingAreasRelationManager;
 use App\Filament\Platform\Resources\Branches\Schemas\BranchForm;
 use App\Filament\Platform\Resources\Branches\Schemas\BranchInfolist;
@@ -45,6 +46,7 @@ class BranchResource extends Resource
     public static function getRelations(): array
     {
         return [
+            BranchAvailabilityRulesRelationManager::class,
             SeatingAreasRelationManager::class,
         ];
     }

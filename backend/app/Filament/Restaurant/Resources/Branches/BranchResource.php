@@ -6,10 +6,12 @@ use App\Filament\Restaurant\Resources\Branches\Pages\CreateBranch;
 use App\Filament\Restaurant\Resources\Branches\Pages\EditBranch;
 use App\Filament\Restaurant\Resources\Branches\Pages\ListBranches;
 use App\Filament\Restaurant\Resources\Branches\Pages\ViewBranch;
+use App\Filament\Restaurant\Resources\Branches\RelationManagers\BranchAvailabilityRulesRelationManager;
 use App\Filament\Restaurant\Resources\Branches\Schemas\BranchForm;
 use App\Filament\Restaurant\Resources\Branches\Schemas\BranchInfolist;
 use App\Filament\Restaurant\Resources\Branches\Tables\BranchesTable;
 use App\Models\Branch;
+use App\Models\User;
 use App\Support\RestaurantPanelScope;
 use BackedEnum;
 use Filament\Facades\Filament;
@@ -31,7 +33,7 @@ class BranchResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Filament::auth()->user();
 
         if (! $user) {
@@ -43,7 +45,7 @@ class BranchResource extends Resource
 
     public static function canCreate(): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Filament::auth()->user();
 
         return (bool) $user?->hasRole('restaurant_owner');
@@ -51,7 +53,7 @@ class BranchResource extends Resource
 
     public static function canEdit($record): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Filament::auth()->user();
 
         if (! $user || ! $user->hasAnyRole(['restaurant_owner', 'branch_manager'])) {
@@ -63,7 +65,7 @@ class BranchResource extends Resource
 
     public static function canView($record): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Filament::auth()->user();
 
         return $user
@@ -94,7 +96,7 @@ class BranchResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            BranchAvailabilityRulesRelationManager::class,
         ];
     }
 

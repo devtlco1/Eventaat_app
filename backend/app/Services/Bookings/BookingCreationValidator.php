@@ -2,8 +2,8 @@
 
 namespace App\Services\Bookings;
 
-use App\Enums\BranchStatus;
 use App\Enums\BookingStatus;
+use App\Enums\BranchStatus;
 use App\Enums\RestaurantStatus;
 use App\Enums\TableStatus;
 use App\Models\Booking;
@@ -24,14 +24,14 @@ class BookingCreationValidator
      *   branch_id:int,
      *   seating_area_id?:int|null,
      *   restaurant_table_id?:int|null,
-     *   starts_at:\Illuminate\Support\Carbon,
+     *   starts_at:Carbon,
      *   party_size:int,
      *   allowed_restaurant_ids?:array<int,int>,
      *   allowed_branch_ids?:array<int,int>,
      * }  $data
      * @return array{seating_area_id:int|null}
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function validate(array $data): array
     {
@@ -75,6 +75,16 @@ class BookingCreationValidator
                 'branch_id' => ['Branch must belong to the selected restaurant.'],
             ]);
         }
+
+        $startsAt = $data['starts_at'];
+        if (! $startsAt instanceof Carbon) {
+            throw ValidationException::withMessages([
+                'starts_at' => ['Invalid starts_at.'],
+            ]);
+        }
+
+        $branch->loadMissing('availabilityRule');
+        $this->validateBranchAvailability($branch, $startsAt);
 
         $seatingArea = null;
         if ($seatingAreaId !== null) {
@@ -153,5 +163,80 @@ class BookingCreationValidator
             'seating_area_id' => $seatingAreaId !== null ? (int) $seatingAreaId : null,
         ];
     }
-}
 
+    private function validateBranchAvailability(Branch $branch, Carbon $startsAt): void
+    {
+        $rule = $branch->availabilityRule;
+        if (! $rule) {
+            return;
+        }
+
+        if (! $rule->is_booking_enabled) {
+            throw ValidationException::withMessages([
+                'branch_id' => ['Booking is disabled for this branch.'],
+            ]);
+        }
+
+        $now = Carbon::now();
+
+        $minAllowed = $now->copy()->addMinutes((int) $rule->min_advance_minutes);
+        if ($startsAt->lessThan($minAllowed)) {
+            throw ValidationException::withMessages([
+                'starts_at' => ["Bookings must be made at least {$rule->min_advance_minutes} minutes in advance."],
+            ]);
+        }
+
+        $latestAllowed = $now->copy()->addDays((int) $rule->max_advance_days)->endOfDay();
+        if ($startsAt->greaterThan($latestAllowed)) {
+            throw ValidationException::withMessages([
+                'starts_at' => ["Bookings can only be made up to {$rule->max_advance_days} days in advance."],
+            ]);
+        }
+
+        $weekdayField = match ($startsAt->dayOfWeekIso) {
+            1 => 'mon',
+            2 => 'tue',
+            3 => 'wed',
+            4 => 'thu',
+            5 => 'fri',
+            6 => 'sat',
+            7 => 'sun',
+            default => null,
+        };
+
+        if ($weekdayField === null || ! (bool) $rule->{$weekdayField}) {
+            throw ValidationException::withMessages([
+                'starts_at' => ['Bookings are not available on this weekday.'],
+            ]);
+        }
+
+        $bookingTime = $startsAt->format('H:i:s');
+        $open = $this->normalizeTime($rule->open_time);
+        $close = $this->normalizeTime($rule->close_time);
+
+        if ($open !== null && $bookingTime < $open) {
+            throw ValidationException::withMessages([
+                'starts_at' => ['Booking start time is before this branch opens.'],
+            ]);
+        }
+
+        if ($close !== null && $bookingTime > $close) {
+            throw ValidationException::withMessages([
+                'starts_at' => ['Booking start time is after this branch closes.'],
+            ]);
+        }
+    }
+
+    private function normalizeTime(mixed $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if ($value instanceof Carbon) {
+            return $value->format('H:i:s');
+        }
+
+        return (string) $value;
+    }
+}

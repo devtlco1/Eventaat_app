@@ -1,10 +1,10 @@
-## Eventaat (Phase 6 complete)
+## Eventaat (Phase 8A branch availability)
 
 This repository is a rebuild of Eventaat following the phased plan in `docs/eventaat_blueprint_v1.md`.
 
 Source of truth: `docs/eventaat_blueprint_v1.md`.
 
-### What exists (Phases 0–6)
+### What exists (Phases 0–8A)
 
 - **Backend**: Laravel app in `backend/`
 - **Database**: PostgreSQL configuration (see `backend/.env`)
@@ -23,6 +23,10 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
     - Lifecycle actions: Accept / Reject / Cancel / Mark arrived / Mark seated / Mark completed / Mark no-show
     - Manual booking creation (phone-first) in both panels
   - Customer bookings API (create/list/detail/cancel)
+- **Branch booking availability (Phase 8A)**:
+  - One `BranchAvailabilityRule` per branch (optional row): enabled flag, advance limits, weekday flags, optional daily open/close times
+  - Enforced via shared `BookingCreationValidator` for mobile API + Filament manual booking creation
+  - Managed per branch under **Restaurant Setup → Branches → Booking availability** (Platform + Restaurant panels)
 
 ### Phase 1: local test users (dev only)
 
@@ -63,7 +67,7 @@ php artisan db:seed
 
 Demo data includes:
 - 2 demo restaurants (`demo-restaurant-a`, `demo-restaurant-b`)
-- branches, seating areas, and tables
+- branches, seating areas, tables, and **default branch availability rules** (10:00–23:00, all weekdays, 90 min duration label, 60 min min advance, 30 days max advance)
 - staff assignments for:
   - `restaurant_owner@eventaat.test` (restaurant-level for Demo Restaurant A)
   - `branch_manager@eventaat.test` (branch-scoped for Demo Restaurant A)

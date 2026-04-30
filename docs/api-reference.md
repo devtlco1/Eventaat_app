@@ -228,6 +228,16 @@ Rules:
 - if table is provided, `party_size` must not exceed `table.capacity`
 - **Conflict prevention (Phase 5B)**: if a table is provided, a booking is rejected when another `pending` or `accepted` booking exists for the same table within a fixed conflict window (simple block model).
 
+Branch availability rules (**Phase 8A**) apply when the branch has a configured `BranchAvailabilityRule` row:
+
+- If booking is disabled for the branch → validation error on **`branch_id`**: “Booking is disabled for this branch.”
+- **`starts_at`** must be at least **`min_advance_minutes`** after “now”.
+- **`starts_at`** must not be later than **end of day** at **`now + max_advance_days`** (calendar-day bound).
+- **`starts_at`** weekday must be enabled (`mon` … `sun` flags).
+- When **`open_time`** / **`close_time`** are set, the booking **start clock time** must fall within those bounds (inclusive).
+
+Branches without a rule keep Phase 5A behavior only (no availability gate).
+
 Response (201):
 
 ```json
@@ -271,6 +281,22 @@ Conflict error example (422):
 {
   "message": "The restaurant table id field is invalid.",
   "errors": { "restaurant_table_id": ["Table is not available at the selected time."] }
+}
+```
+
+Branch availability examples (422):
+
+```json
+{
+  "message": "Booking is disabled for this branch.",
+  "errors": { "branch_id": ["Booking is disabled for this branch."] }
+}
+```
+
+```json
+{
+  "message": "Bookings must be made at least 60 minutes in advance.",
+  "errors": { "starts_at": ["Bookings must be made at least 60 minutes in advance."] }
 }
 ```
 

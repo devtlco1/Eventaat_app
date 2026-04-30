@@ -299,6 +299,9 @@ export function CreateBookingScreen({ route, navigation }: Props) {
         onChange={setStartsAtDate}
         error={fieldErrors.starts_at ?? null}
       />
+      <Text style={styles.muted}>
+        Branch availability (opening hours and advance-booking limits) is enforced by the server; invalid times appear as validation messages above.
+      </Text>
       <Text style={styles.muted}>Format sent to backend: YYYY-MM-DD HH:mm</Text>
 
       <TextField

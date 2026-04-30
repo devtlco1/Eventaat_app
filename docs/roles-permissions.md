@@ -59,6 +59,13 @@ Phase 2 introduces restaurant operational data and scoping via `RestaurantStaffA
 - `branch_manager`: branch-scoped access (assigned branch)
 - `restaurant_host`: branch-scoped operational access (assigned branch)
 
+### Branch booking availability rules (Phase 8A)
+
+Availability rules are edited from each Branch record (**Booking availability** relation manager):
+
+- `restaurant_owner` / `branch_manager`: can create/update/delete rules only on branches they are allowed to edit (same branch edit permissions as the Branch resource).
+- `restaurant_host`: branch view access only — booking availability actions follow Branch edit rules (typically **no** create/edit/delete).
+
 ## Bookings (Phase 5A)
 
 Phase 5A introduces booking operations:

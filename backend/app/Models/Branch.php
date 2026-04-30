@@ -6,6 +6,7 @@ use App\Enums\BranchStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Branch extends Model
 {
@@ -33,5 +34,10 @@ class Branch extends Model
     public function staffAssignments(): HasMany
     {
         return $this->hasMany(RestaurantStaffAssignment::class);
+    }
+
+    public function availabilityRule(): HasOne
+    {
+        return $this->hasOne(BranchAvailabilityRule::class);
     }
 }
