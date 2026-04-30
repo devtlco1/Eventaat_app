@@ -76,7 +76,7 @@ export function AppNavigator() {
             <Stack.Screen
               name="RestaurantDetails"
               component={RestaurantDetailsScreen}
-              options={{ title: "Restaurant" }}
+              options={{ title: "Restaurant details" }}
             />
             <Stack.Screen
               name="CreateBooking"

@@ -89,7 +89,7 @@ export function CreateBookingScreen({ route, navigation }: Props) {
       try {
         const res = await getRestaurant(token, slug);
         setDetails(res);
-        navigation.setOptions({ title: `Create booking` });
+        navigation.setOptions({ title: "Create booking" });
 
         const firstBranch = pickFirst(res.branches ?? []);
         setBranch(firstBranch);
@@ -114,6 +114,11 @@ export function CreateBookingScreen({ route, navigation }: Props) {
 
   useEffect(() => {
     if (!restaurant?.slug) return;
+    // Reset selections while switching restaurant.
+    setDetails(null);
+    setBranch(null);
+    setSeatingArea(null);
+    setTable(null);
     void loadRestaurantDetails(restaurant.slug);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurant?.slug]);
@@ -228,7 +233,11 @@ export function CreateBookingScreen({ route, navigation }: Props) {
 
       <Text style={styles.sectionTitle}>Branch</Text>
       {branches.length === 0 ? (
-        <Text style={styles.muted}>No active branches.</Text>
+        <Text style={styles.muted}>
+          {details
+            ? "No active branches for this restaurant."
+            : "Loading restaurant details…"}
+        </Text>
       ) : (
         branches.map((b) => (
           <TouchableOpacity

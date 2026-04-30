@@ -26,7 +26,7 @@ export function RestaurantDetailsScreen({ route, navigation }: Props) {
     try {
       const res = await getRestaurant(token, slug);
       setData(res);
-      navigation.setOptions({ title: res.name });
+      navigation.setOptions({ title: "Restaurant details" });
     } catch (e) {
       if (isAuthError(e)) {
         await logout();

@@ -65,7 +65,12 @@ export async function getRestaurant(
   token: string,
   slug: string
 ): Promise<MobileRestaurantDetails> {
-  return apiRequest(`/api/mobile/restaurants/${encodeURIComponent(slug)}`, { method: "GET" }, { token });
+  const res = await apiRequest<{ data: MobileRestaurantDetails }>(
+    `/api/mobile/restaurants/${encodeURIComponent(slug)}`,
+    { method: "GET" },
+    { token }
+  );
+  return res.data;
 }
 
 export async function listMyBookings(
