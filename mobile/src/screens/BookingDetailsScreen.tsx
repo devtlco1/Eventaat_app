@@ -1,30 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
 import { useAuth } from "../auth/AuthContext";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { PrimaryButton } from "../components/PrimaryButton";
+import { LoadingState } from "../components/LoadingState";
+import { StatusBadge } from "../components/StatusBadge";
 import { cancelBooking, getBooking } from "../api/endpoints";
 import { getErrorMessage, isAuthError, getValidationErrors } from "../api/errors";
 import type { MobileBooking } from "../api/types";
 
 type Props = NativeStackScreenProps<RootStackParamList, "BookingDetails">;
-
-function statusLabel(status: string | null): string {
-  if (!status) return "Unknown";
-  const map: Record<string, string> = {
-    pending: "Pending",
-    accepted: "Accepted",
-    rejected: "Rejected",
-    cancelled: "Cancelled",
-    arrived: "Arrived",
-    seated: "Seated",
-    completed: "Completed",
-    no_show: "No-show",
-  };
-  return map[status] ?? status;
-}
 
 function fmt(iso: string | null): string {
   if (!iso) return "-";
@@ -103,17 +90,12 @@ export function BookingDetailsScreen({ route, navigation }: Props) {
   };
 
   if (isLoading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator />
-        <Text style={styles.centerText}>Loading booking…</Text>
-      </View>
-    );
+    return <LoadingState message="Loading booking…" />;
   }
 
   if (!data) {
     return (
-      <View style={styles.center}>
+      <View style={styles.notFound}>
         <ErrorBanner message={error ?? "Booking not found."} />
       </View>
     );
@@ -123,8 +105,13 @@ export function BookingDetailsScreen({ route, navigation }: Props) {
     <ScrollView contentContainerStyle={styles.container}>
       <ErrorBanner message={error} />
 
-      <Text style={styles.title}>Booking #{data.id}</Text>
-      <Text style={styles.subtitle}>Status: {statusLabel(data.status)}</Text>
+      <View style={styles.headerRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>Booking #{data.id}</Text>
+          <Text style={styles.subtitle}>{data.restaurant?.name ?? "-"}</Text>
+        </View>
+        <StatusBadge status={data.status} />
+      </View>
 
       <View style={styles.card}>
         <Text style={styles.row}>
@@ -155,29 +142,58 @@ export function BookingDetailsScreen({ route, navigation }: Props) {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Timeline</Text>
-        <Text style={styles.muted}>Accepted: {fmt(data.accepted_at)}</Text>
-        <Text style={styles.muted}>Arrived: {fmt(data.arrived_at)}</Text>
-        <Text style={styles.muted}>Seated: {fmt(data.seated_at)}</Text>
-        <Text style={styles.muted}>Completed: {fmt(data.completed_at)}</Text>
-        <Text style={styles.muted}>No-show: {fmt(data.no_show_at)}</Text>
-        <Text style={styles.muted}>Rejected: {fmt(data.rejected_at)}</Text>
-        <Text style={styles.muted}>Cancelled: {fmt(data.cancelled_at)}</Text>
+        <View style={styles.timeline}>
+          <View style={styles.timelineRow}>
+            <Text style={styles.timelineKey}>Pending</Text>
+            <Text style={styles.timelineVal}>{fmt(data.created_at)}</Text>
+          </View>
+          <View style={styles.timelineRow}>
+            <Text style={styles.timelineKey}>Accepted</Text>
+            <Text style={styles.timelineVal}>{fmt(data.accepted_at)}</Text>
+          </View>
+          <View style={styles.timelineRow}>
+            <Text style={styles.timelineKey}>Arrived</Text>
+            <Text style={styles.timelineVal}>{fmt(data.arrived_at)}</Text>
+          </View>
+          <View style={styles.timelineRow}>
+            <Text style={styles.timelineKey}>Seated</Text>
+            <Text style={styles.timelineVal}>{fmt(data.seated_at)}</Text>
+          </View>
+          <View style={styles.timelineRow}>
+            <Text style={styles.timelineKey}>Completed</Text>
+            <Text style={styles.timelineVal}>{fmt(data.completed_at)}</Text>
+          </View>
+          <View style={styles.timelineRow}>
+            <Text style={styles.timelineKey}>No-show</Text>
+            <Text style={styles.timelineVal}>{fmt(data.no_show_at)}</Text>
+          </View>
+          <View style={styles.timelineRow}>
+            <Text style={styles.timelineKey}>Cancelled</Text>
+            <Text style={styles.timelineVal}>{fmt(data.cancelled_at)}</Text>
+          </View>
+          <View style={styles.timelineRow}>
+            <Text style={styles.timelineKey}>Rejected</Text>
+            <Text style={styles.timelineVal}>{fmt(data.rejected_at)}</Text>
+          </View>
+        </View>
       </View>
 
-      <PrimaryButton
-        title={isCancelling ? "Cancelling..." : "Cancel booking"}
-        onPress={onCancel}
-        disabled={!canAttemptCancel || isCancelling}
-      />
-      {!canAttemptCancel ? (
-        <Text style={styles.muted}>Cancellation is only allowed for pending/accepted/arrived bookings.</Text>
-      ) : null}
+      {canAttemptCancel ? (
+        <PrimaryButton
+          title={isCancelling ? "Cancelling..." : "Cancel booking"}
+          onPress={onCancel}
+          disabled={isCancelling}
+        />
+      ) : (
+        <Text style={styles.muted}>Cancellation is not available for this booking status.</Text>
+      )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { padding: 16, gap: 12 },
+  headerRow: { flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "flex-start" },
   title: { fontSize: 20, fontWeight: "800", color: "#111827" },
   subtitle: { color: "#4B5563" },
   section: { gap: 6 },
@@ -194,7 +210,10 @@ const styles = StyleSheet.create({
   k: { fontWeight: "700" },
   v: { color: "#111827" },
   muted: { color: "#4B5563" },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 8, padding: 16 },
-  centerText: { color: "#4B5563" },
+  notFound: { flex: 1, padding: 16, justifyContent: "center" },
+  timeline: { borderWidth: 1, borderColor: "#E5E7EB", borderRadius: 12, padding: 12, backgroundColor: "white", gap: 8 },
+  timelineRow: { flexDirection: "row", justifyContent: "space-between", gap: 10 },
+  timelineKey: { fontWeight: "700", color: "#111827" },
+  timelineVal: { color: "#4B5563", textAlign: "right", flexShrink: 1 },
 });
 

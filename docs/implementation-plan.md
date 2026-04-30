@@ -145,6 +145,9 @@ Mobile customer UI now includes:
 Notes:
 - UI uses React Native core components only (no UI kits).
 - If API returns 401/403, the app clears token and returns to the auth flow.
+- Phase 7A polish:
+  - Date/time picker used for `starts_at` (format sent as `YYYY-MM-DD HH:mm`)
+  - Better status badges + loading/empty states across booking screens
 
 ### Phase 5A goal
 

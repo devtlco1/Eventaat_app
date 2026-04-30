@@ -16,6 +16,7 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { TextField } from "../components/TextField";
 import { createBooking, getRestaurant, listRestaurants } from "../api/endpoints";
 import { getErrorMessage, getValidationErrors, isAuthError } from "../api/errors";
+import { DateTimeField, formatStartsAt } from "../components/DateTimeField";
 import type {
   MobileBranch,
   MobileRestaurantDetails,
@@ -42,7 +43,7 @@ export function CreateBookingScreen({ route, navigation }: Props) {
   const [seatingArea, setSeatingArea] = useState<MobileSeatingArea | null>(null);
   const [table, setTable] = useState<MobileRestaurantTable | null>(null);
 
-  const [startsAt, setStartsAt] = useState("");
+  const [startsAtDate, setStartsAtDate] = useState<Date | null>(null);
   const [partySize, setPartySize] = useState("2");
   const [customerNote, setCustomerNote] = useState("");
 
@@ -142,10 +143,7 @@ export function CreateBookingScreen({ route, navigation }: Props) {
     const errs: Record<string, string> = {};
     if (!restaurant) errs.restaurant_id = "Restaurant is required.";
     if (!branch) errs.branch_id = "Branch is required.";
-    if (!startsAt.trim()) errs.starts_at = "Starts at is required (YYYY-MM-DD HH:mm).";
-    if (startsAt.trim() && !/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(startsAt.trim())) {
-      errs.starts_at = "Use format YYYY-MM-DD HH:mm.";
-    }
+    if (!startsAtDate) errs.starts_at = "Please pick a date and time.";
     const ps = Number(partySize);
     if (!partySize.trim() || Number.isNaN(ps) || ps < 1) errs.party_size = "Party size must be at least 1.";
     setFieldErrors(errs);
@@ -158,6 +156,7 @@ export function CreateBookingScreen({ route, navigation }: Props) {
     setFieldErrors({});
     if (!validateLocal()) return;
     if (!restaurant || !branch) return;
+    if (!startsAtDate) return;
 
     setIsSubmitting(true);
     try {
@@ -166,7 +165,7 @@ export function CreateBookingScreen({ route, navigation }: Props) {
         branch_id: branch.id,
         seating_area_id: seatingArea?.id ?? null,
         restaurant_table_id: table?.id ?? null,
-        starts_at: startsAt.trim(),
+        starts_at: formatStartsAt(startsAtDate),
         party_size: Number(partySize),
         customer_note: customerNote.trim() ? customerNote.trim() : null,
       });
@@ -278,8 +277,8 @@ export function CreateBookingScreen({ route, navigation }: Props) {
         style={[styles.choice, !table ? styles.choiceSelected : null]}
         onPress={() => onSelectTable(null)}
       >
-        <Text style={styles.choiceTitle}>No table</Text>
-        <Text style={styles.muted}>Booking without a table is allowed.</Text>
+        <Text style={styles.choiceTitle}>Book without table</Text>
+        <Text style={styles.muted}>Optional — you can book without selecting a table.</Text>
       </TouchableOpacity>
       {tables.map((t) => (
         <TouchableOpacity
@@ -294,13 +293,13 @@ export function CreateBookingScreen({ route, navigation }: Props) {
       ))}
       {fieldErrors.restaurant_table_id ? <Text style={styles.fieldError}>{fieldErrors.restaurant_table_id}</Text> : null}
 
-      <TextField
-        label="Starts at (YYYY-MM-DD HH:mm)"
-        value={startsAt}
-        onChangeText={setStartsAt}
-        placeholder="2026-05-01 19:00"
+      <DateTimeField
+        label="Starts at"
+        value={startsAtDate}
+        onChange={setStartsAtDate}
+        error={fieldErrors.starts_at ?? null}
       />
-      {fieldErrors.starts_at ? <Text style={styles.fieldError}>{fieldErrors.starts_at}</Text> : null}
+      <Text style={styles.muted}>Format sent to backend: YYYY-MM-DD HH:mm</Text>
 
       <TextField
         label="Party size"

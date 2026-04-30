@@ -16,6 +16,7 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Mobile UI (customer)**:
   - Restaurant discovery UI (list + details)
   - Booking UI (create + my bookings + booking details + cancel)
+  - Date/time picker for booking start time (no manual typing required)
 - **Bookings (Phases 5–6)**:
   - Booking model + statuses: `pending|accepted|rejected|cancelled|arrived|seated|completed|no_show`
   - Filament BookingResource in `/platform` and `/restaurant`

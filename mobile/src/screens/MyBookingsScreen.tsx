@@ -13,6 +13,9 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
 import { useAuth } from "../auth/AuthContext";
 import { ErrorBanner } from "../components/ErrorBanner";
+import { EmptyState } from "../components/EmptyState";
+import { LoadingState } from "../components/LoadingState";
+import { StatusBadge } from "../components/StatusBadge";
 import { listMyBookings } from "../api/endpoints";
 import { getErrorMessage, isAuthError } from "../api/errors";
 import type { MobileBooking } from "../api/types";
@@ -36,6 +39,12 @@ function statusLabel(status: string | null): string {
     no_show: "No-show",
   };
   return map[status] ?? status;
+}
+
+function parseMs(iso: string | null): number | null {
+  if (!iso) return null;
+  const ms = Date.parse(iso);
+  return Number.isFinite(ms) ? ms : null;
 }
 
 export function MyBookingsScreen() {
@@ -80,9 +89,9 @@ export function MyBookingsScreen() {
       style={styles.card}
       onPress={() => navigation.navigate("BookingDetails", { bookingId: item.id })}
     >
-      <View style={styles.row}>
+      <View style={styles.rowTop}>
         <Text style={styles.name}>{formatBookingRow(item)}</Text>
-        <Text style={styles.status}>{statusLabel(item.status)}</Text>
+        <StatusBadge status={item.status} />
       </View>
       <Text style={styles.meta}>
         Starts at: {item.starts_at ? new Date(item.starts_at).toLocaleString() : "-"}
@@ -94,25 +103,35 @@ export function MyBookingsScreen() {
   const empty = useMemo(() => items.length === 0, [items.length]);
 
   if (isLoading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator />
-        <Text style={styles.centerText}>Loading bookings…</Text>
-      </View>
-    );
+    return <LoadingState message="Loading bookings…" />;
   }
+
+  const sorted = useMemo(() => {
+    const now = Date.now();
+    const arr = [...items];
+    arr.sort((a, b) => {
+      const ams = parseMs(a.starts_at);
+      const bms = parseMs(b.starts_at);
+      if (ams === null || bms === null) return 0;
+
+      const aUpcoming = ams >= now;
+      const bUpcoming = bms >= now;
+
+      if (aUpcoming !== bUpcoming) return aUpcoming ? -1 : 1;
+      return aUpcoming ? ams - bms : bms - ams;
+    });
+    return arr;
+  }, [items]);
 
   return (
     <View style={styles.container}>
       <ErrorBanner message={error} />
 
       {empty ? (
-        <View style={styles.center}>
-          <Text style={styles.centerText}>No bookings yet.</Text>
-        </View>
+        <EmptyState title="No bookings yet" subtitle="Create your first booking from Restaurants." />
       ) : (
         <FlatList
-          data={items}
+          data={sorted}
           keyExtractor={(b) => String(b.id)}
           renderItem={renderItem}
           contentContainerStyle={styles.list}
@@ -136,11 +155,8 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     gap: 6,
   },
-  row: { flexDirection: "row", justifyContent: "space-between", gap: 10 },
+  rowTop: { flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "flex-start" },
   name: { fontSize: 14, fontWeight: "700", color: "#111827", flex: 1 },
-  status: { color: "#111827", fontWeight: "700" },
   meta: { color: "#4B5563" },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 8, padding: 16 },
-  centerText: { color: "#4B5563" },
 });
 
