@@ -10,6 +10,9 @@ use App\Enums\TableStatus;
 use App\Models\Branch;
 use App\Models\BranchAvailabilityRule;
 use App\Models\Restaurant;
+use App\Models\RestaurantMenu;
+use App\Models\RestaurantMenuCategory;
+use App\Models\RestaurantMenuItem;
 use App\Models\RestaurantOffer;
 use App\Models\RestaurantReview;
 use App\Models\RestaurantStaffAssignment;
@@ -242,6 +245,63 @@ class RestaurantDemoSeeder extends Seeder
                 'status' => RestaurantReview::STATUS_PENDING_REVIEW,
                 'source' => RestaurantReview::SOURCE_DASHBOARD,
                 'admin_notes' => null,
+            ],
+        );
+
+        $menuAStructured = RestaurantMenu::updateOrCreate(
+            ['slug' => 'demo-restaurant-a-menu'],
+            [
+                'restaurant_id' => $restaurantA->id,
+                'branch_id' => null,
+                'title' => 'Demo Restaurant A — dine-in menu',
+                'status' => RestaurantMenu::STATUS_PUBLISHED,
+                'menu_mode' => RestaurantMenu::MODE_STRUCTURED,
+                'menu_file_path' => null,
+                'menu_url' => null,
+                'description' => 'Demo structured menu with categories.',
+                'notes' => null,
+                'display_order' => 0,
+            ],
+        );
+
+        $catStarters = RestaurantMenuCategory::updateOrCreate(
+            ['restaurant_menu_id' => $menuAStructured->id, 'name' => 'Starters'],
+            ['description' => null, 'display_order' => 0, 'is_active' => true],
+        );
+
+        $catMains = RestaurantMenuCategory::updateOrCreate(
+            ['restaurant_menu_id' => $menuAStructured->id, 'name' => 'Mains'],
+            ['description' => null, 'display_order' => 1, 'is_active' => true],
+        );
+
+        RestaurantMenuItem::updateOrCreate(
+            ['restaurant_menu_category_id' => $catStarters->id, 'name' => 'Soup of the day'],
+            ['description' => null, 'price' => 5.50, 'currency' => 'IQD', 'is_available' => true, 'is_featured' => false, 'display_order' => 0, 'notes' => null],
+        );
+
+        RestaurantMenuItem::updateOrCreate(
+            ['restaurant_menu_category_id' => $catStarters->id, 'name' => 'House salad'],
+            ['description' => null, 'price' => 4.00, 'currency' => 'IQD', 'is_available' => true, 'is_featured' => true, 'display_order' => 1, 'notes' => null],
+        );
+
+        RestaurantMenuItem::updateOrCreate(
+            ['restaurant_menu_category_id' => $catMains->id, 'name' => 'Grilled platter'],
+            ['description' => null, 'price' => 18.00, 'currency' => 'IQD', 'is_available' => true, 'is_featured' => false, 'display_order' => 0, 'notes' => null],
+        );
+
+        RestaurantMenu::updateOrCreate(
+            ['slug' => 'demo-restaurant-b-menu-link'],
+            [
+                'restaurant_id' => $restaurantB->id,
+                'branch_id' => $branchB1->id,
+                'title' => 'Demo Restaurant B — menu',
+                'status' => RestaurantMenu::STATUS_PUBLISHED,
+                'menu_mode' => RestaurantMenu::MODE_EXTERNAL_LINK,
+                'menu_file_path' => null,
+                'menu_url' => 'https://example.com/menu',
+                'description' => 'Demo external menu link.',
+                'notes' => null,
+                'display_order' => 0,
             ],
         );
 

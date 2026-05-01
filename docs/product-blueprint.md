@@ -1,6 +1,6 @@
-## Product blueprint (Phase 0–15B)
+## Product blueprint (Phase 0–16A)
 
-Phase 0–15B builds on earlier phases including **mobile REST endpoints for customer reviews** (Phase 14B) and adds **dashboard-only support tickets / complaints** (Phase 15A) plus **platform-only internal activity + notes** (Phase 15B): operators manage `SupportTicket` records and append-only `SupportTicketActivity` timeline rows in Filament; restaurant staff keep **read-only** scoped ticket visibility — **no** mobile/API submission, threaded messaging, or restaurant-visible ops notes in Phase 15B. This file exists to match the repository structure required by `docs/eventaat_blueprint_v1.md`.
+Phase 0–16A builds on earlier phases including **mobile REST endpoints for customer reviews** (Phase 14B), **dashboard-only support tickets / complaints** (Phase 15A), **platform-only ticket activity + notes** (Phase 15B), and **dashboard-only restaurant menus** (Phase 16A): menus support structured categories/items, uploaded PDFs (**`public`** disk, **`menus/`** directory), or external URLs; Filament resources exist in Platform and Restaurant panels with scoping aligned to offers/stories — **no** mobile menu APIs, guest-facing pages, carts, OCR, or analytics in Phase 16A. This file exists to match the repository structure required by `docs/eventaat_blueprint_v1.md`.
 
 Current source of truth: `docs/eventaat_blueprint_v1.md`.
 

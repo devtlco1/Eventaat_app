@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\Booking;
 use App\Models\Branch;
 use App\Models\Restaurant;
+use App\Models\RestaurantMenu;
 use App\Models\RestaurantOffer;
 use App\Models\RestaurantReview;
 use App\Models\RestaurantStaffAssignment;
@@ -118,5 +119,16 @@ class RestaurantPanelScope
         }
 
         return SupportTicket::query()->whereIn('restaurant_id', $user->scopedRestaurantIds());
+    }
+
+    public static function menus(User $user): Builder
+    {
+        $branchIds = $user->scopedBranchIds();
+
+        if (count($branchIds)) {
+            return RestaurantMenu::query()->whereIn('branch_id', $branchIds);
+        }
+
+        return RestaurantMenu::query()->whereIn('restaurant_id', $user->scopedRestaurantIds());
     }
 }

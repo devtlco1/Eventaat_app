@@ -1,0 +1,363 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Enums\BranchStatus;
+use App\Enums\RestaurantStaffRole;
+use App\Enums\RestaurantStatus;
+use App\Filament\Platform\Resources\RestaurantMenus\Pages\CreateRestaurantMenu as PlatformCreateRestaurantMenu;
+use App\Models\Branch;
+use App\Models\Restaurant;
+use App\Models\RestaurantMenu;
+use App\Models\RestaurantMenuCategory;
+use App\Models\RestaurantMenuItem;
+use App\Models\RestaurantStaffAssignment;
+use App\Models\User;
+use Database\Seeders\RolesAndTestUsersSeeder;
+use Filament\Facades\Filament;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+class RestaurantMenusDashboardTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(RolesAndTestUsersSeeder::class);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function seedRestaurantsAndMenus(): array
+    {
+        $a = Restaurant::create([
+            'name' => 'Restaurant A',
+            'slug' => 'restaurant-a',
+            'status' => RestaurantStatus::Active,
+        ]);
+
+        $b = Restaurant::create([
+            'name' => 'Restaurant B',
+            'slug' => 'restaurant-b',
+            'status' => RestaurantStatus::Active,
+        ]);
+
+        $aBranch = Branch::create([
+            'restaurant_id' => $a->id,
+            'name' => 'A Main',
+            'code' => 'main',
+            'status' => BranchStatus::Active,
+        ]);
+
+        $bBranch = Branch::create([
+            'restaurant_id' => $b->id,
+            'name' => 'B Main',
+            'code' => 'main',
+            'status' => BranchStatus::Active,
+        ]);
+
+        $aWide = RestaurantMenu::create([
+            'restaurant_id' => $a->id,
+            'branch_id' => null,
+            'title' => 'A Wide Menu',
+            'slug' => 'a-wide-menu',
+            'status' => RestaurantMenu::STATUS_PUBLISHED,
+            'menu_mode' => RestaurantMenu::MODE_STRUCTURED,
+            'menu_file_path' => null,
+            'menu_url' => null,
+            'description' => null,
+            'notes' => null,
+            'display_order' => 0,
+        ]);
+
+        $aBranchMenu = RestaurantMenu::create([
+            'restaurant_id' => $a->id,
+            'branch_id' => $aBranch->id,
+            'title' => 'A Branch Menu',
+            'slug' => 'a-branch-menu',
+            'status' => RestaurantMenu::STATUS_PUBLISHED,
+            'menu_mode' => RestaurantMenu::MODE_STRUCTURED,
+            'menu_file_path' => null,
+            'menu_url' => null,
+            'description' => null,
+            'notes' => null,
+            'display_order' => 0,
+        ]);
+
+        $bBranchMenu = RestaurantMenu::create([
+            'restaurant_id' => $b->id,
+            'branch_id' => $bBranch->id,
+            'title' => 'B Branch Menu',
+            'slug' => 'b-branch-menu',
+            'status' => RestaurantMenu::STATUS_PUBLISHED,
+            'menu_mode' => RestaurantMenu::MODE_STRUCTURED,
+            'menu_file_path' => null,
+            'menu_url' => null,
+            'description' => null,
+            'notes' => null,
+            'display_order' => 0,
+        ]);
+
+        return compact('a', 'b', 'aBranch', 'bBranch', 'aWide', 'aBranchMenu', 'bBranchMenu');
+    }
+
+    private function assertDeniedOrNotFound(int $status): void
+    {
+        $this->assertTrue(in_array($status, [403, 404], true), "Expected 403/404, got {$status}");
+    }
+
+    public function test_platform_can_list_menus_and_open_create(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        $index = $this->get(route('filament.platform.resources.restaurant-menus.index'));
+        $index->assertOk();
+        $index->assertSee($data['aWide']->title);
+
+        $this->get(route('filament.platform.resources.restaurant-menus.create'))->assertOk();
+    }
+
+    public function test_platform_can_create_structured_menu_via_livewire(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        Livewire::test(PlatformCreateRestaurantMenu::class)
+            ->set('data.restaurant_id', $data['a']->id)
+            ->set('data.branch_id', $data['aBranch']->id)
+            ->set('data.title', 'Lunch Menu')
+            ->set('data.slug', 'lunch-menu-test')
+            ->set('data.status', RestaurantMenu::STATUS_DRAFT)
+            ->set('data.menu_mode', RestaurantMenu::MODE_STRUCTURED)
+            ->set('data.display_order', 0)
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('restaurant_menus', [
+            'slug' => 'lunch-menu-test',
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => $data['aBranch']->id,
+            'menu_mode' => RestaurantMenu::MODE_STRUCTURED,
+        ]);
+    }
+
+    public function test_restaurant_owner_sees_restaurant_wide_and_branch_menus(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        $owner = User::where('email', 'restaurant_owner@eventaat.test')->firstOrFail();
+        RestaurantStaffAssignment::create([
+            'user_id' => $owner->id,
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => null,
+            'role' => RestaurantStaffRole::RestaurantOwner,
+            'status' => 'active',
+        ]);
+
+        Filament::setCurrentPanel('restaurant');
+        $this->actingAs($owner);
+
+        $index = $this->get('/restaurant/restaurant-menus');
+        $index->assertOk();
+        $index->assertSee($data['aWide']->title);
+        $index->assertSee($data['aBranchMenu']->title);
+        $index->assertDontSee($data['bBranchMenu']->title);
+    }
+
+    public function test_branch_manager_sees_only_branch_scoped_menus(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        $manager = User::where('email', 'branch_manager@eventaat.test')->firstOrFail();
+        RestaurantStaffAssignment::create([
+            'user_id' => $manager->id,
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => $data['aBranch']->id,
+            'role' => RestaurantStaffRole::BranchManager,
+            'status' => 'active',
+        ]);
+
+        Filament::setCurrentPanel('restaurant');
+        $this->actingAs($manager);
+
+        $index = $this->get('/restaurant/restaurant-menus');
+        $index->assertOk();
+        $index->assertSee($data['aBranchMenu']->title);
+        $index->assertDontSee($data['aWide']->title);
+        $index->assertDontSee($data['bBranchMenu']->title);
+
+        $this->get("/restaurant/restaurant-menus/{$data['aWide']->id}")
+            ->tap(fn ($resp) => $this->assertDeniedOrNotFound($resp->getStatusCode()));
+    }
+
+    public function test_owner_cannot_open_out_of_scope_menu(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        $owner = User::where('email', 'restaurant_owner@eventaat.test')->firstOrFail();
+        RestaurantStaffAssignment::create([
+            'user_id' => $owner->id,
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => null,
+            'role' => RestaurantStaffRole::RestaurantOwner,
+            'status' => 'active',
+        ]);
+
+        Filament::setCurrentPanel('restaurant');
+        $this->actingAs($owner);
+
+        $this->get("/restaurant/restaurant-menus/{$data['bBranchMenu']->id}")
+            ->tap(fn ($resp) => $this->assertDeniedOrNotFound($resp->getStatusCode()));
+    }
+
+    public function test_platform_create_rejects_branch_from_another_restaurant(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        Livewire::test(PlatformCreateRestaurantMenu::class)
+            ->set('data.restaurant_id', $data['a']->id)
+            ->set('data.branch_id', $data['bBranch']->id)
+            ->set('data.title', 'Bad Branch Menu')
+            ->set('data.slug', 'bad-branch-menu')
+            ->set('data.status', RestaurantMenu::STATUS_DRAFT)
+            ->set('data.menu_mode', RestaurantMenu::MODE_STRUCTURED)
+            ->set('data.display_order', 0)
+            ->call('create')
+            ->assertHasErrors(['data.branch_id']);
+    }
+
+    public function test_pdf_upload_mode_requires_file_path(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        Livewire::test(PlatformCreateRestaurantMenu::class)
+            ->set('data.restaurant_id', $data['a']->id)
+            ->set('data.branch_id', null)
+            ->set('data.title', 'PDF Menu')
+            ->set('data.slug', 'pdf-menu-test')
+            ->set('data.status', RestaurantMenu::STATUS_DRAFT)
+            ->set('data.menu_mode', RestaurantMenu::MODE_PDF_UPLOAD)
+            ->set('data.menu_file_path', null)
+            ->set('data.display_order', 0)
+            ->call('create')
+            ->assertHasErrors();
+    }
+
+    public function test_model_rejects_pdf_upload_without_storage_path(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        $this->expectException(ValidationException::class);
+
+        RestaurantMenu::create([
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => null,
+            'title' => 'PDF Menu Direct',
+            'slug' => 'pdf-menu-direct',
+            'status' => RestaurantMenu::STATUS_DRAFT,
+            'menu_mode' => RestaurantMenu::MODE_PDF_UPLOAD,
+            'menu_file_path' => null,
+            'menu_url' => null,
+            'description' => null,
+            'notes' => null,
+            'display_order' => 0,
+        ]);
+    }
+
+    public function test_external_link_requires_valid_url(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        Livewire::test(PlatformCreateRestaurantMenu::class)
+            ->set('data.restaurant_id', $data['a']->id)
+            ->set('data.branch_id', null)
+            ->set('data.title', 'Link Menu Bad')
+            ->set('data.slug', 'link-menu-bad')
+            ->set('data.status', RestaurantMenu::STATUS_DRAFT)
+            ->set('data.menu_mode', RestaurantMenu::MODE_EXTERNAL_LINK)
+            ->set('data.menu_url', 'not-a-valid-url')
+            ->set('data.display_order', 0)
+            ->call('create')
+            ->assertHasErrors(['data.menu_url']);
+
+        Livewire::test(PlatformCreateRestaurantMenu::class)
+            ->set('data.restaurant_id', $data['a']->id)
+            ->set('data.branch_id', null)
+            ->set('data.title', 'Link Menu Good')
+            ->set('data.slug', 'link-menu-good')
+            ->set('data.status', RestaurantMenu::STATUS_DRAFT)
+            ->set('data.menu_mode', RestaurantMenu::MODE_EXTERNAL_LINK)
+            ->set('data.menu_url', 'https://example.com/menu')
+            ->set('data.display_order', 0)
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('restaurant_menus', [
+            'slug' => 'link-menu-good',
+            'menu_mode' => RestaurantMenu::MODE_EXTERNAL_LINK,
+            'menu_url' => 'https://example.com/menu',
+        ]);
+    }
+
+    public function test_can_create_category_and_item_under_structured_menu(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        $category = RestaurantMenuCategory::create([
+            'restaurant_menu_id' => $data['aWide']->id,
+            'name' => 'Drinks',
+            'description' => null,
+            'display_order' => 0,
+            'is_active' => true,
+        ]);
+
+        $item = RestaurantMenuItem::create([
+            'restaurant_menu_category_id' => $category->id,
+            'name' => 'Coffee',
+            'description' => null,
+            'price' => 2.50,
+            'currency' => 'IQD',
+            'is_available' => true,
+            'is_featured' => false,
+            'display_order' => 0,
+            'notes' => null,
+        ]);
+
+        $this->assertDatabaseHas('restaurant_menu_categories', [
+            'restaurant_menu_id' => $data['aWide']->id,
+            'name' => 'Drinks',
+        ]);
+
+        $this->assertDatabaseHas('restaurant_menu_items', [
+            'restaurant_menu_category_id' => $category->id,
+            'name' => 'Coffee',
+            'currency' => 'IQD',
+        ]);
+
+        $this->assertSame($item->currency, 'IQD');
+    }
+}

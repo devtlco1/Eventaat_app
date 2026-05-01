@@ -579,6 +579,26 @@ Adds `SupportTicketActivity` → `support_ticket_activities` with Filament-nativ
 - No analytics/widgets
 - No restaurant-visible internal timeline or note entry
 
+### Phase 16A: restaurant menu foundation (dashboard-only)
+
+Adds **`RestaurantMenu`** → **`restaurant_menus`**, **`RestaurantMenuCategory`** → **`restaurant_menu_categories`**, **`RestaurantMenuItem`** → **`restaurant_menu_items`**:
+
+- Menu modes: **`structured`** (categories + items), **`pdf_upload`** (stored path on **`public`** disk under **`menus/`**), **`external_link`** (validated URL); switching away from PDF/link clears stale fields/files on save
+- **`slug`** is globally unique on **`restaurant_menus`** (supports future **`/menus/{slug}`** style URLs without restaurant prefix)
+- Platform + Restaurant Filament **`RestaurantMenuResource`** with filters; structured-only relation UX: categories under the menu + nested category edit with items relation manager
+- **`RestaurantPanelScope::menus()`** mirrors offers/stories: branch roles see **`branch_id`** rows only; owners see restaurant-wide (**`branch_id` null**) plus all branches for assigned restaurants
+- Model-layer validation on save (branch belongs to restaurant; mode-specific PDF/URL rules)
+- Idempotent **`RestaurantDemoSeeder`** rows: Demo A structured menu + categories/items; Demo B external-link placeholder (**no binary PDF committed**)
+
+### Explicit non-goals (Phase 16A)
+
+- No mobile menu REST routes or customer app UI
+- No public/guest menu pages or signed URLs
+- No ordering, cart, payments, inventory
+- No OCR, PDF parsing, or scraping external URLs
+- No dashboards/widgets/analytics beyond Filament tables
+- No notifications
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)

@@ -1,4 +1,4 @@
-## Eventaat (Phase 15B support ticket activity timeline)
+## Eventaat (Phase 16A restaurant menu foundation)
 
 This repository is a rebuild of Eventaat following the phased plan in `docs/eventaat_blueprint_v1.md`.
 
@@ -104,6 +104,12 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - Platform ticket **view/edit**: relation manager **Internal activity** (read-only rows) + **Add internal note** (modal, message required); status workflow unchanged and writes `status_change` activities
   - Restaurant panel: **no** activity timeline and **no** add-note action (still read-only ticket list/view only)
   - No mobile/API customer replies, notifications, or automation in this phase
+- **Restaurant menu foundation (Phase 16A)** (dashboard-only):
+  - Models `RestaurantMenu`, `RestaurantMenuCategory`, `RestaurantMenuItem` with modes **`structured`** (categories/items), **`pdf_upload`** (PDF on `public` disk under `menus/`), **`external_link`** (validated URL); **`slug` is globally unique**
+  - Platform + Restaurant Filament resources; restaurant scoping via `RestaurantPanelScope::menus()` (same branch-only vs restaurant-wide pattern as offers/stories)
+  - Structured menus expose categories under the menu record and items under each category (nested edit page); PDF/link modes hide structured relation managers
+  - Demo seed adds a structured menu for Demo Restaurant A and an external-link menu for Demo Restaurant B; local previews need **`php artisan storage:link`** when serving uploaded PDFs
+  - No mobile menu APIs, guest-facing pages, carts, OCR, or analytics in this phase
 - **Filament view-page consistency polish**:
   - View pages use consistent native infolist Sections/Grids for clean, readable details with relation managers below
 

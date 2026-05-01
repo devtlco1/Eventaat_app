@@ -1,0 +1,81 @@
+<?php
+
+namespace App\Filament\Platform\Resources\RestaurantMenus\RelationManagers;
+
+use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuCategoryResource;
+use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuResource;
+use App\Models\RestaurantMenu;
+use App\Models\RestaurantMenuCategory;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
+
+class RestaurantMenuCategoriesRelationManager extends RelationManager
+{
+    protected static string $relationship = 'categories';
+
+    protected static ?string $title = 'Categories';
+
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        if (! $ownerRecord instanceof RestaurantMenu || ! $ownerRecord->isStructured()) {
+            return false;
+        }
+
+        return RestaurantMenuResource::canView($ownerRecord);
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Section::make()->schema([
+                    TextInput::make('name')->required()->maxLength(255),
+                    Textarea::make('description')->rows(3)->nullable(),
+                    TextInput::make('display_order')
+                        ->label('Display order')
+                        ->numeric()
+                        ->default(0)
+                        ->minValue(0),
+                    Toggle::make('is_active')->label('Active')->default(true),
+                ]),
+            ]);
+    }
+
+    public function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('display_order')->label('Order')->sortable(),
+                TextColumn::make('name')->searchable()->sortable(),
+                IconColumn::make('is_active')->label('Active')->boolean(),
+                TextColumn::make('updated_at')->dateTime()->sortable()->sinceTooltip(),
+            ])
+            ->headerActions([
+                CreateAction::make()
+                    ->visible(fn (): bool => RestaurantMenuResource::canEdit($this->getOwnerRecord())),
+            ])
+            ->recordActions([
+                EditAction::make()
+                    ->url(fn (RestaurantMenuCategory $record): string => RestaurantMenuCategoryResource::getUrl('edit', [
+                        'record' => $record,
+                        'menu' => $this->getOwnerRecord(),
+                    ]))
+                    ->visible(fn (): bool => RestaurantMenuResource::canEdit($this->getOwnerRecord())),
+                DeleteAction::make()
+                    ->visible(fn (): bool => RestaurantMenuResource::canEdit($this->getOwnerRecord())),
+            ])
+            ->bulkActions([])
+            ->defaultSort('display_order');
+    }
+}

@@ -264,6 +264,33 @@ Restaurant roles must **not** create, edit, delete, change ticket status, edit i
 Out-of-scope URLs:
 - Restaurant panel direct links outside `RestaurantPanelScope::supportTickets()` fail as **403** or **404** (consistent with other scoped resources).
 
+## Restaurant menus (Phase 16A)
+
+Phase 16A adds **Menus** (`RestaurantMenu` + nested categories/items) to both panels (dashboard-only; **no** mobile menu APIs or guest-facing pages in this phase).
+
+### `/platform`
+
+Allowed:
+- `super_admin`
+- `operations_admin`
+
+Capabilities:
+- Full CRUD over all menus
+- Structured menus: manage categories from the menu record; manage items from each category’s nested edit page
+- PDF uploads stored on the **`public`** disk under **`menus/`** (local browsing requires `php artisan storage:link`)
+
+### `/restaurant`
+
+Scoping uses `RestaurantPanelScope::menus()` (same split as offers/stories):
+
+- `restaurant_owner`: restaurant-wide menus (`branch_id=null`) plus branch menus for assigned restaurant(s); **delete** menus owner-only (matches offers pattern)
+- `branch_manager` / `restaurant_host`: branch-scoped menus only (`branch_id` must be in scope); restaurant-wide menus must not appear or be reachable (**403/404**)
+
+Structured categories/items inherit parent-menu authorization (relation managers + nested category edit).
+
+Out-of-scope URLs:
+- Restaurant panel direct links outside `RestaurantPanelScope::menus()` fail as **403** or **404**.
+
 ## Event bookings link (Phase 11B)
 
 Phase 11B allows linking bookings to events from dashboards:
