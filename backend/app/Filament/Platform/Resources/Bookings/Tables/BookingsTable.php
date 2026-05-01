@@ -8,6 +8,7 @@ use App\Services\Bookings\BookingTransitionException;
 use App\Services\Bookings\BookingTransitionService;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -41,6 +42,7 @@ class BookingsTable
                 TextColumn::make('customer.phone')->label('Customer phone')->searchable(),
                 TextColumn::make('created_at')->since(),
             ])
+            ->defaultSort('id', 'desc')
             ->filters([
                 SelectFilter::make('status')
                     ->options(array_combine(
@@ -53,10 +55,11 @@ class BookingsTable
                     ->relationship('branch', 'name'),
                 Filter::make('starts_at_date')
                     ->form([
-                        \Filament\Forms\Components\DatePicker::make('date')->label('Starts at (date)'),
+                        DatePicker::make('date')->label('Starts at (date)'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         $date = $data['date'] ?? null;
+
                         return $date
                             ? $query->whereDate('starts_at', $date)
                             : $query;

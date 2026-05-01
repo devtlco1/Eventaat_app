@@ -3,6 +3,7 @@
 namespace App\Filament\Restaurant\Resources\Bookings\Tables;
 
 use App\Enums\BookingStatus;
+use App\Filament\Restaurant\Resources\Bookings\BookingResource;
 use App\Models\Booking;
 use App\Services\Bookings\BookingTransitionException;
 use App\Services\Bookings\BookingTransitionService;
@@ -38,6 +39,7 @@ class BookingsTable
                 TextColumn::make('customer.phone')->label('Customer phone')->searchable(),
                 TextColumn::make('created_at')->since(),
             ])
+            ->defaultSort('id', 'desc')
             ->filters([
                 SelectFilter::make('status')
                     ->options(array_combine(
@@ -50,7 +52,7 @@ class BookingsTable
                     ->label('Accept')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->authorize(fn (Booking $record) => \App\Filament\Restaurant\Resources\Bookings\BookingResource::canEdit($record))
+                    ->authorize(fn (Booking $record) => BookingResource::canEdit($record))
                     ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canAccept($record))
                     ->action(function (Booking $record): void {
                         try {
@@ -64,7 +66,7 @@ class BookingsTable
                     ->label('Reject')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->authorize(fn (Booking $record) => \App\Filament\Restaurant\Resources\Bookings\BookingResource::canEdit($record))
+                    ->authorize(fn (Booking $record) => BookingResource::canEdit($record))
                     ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canReject($record))
                     ->action(function (Booking $record): void {
                         try {
@@ -78,7 +80,7 @@ class BookingsTable
                     ->label('Cancel')
                     ->color('warning')
                     ->requiresConfirmation()
-                    ->authorize(fn (Booking $record) => \App\Filament\Restaurant\Resources\Bookings\BookingResource::canEdit($record))
+                    ->authorize(fn (Booking $record) => BookingResource::canEdit($record))
                     ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canCancel($record))
                     ->action(function (Booking $record): void {
                         try {
@@ -92,7 +94,7 @@ class BookingsTable
                     ->label('Mark arrived')
                     ->color('info')
                     ->requiresConfirmation()
-                    ->authorize(fn (Booking $record) => \App\Filament\Restaurant\Resources\Bookings\BookingResource::canEdit($record))
+                    ->authorize(fn (Booking $record) => BookingResource::canEdit($record))
                     ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canArrive($record))
                     ->action(function (Booking $record): void {
                         try {
@@ -106,7 +108,7 @@ class BookingsTable
                     ->label('Mark seated')
                     ->color('primary')
                     ->requiresConfirmation()
-                    ->authorize(fn (Booking $record) => \App\Filament\Restaurant\Resources\Bookings\BookingResource::canEdit($record))
+                    ->authorize(fn (Booking $record) => BookingResource::canEdit($record))
                     ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canSeat($record))
                     ->action(function (Booking $record): void {
                         try {
@@ -120,7 +122,7 @@ class BookingsTable
                     ->label('Mark completed')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->authorize(fn (Booking $record) => \App\Filament\Restaurant\Resources\Bookings\BookingResource::canEdit($record))
+                    ->authorize(fn (Booking $record) => BookingResource::canEdit($record))
                     ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canComplete($record))
                     ->action(function (Booking $record): void {
                         try {
@@ -134,7 +136,7 @@ class BookingsTable
                     ->label('Mark no-show')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->authorize(fn (Booking $record) => \App\Filament\Restaurant\Resources\Bookings\BookingResource::canEdit($record))
+                    ->authorize(fn (Booking $record) => BookingResource::canEdit($record))
                     ->visible(fn (Booking $record) => app(BookingTransitionService::class)->canNoShow($record))
                     ->action(function (Booking $record): void {
                         try {
