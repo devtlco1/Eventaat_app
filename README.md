@@ -249,6 +249,14 @@ Create a Filament admin user (for local login testing):
 php artisan make:filament-user --panel=platform
 ```
 
+Run tests from `backend/`:
+
+```bash
+php artisan test
+```
+
+`backend/phpunit.xml` raises PHPUnit `memory_limit` slightly so Filament + Livewire file-upload feature tests do not intermittently abort the PHP process on typical machines.
+
 Run the server:
 
 ```bash

@@ -199,7 +199,8 @@ class RestaurantStoriesDashboardTest extends TestCase
         $this->actingAs($admin);
 
         $itemKey = (string) Str::uuid();
-        $upload = UploadedFile::fake()->create('story-slide.mp4', 300, 'video/mp4');
+        // Keep uploads minimal: Livewire serializes temp uploads across requests; large fakes can exhaust PHP memory.
+        $upload = UploadedFile::fake()->create('story-slide.mp4', 1, 'video/mp4');
 
         Livewire::test(PlatformCreateRestaurantStory::class)
             ->set('data.restaurant_id', $data['a']->id)
