@@ -309,6 +309,30 @@ Prepares the notification system for future providers without integrating any ex
 - No API endpoints
 - No mobile notification UI
 
+### Phase 11A: event nights dashboard foundation
+
+Adds dashboard-only event nights management using native Filament resources:
+
+- Model/table: `RestaurantEvent` → `restaurant_events`
+- Required fields: `restaurant_id`, `title`, `slug`, `starts_at`
+- Optional: `branch_id` (must belong to restaurant), `ends_at` (must be after `starts_at`), `description`, `capacity`, `price_label`, `notes`
+- Status: `draft|published|cancelled|completed` (default `draft`)
+- Booking mode: `normal_booking|event_booking|info_only` (default `info_only`)
+- Platform panel:
+  - Full CRUD over all events
+  - Table columns: title, restaurant, branch, starts_at, status, booking_mode
+  - Filters: status, restaurant, branch, starts date (simple)
+- Restaurant panel (scoped):
+  - `restaurant_owner`: manage restaurant-wide events (`branch_id=null`) and branch events
+  - `branch_manager` / `restaurant_host`: manage branch-scoped events only (`branch_id` required)
+  - Out-of-scope direct URLs denied/unavailable
+
+### Explicit non-goals (Phase 11A)
+
+- No mobile screens or event discovery
+- No mobile API endpoints
+- No offers, stories, payments, ticketing, or event booking flow (Phase 11B)
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)

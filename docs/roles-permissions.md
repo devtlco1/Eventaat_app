@@ -127,3 +127,18 @@ Phase 10A adds a **Dry-run dispatch** action and a read-only dispatch attempt hi
 - Denied for all other roles (including restaurant staff and customers)
 
 This is provider-ready foundation only (no real WhatsApp/SMS/push/email sending, no external API calls, no retries).
+
+## Event nights (Phase 11A)
+
+Phase 11A adds **Event nights** (`RestaurantEvent`) resources to both panels:
+
+### `/platform`
+
+Allowed:
+- `super_admin`
+- `operations_admin`
+
+### `/restaurant`
+
+- `restaurant_owner`: can create/edit/view/delete restaurant-wide (`branch_id=null`) and branch-scoped events within their assigned restaurant(s)
+- `branch_manager` / `restaurant_host`: can create/edit/view branch-scoped events only (branch is required and must be within scope)

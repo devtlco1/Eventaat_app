@@ -57,3 +57,11 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
   - Creates an attempt row
   - Marks notification `sent` on success or `failed` on failure
 
+### Event nights dashboard foundation (Phase 11A)
+
+- Adds `RestaurantEvent` (event nights) as a dashboard-only module (no mobile/event discovery in this phase).
+- Events belong to a restaurant; branch is optional but must belong to the selected restaurant.
+- Restaurant panel scoping:
+  - `restaurant_owner`: restaurant-wide + branch events
+  - `branch_manager` / `restaurant_host`: branch-scoped events only
+

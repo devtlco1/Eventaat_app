@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             RolesAndTestUsersSeeder::class,
             NotificationTemplatesSeeder::class,
             RestaurantDemoSeeder::class,
+            RestaurantEventsDemoSeeder::class,
             BookingDemoSeeder::class,
         ]);
     }

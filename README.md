@@ -46,6 +46,12 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - Provider abstraction (`NotificationProvider` + `NotificationProviderResult`) plus an `InternalDryRunNotificationProvider` (no external API calls)
   - Dispatch attempt tracking (`notification_dispatch_attempts`) for provider-ready auditing
   - Platform Filament adds **Dry-run dispatch** for pending/internal booking notifications and shows dispatch attempt history on the view page
+- **Event nights dashboard foundation (Phase 11A)**:
+  - Model `RestaurantEvent` (`restaurant_events`) to represent restaurant-hosted event nights (dashboard-only in this phase)
+  - Platform panel can manage all event nights
+  - Restaurant panel can manage scoped event nights:
+    - `restaurant_owner`: restaurant-wide + branch events
+    - `branch_manager` / `restaurant_host`: branch-scoped events only (restaurant-wide events are owner-only)
 
 ### Phase 1: local test users (dev only)
 
