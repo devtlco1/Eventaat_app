@@ -52,6 +52,9 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - Restaurant panel can manage scoped event nights:
     - `restaurant_owner`: restaurant-wide + branch events
     - `branch_manager` / `restaurant_host`: branch-scoped events only (restaurant-wide events are owner-only)
+- **Event booking link foundation (Phase 11B)**:
+  - Manual/dashboard bookings can optionally link to a published `RestaurantEvent` via `bookings.restaurant_event_id`
+  - Event eligibility + capacity rules are validated in the shared booking creation validator (no mobile work in this phase)
 
 ### Phase 1: local test users (dev only)
 

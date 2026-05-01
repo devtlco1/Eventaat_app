@@ -333,6 +333,30 @@ Adds dashboard-only event nights management using native Filament resources:
 - No mobile API endpoints
 - No offers, stories, payments, ticketing, or event booking flow (Phase 11B)
 
+### Phase 11B: event booking link foundation
+
+Allows dashboard/manual bookings to optionally link to a published `RestaurantEvent`:
+
+- Migration: adds nullable `bookings.restaurant_event_id` FK → `restaurant_events.id` (`nullOnDelete`)
+- Relationships:
+  - `Booking` belongsTo `RestaurantEvent`
+  - `RestaurantEvent` hasMany `Booking`
+- Validation when `restaurant_event_id` is provided:
+  - event must belong to selected restaurant
+  - status must be `published`
+  - booking_mode must be `normal_booking` or `event_booking` (reject `info_only`)
+  - if event has `branch_id`, booking `branch_id` must match
+  - if event is restaurant-wide (`branch_id=null`), allow any branch under same restaurant
+  - capacity: sum party_size for linked bookings in statuses `pending, accepted, arrived, seated` must not exceed capacity
+- Filament: optional Event select on booking create/edit in both panels + toggleable Event column on booking lists
+
+### Explicit non-goals (Phase 11B)
+
+- No mobile UI
+- No mobile API endpoints
+- No payments or ticketing
+- No forcing booking `starts_at` to the event time
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)

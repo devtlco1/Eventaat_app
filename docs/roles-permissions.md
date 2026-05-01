@@ -142,3 +142,12 @@ Allowed:
 
 - `restaurant_owner`: can create/edit/view/delete restaurant-wide (`branch_id=null`) and branch-scoped events within their assigned restaurant(s)
 - `branch_manager` / `restaurant_host`: can create/edit/view branch-scoped events only (branch is required and must be within scope)
+
+## Event bookings link (Phase 11B)
+
+Phase 11B allows linking bookings to events from dashboards:
+
+- Platform panel bookings: platform roles can optionally select a published, bookable event when creating/editing a booking.
+- Restaurant panel bookings:
+  - `restaurant_owner`: can link to compatible events in assigned restaurant(s)
+  - `branch_manager` / `restaurant_host`: can link only to compatible branch-scoped events in their assigned branch scope

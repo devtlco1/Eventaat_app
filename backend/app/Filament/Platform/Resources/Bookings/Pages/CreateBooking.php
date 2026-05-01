@@ -34,6 +34,7 @@ class CreateBooking extends CreateRecord
                 'branch_id' => (int) ($data['branch_id'] ?? 0),
                 'seating_area_id' => ($data['seating_area_id'] ?? null) !== null ? (int) $data['seating_area_id'] : null,
                 'restaurant_table_id' => ($data['restaurant_table_id'] ?? null) !== null ? (int) $data['restaurant_table_id'] : null,
+                'restaurant_event_id' => ($data['restaurant_event_id'] ?? null) !== null ? (int) $data['restaurant_event_id'] : null,
                 'starts_at' => $startsAt,
                 'party_size' => (int) ($data['party_size'] ?? 0),
                 'customer_note' => $data['customer_note'] ?? null,

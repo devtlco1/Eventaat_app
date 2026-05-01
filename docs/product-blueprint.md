@@ -65,3 +65,9 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
   - `restaurant_owner`: restaurant-wide + branch events
   - `branch_manager` / `restaurant_host`: branch-scoped events only
 
+### Event booking link foundation (Phase 11B)
+
+- Manual/dashboard bookings can optionally link to a published event night (`RestaurantEvent`) via `bookings.restaurant_event_id`.
+- Event must be published and bookable (`booking_mode` is `normal_booking` or `event_booking`, not `info_only`).
+- Capacity is enforced per event using active booking statuses only (`pending, accepted, arrived, seated`).
+

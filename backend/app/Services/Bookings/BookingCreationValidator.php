@@ -9,6 +9,7 @@ use App\Enums\TableStatus;
 use App\Models\Booking;
 use App\Models\Branch;
 use App\Models\Restaurant;
+use App\Models\RestaurantEvent;
 use App\Models\RestaurantTable;
 use App\Models\SeatingArea;
 use Illuminate\Support\Carbon;
@@ -24,6 +25,7 @@ class BookingCreationValidator
      *   branch_id:int,
      *   seating_area_id?:int|null,
      *   restaurant_table_id?:int|null,
+     *   restaurant_event_id?:int|null,
      *   starts_at:Carbon,
      *   party_size:int,
      *   allowed_restaurant_ids?:array<int,int>,
@@ -41,6 +43,7 @@ class BookingCreationValidator
 
         $seatingAreaId = array_key_exists('seating_area_id', $data) ? $data['seating_area_id'] : null;
         $tableId = array_key_exists('restaurant_table_id', $data) ? $data['restaurant_table_id'] : null;
+        $eventId = array_key_exists('restaurant_event_id', $data) ? $data['restaurant_event_id'] : null;
 
         if (isset($data['allowed_restaurant_ids']) && $data['allowed_restaurant_ids'] !== [] && ! in_array($restaurantId, $data['allowed_restaurant_ids'], true)) {
             throw ValidationException::withMessages([
@@ -74,6 +77,17 @@ class BookingCreationValidator
             throw ValidationException::withMessages([
                 'branch_id' => ['Branch must belong to the selected restaurant.'],
             ]);
+        }
+
+        if ($eventId !== null) {
+            $this->validateRestaurantEventForBooking(
+                restaurant: $restaurant,
+                branch: $branch,
+                startsAt: $data['starts_at'],
+                partySize: $partySize,
+                eventId: (int) $eventId,
+                allowedBranchIds: $data['allowed_branch_ids'] ?? null,
+            );
         }
 
         $startsAt = $data['starts_at'];
@@ -162,6 +176,75 @@ class BookingCreationValidator
         return [
             'seating_area_id' => $seatingAreaId !== null ? (int) $seatingAreaId : null,
         ];
+    }
+
+    /**
+     * @param  array<int,int>|null  $allowedBranchIds
+     *
+     * @throws ValidationException
+     */
+    private function validateRestaurantEventForBooking(
+        Restaurant $restaurant,
+        Branch $branch,
+        Carbon $startsAt,
+        int $partySize,
+        int $eventId,
+        ?array $allowedBranchIds,
+    ): void {
+        /** @var RestaurantEvent|null $event */
+        $event = RestaurantEvent::query()->find($eventId);
+        if (! $event || $event->restaurant_id !== $restaurant->id) {
+            throw ValidationException::withMessages([
+                'restaurant_event_id' => ['Event must belong to the selected restaurant.'],
+            ]);
+        }
+
+        if ($event->status !== RestaurantEvent::STATUS_PUBLISHED) {
+            throw ValidationException::withMessages([
+                'restaurant_event_id' => ['Event must be published.'],
+            ]);
+        }
+
+        if (! in_array($event->booking_mode, [RestaurantEvent::BOOKING_MODE_EVENT, RestaurantEvent::BOOKING_MODE_NORMAL], true)) {
+            throw ValidationException::withMessages([
+                'restaurant_event_id' => ['This event cannot accept bookings.'],
+            ]);
+        }
+
+        if ($event->branch_id !== null && (int) $event->branch_id !== (int) $branch->id) {
+            throw ValidationException::withMessages([
+                'restaurant_event_id' => ['Event branch must match the selected booking branch.'],
+            ]);
+        }
+
+        // Branch-scoped staff must only link branch-scoped events (restaurant-wide events are owner-only in restaurant panel).
+        if ($allowedBranchIds !== null && $allowedBranchIds !== []) {
+            if ($event->branch_id === null || ! in_array((int) $event->branch_id, $allowedBranchIds, true)) {
+                throw ValidationException::withMessages([
+                    'restaurant_event_id' => ['Event is out of scope.'],
+                ]);
+            }
+        }
+
+        if ($event->capacity !== null) {
+            $consumingStatuses = [
+                BookingStatus::Pending->value,
+                BookingStatus::Accepted->value,
+                BookingStatus::Arrived->value,
+                BookingStatus::Seated->value,
+            ];
+
+            $current = (int) Booking::query()
+                ->where('restaurant_event_id', $event->id)
+                ->whereIn('status', $consumingStatuses)
+                ->sum('party_size');
+
+            if ($current + $partySize > (int) $event->capacity) {
+                throw ValidationException::withMessages([
+                    'restaurant_event_id' => ['Event capacity has been reached.'],
+                ]);
+            }
+        }
     }
 
     private function validateBranchAvailability(Branch $branch, Carbon $startsAt): void

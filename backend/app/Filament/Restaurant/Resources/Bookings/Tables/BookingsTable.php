@@ -33,6 +33,7 @@ class BookingsTable
                     ->sortable(),
                 TextColumn::make('starts_at')->dateTime()->sortable(),
                 TextColumn::make('party_size')->sortable(),
+                TextColumn::make('restaurantEvent.title')->label('Event')->toggleable(isToggledHiddenByDefault: true)->limit(30),
                 TextColumn::make('branch.name')->label('Branch')->sortable(),
                 TextColumn::make('seatingArea.name')->label('Seating Area')->sortable(),
                 TextColumn::make('table.label')->label('Table')->sortable(),

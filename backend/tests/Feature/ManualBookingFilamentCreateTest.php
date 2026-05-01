@@ -11,6 +11,7 @@ use App\Filament\Restaurant\Resources\Bookings\Pages\CreateBooking as Restaurant
 use App\Models\Branch;
 use App\Models\BranchAvailabilityRule;
 use App\Models\Restaurant;
+use App\Models\RestaurantEvent;
 use App\Models\RestaurantStaffAssignment;
 use App\Models\RestaurantTable;
 use App\Models\SeatingArea;
@@ -122,6 +123,7 @@ class ManualBookingFilamentCreateTest extends TestCase
             ->assertSee('Customer phone')
             ->assertSee('Restaurant')
             ->assertSee('Branch')
+            ->assertSee('Event (optional)')
             ->assertSee('Seating Area')
             ->assertSee('Starts at');
     }
@@ -159,6 +161,16 @@ class ManualBookingFilamentCreateTest extends TestCase
 
         $customer = $this->makeCustomer('+15550088102');
 
+        $event = RestaurantEvent::create([
+            'restaurant_id' => $data['restaurant']->id,
+            'branch_id' => $data['branch']->id,
+            'title' => 'E',
+            'slug' => 'filament-platform-event-1',
+            'starts_at' => Carbon::now()->addDays(2),
+            'status' => RestaurantEvent::STATUS_PUBLISHED,
+            'booking_mode' => RestaurantEvent::BOOKING_MODE_EVENT,
+        ]);
+
         $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
         Filament::setCurrentPanel('platform');
         $this->actingAs($admin);
@@ -168,6 +180,7 @@ class ManualBookingFilamentCreateTest extends TestCase
             ->set('data.customer_exists', true)
             ->set('data.restaurant_id', $data['restaurant']->id)
             ->set('data.branch_id', $data['branch']->id)
+            ->set('data.restaurant_event_id', $event->id)
             ->set('data.seating_area_id', null)
             ->set('data.restaurant_table_id', null)
             ->set('data.party_size', 2)
@@ -179,6 +192,7 @@ class ManualBookingFilamentCreateTest extends TestCase
             'branch_id' => $data['branch']->id,
             'party_size' => 2,
             'restaurant_table_id' => null,
+            'restaurant_event_id' => $event->id,
         ]);
     }
 

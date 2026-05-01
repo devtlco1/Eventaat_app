@@ -15,6 +15,7 @@ class Booking extends Model
         'branch_id',
         'seating_area_id',
         'restaurant_table_id',
+        'restaurant_event_id',
         'starts_at',
         'party_size',
         'status',
@@ -65,6 +66,11 @@ class Booking extends Model
     public function table(): BelongsTo
     {
         return $this->belongsTo(RestaurantTable::class, 'restaurant_table_id');
+    }
+
+    public function restaurantEvent(): BelongsTo
+    {
+        return $this->belongsTo(RestaurantEvent::class, 'restaurant_event_id');
     }
 
     public function bookingNotifications(): HasMany

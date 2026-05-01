@@ -7,6 +7,7 @@ use App\Enums\RestaurantStatus;
 use App\Enums\TableStatus;
 use App\Models\Branch;
 use App\Models\Restaurant;
+use App\Models\RestaurantEvent;
 use App\Models\RestaurantTable;
 use App\Models\SeatingArea;
 use App\Models\User;
@@ -112,6 +113,7 @@ class ManualBookingCreateForm
                     ->preload()
                     ->live()
                     ->afterStateUpdated(function (Set $set): void {
+                        $set('restaurant_event_id', null);
                         $set('seating_area_id', null);
                         $set('restaurant_table_id', null);
                     })
@@ -126,6 +128,54 @@ class ManualBookingCreateForm
                             ->where('status', BranchStatus::Active->value)
                             ->orderBy('name')
                             ->pluck('name', 'id')
+                            ->all();
+                    }),
+
+                Select::make('restaurant_event_id')
+                    ->label('Event (optional)')
+                    ->nullable()
+                    ->searchable()
+                    ->preload()
+                    ->helperText(function (Get $get): ?string {
+                        $eventId = $get('restaurant_event_id');
+                        if (! $eventId) {
+                            return 'Optional: link this booking to a published event night.';
+                        }
+
+                        /** @var RestaurantEvent|null $event */
+                        $event = RestaurantEvent::query()->find((int) $eventId);
+                        if (! $event) {
+                            return null;
+                        }
+
+                        $starts = $event->starts_at?->format('Y-m-d H:i');
+                        $ends = $event->ends_at?->format('Y-m-d H:i');
+
+                        return $ends
+                            ? "Event time: {$starts} → {$ends}"
+                            : ($starts ? "Event time: {$starts}" : null);
+                    })
+                    ->options(function (Get $get) {
+                        $restaurantId = $get('restaurant_id');
+                        $branchId = $get('branch_id');
+                        if (! $restaurantId || ! $branchId) {
+                            return [];
+                        }
+
+                        return RestaurantEvent::query()
+                            ->where('restaurant_id', (int) $restaurantId)
+                            ->where('status', RestaurantEvent::STATUS_PUBLISHED)
+                            ->whereIn('booking_mode', [RestaurantEvent::BOOKING_MODE_NORMAL, RestaurantEvent::BOOKING_MODE_EVENT])
+                            ->where(function ($q) use ($branchId) {
+                                $q->whereNull('branch_id')->orWhere('branch_id', (int) $branchId);
+                            })
+                            ->orderByDesc('starts_at')
+                            ->limit(50)
+                            ->get()
+                            ->mapWithKeys(function (RestaurantEvent $e) {
+                                $when = $e->starts_at?->format('Y-m-d H:i') ?? '';
+                                return [$e->id => "{$e->title} — {$when}"];
+                            })
                             ->all();
                     }),
 
