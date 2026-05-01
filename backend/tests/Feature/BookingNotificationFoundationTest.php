@@ -139,6 +139,30 @@ class BookingNotificationFoundationTest extends TestCase
         $this->get('/platform/booking-notifications')->assertOk();
     }
 
+    public function test_platform_booking_notifications_index_exposes_dispatch_actions_for_pending_internal_rows(): void
+    {
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        $this->actingAs($admin);
+
+        $booking = $this->makePendingBooking();
+
+        BookingNotification::create([
+            'booking_id' => $booking->id,
+            'user_id' => $booking->customer_id,
+            'channel' => 'internal',
+            'event' => BookingNotification::EVENT_BOOKING_CREATED,
+            'title' => 'T',
+            'message' => 'M',
+            'status' => 'pending',
+        ]);
+
+        $this->get('/platform/booking-notifications')
+            ->assertOk()
+            ->assertSee('Mark sent')
+            ->assertSee('Mark skipped')
+            ->assertSee('Mark failed');
+    }
+
     public function test_restaurant_owner_cannot_access_platform_booking_notifications(): void
     {
         $owner = User::where('email', 'restaurant_owner@eventaat.test')->firstOrFail();

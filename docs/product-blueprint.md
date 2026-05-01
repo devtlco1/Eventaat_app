@@ -1,6 +1,6 @@
-## Product blueprint (Phase 0–9B)
+## Product blueprint (Phase 0–9C)
 
-Phase 0–9B focuses on foundation + role-based access + restaurant operational foundation + mobile customer API + mobile app auth UI foundation + core booking flow foundation + day-of booking operations + **branch-level booking availability rules** + **internal booking notification rows** + **configurable notification templates + preview** (no outbound delivery). This file exists to match the repository structure required by `docs/eventaat_blueprint_v1.md`.
+Phase 0–9C focuses on foundation + role-based access + restaurant operational foundation + mobile customer API + mobile app auth UI foundation + core booking flow foundation + day-of booking operations + **branch-level booking availability rules** + **internal booking notification rows** + **configurable notification templates + preview** + **internal dispatch actions** (no outbound delivery). This file exists to match the repository structure required by `docs/eventaat_blueprint_v1.md`.
 
 Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
@@ -36,4 +36,13 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
   - Unknown placeholders remain unchanged.
   - Failures fall back to the Phase 9A hardcoded copy and never break booking flows.
 - Platform panel provides CRUD + preview modal for templates; restaurant panel does not expose templates in this phase.
+
+### Notification dispatch foundation (Phase 9C)
+
+- The outbox remains internal-only; no external provider integrations.
+- Platform admins can mark `booking_notifications`:
+  - `pending -> sent` (sets `sent_at`)
+  - `pending -> skipped`
+  - `pending -> failed` (sets `failed_at` + `failure_reason`)
+- `sent`, `skipped`, and `failed` are final for this phase (no retries).
 

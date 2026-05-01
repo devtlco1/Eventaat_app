@@ -105,3 +105,16 @@ Phase 9B adds a Filament resource **Notification templates** under `/platform`:
 - Denied for all other roles (including restaurant staff and customers)
 
 This resource is preview-only and does not send notifications (no WhatsApp/SMS/push/email, queues, workers, or retries).
+
+## Platform booking notification dispatch actions (Phase 9C)
+
+Phase 9C extends the Platform **Booking notifications** resource:
+
+- Allowed: `super_admin`, `operations_admin`
+- Denied for all other roles (including restaurant staff and customers)
+
+Actions are internal-only and do not send messages externally:
+
+- Mark sent
+- Mark skipped
+- Mark failed (reason required)

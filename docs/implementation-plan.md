@@ -258,6 +258,29 @@ Adds configurable templates (no outbound delivery) so each booking lifecycle eve
 - No mobile notification UI
 - No API changes or notification endpoints
 
+### Phase 9C: notification dispatch foundation (internal-only)
+
+Adds safe, internal-only dispatch state transitions for the notification outbox (no external delivery):
+
+- New service: `App\Services\Notifications\NotificationDispatchService`
+- Channel support: `internal` only
+- Supported transitions (final for this phase):
+  - `pending -> sent` (sets `sent_at`, clears `failed_at` / `failure_reason`)
+  - `pending -> skipped` (clears `sent_at`, clears `failed_at` / `failure_reason`)
+  - `pending -> failed` (sets `failed_at` + `failure_reason`, clears `sent_at`)
+- Non-pending rows (`sent`, `skipped`, `failed`) are final: transition methods return `false` and do not modify the row.
+- Platform Filament **Booking notifications** adds native row actions:
+  - Mark sent
+  - Mark skipped
+  - Mark failed (reason required)
+
+### Explicit non-goals (Phase 9C)
+
+- No WhatsApp/SMS/push/email integration or sending
+- No queues/workers/retries
+- No API endpoints
+- No mobile notification UI
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)
