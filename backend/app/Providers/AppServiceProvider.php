@@ -2,10 +2,14 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\EnsureMobileCustomer;
+use App\Http\Middleware\EnsureValidSanctumToken;
+use App\Http\Responses\FilamentLogoutResponse;
 use App\Services\Otp\LocalLogOtpSender;
 use App\Services\Otp\OtpSender;
+use Filament\Auth\Http\Responses\Contracts\LogoutResponse as FilamentLogoutResponseContract;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -15,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(OtpSender::class, LocalLogOtpSender::class);
+        $this->app->bind(FilamentLogoutResponseContract::class, FilamentLogoutResponse::class);
     }
 
     /**
@@ -22,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Route::aliasMiddleware('mobile.customer', \App\Http\Middleware\EnsureMobileCustomer::class);
-        Route::aliasMiddleware('mobile.token', \App\Http\Middleware\EnsureValidSanctumToken::class);
+        Route::aliasMiddleware('mobile.customer', EnsureMobileCustomer::class);
+        Route::aliasMiddleware('mobile.token', EnsureValidSanctumToken::class);
     }
 }

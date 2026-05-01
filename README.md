@@ -9,7 +9,7 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Backend**: Laravel app in `backend/`
 - **Database**: PostgreSQL configuration (see `backend/.env`)
 - **Dashboards**: Filament panels only
-  - **Unified web sign-in**: `GET /login` and `POST /login` (email + password, default `web` guard) — redirects by role to `/platform` or `/restaurant`; **customer** accounts are signed out with a clear message (use the mobile app)
+  - **Unified web sign-in**: `GET /login` and `POST /login` (email + password, default `web` guard) — redirects by role to `/platform` or `/restaurant`; **customer** accounts are signed out with a clear message (use the mobile app); **Filament panel logout** sends users back to **`/login`** so platform and restaurant staff share one exit/sign-in flow
   - **Platform panel**: `/platform` (also `/platform/login`)
   - **Restaurant panel**: `/restaurant` (also `/restaurant/login`)
 - **Docs**: implementation plan and role rules in `docs/`

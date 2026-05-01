@@ -33,6 +33,7 @@ Role direction from `docs/eventaat_blueprint_v1.md`:
   2. **`restaurant_owner` / `branch_manager` / `restaurant_host`** → `/restaurant`
   3. Otherwise (typically **`customer`** only or no dashboard role): session cleared and redirect back to `/login` with an explanatory message — customers must use the **mobile app**.
 - **`/platform/login`** and **`/restaurant/login`** remain valid Filament entry points with the same panel access rules as today.
+- Signing out from either Filament panel redirects to **`/login`** (not `/platform/login` or `/restaurant/login`), so switching accounts never strands restaurant staff on the wrong panel login screen.
 
 ## Panel access rules (Phase 1)
 

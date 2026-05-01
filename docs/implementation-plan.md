@@ -238,5 +238,6 @@ Adds internal lifecycle notification rows only (no outbound channels):
 - After successful authentication, redirect by Spatie role precedence: **platform** roles (`super_admin`, `operations_admin`) → `/platform`; else **restaurant** roles (`restaurant_owner`, `branch_manager`, `restaurant_host`) → `/restaurant`; else treat as **no dashboard access** — `Auth::logout()`, invalidate session, redirect to `/login` with flash message (e.g. customer-only accounts)
 - Authenticated users hitting `GET /login` are redirected the same way (customers are logged out and sent back with the message)
 - Filament panel logins **`/platform/login`** and **`/restaurant/login`** remain unchanged; panel `canAccessPanel` rules unchanged
+- Filament **`LogoutResponse`** is bound app-wide so logout from either panel redirects to **`route('dashboard.login')`** (`/login`) instead of the panel-local login URL
 - No Sanctum, mobile OTP, or API route changes
 
