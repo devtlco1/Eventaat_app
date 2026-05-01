@@ -561,6 +561,24 @@ Adds `SupportTicket` → `support_tickets` with native Filament in Platform + Re
 - No message threads / replies
 - No restaurant-side workflow or internal-notes editing
 
+### Phase 15B: support ticket activity timeline + internal notes (dashboard-only)
+
+Adds `SupportTicketActivity` → `support_ticket_activities` with Filament-native timeline on **platform** tickets only:
+
+- Columns: required `support_ticket_id` (FK cascade); nullable `user_id` (nullOnDelete); `type` (`note|status_change`; `system` reserved unused); nullable `old_status` / `new_status`; nullable `message`; `is_internal` default true; timestamps
+- `SupportTicketActivityService`: `recordNote(SupportTicket, User, message)`, `recordStatusChange(SupportTicket, ?User, ?old, new)`
+- `SupportTicketObserver::updated()` writes **status_change** rows using `getChanges()` / `getPrevious()` (no rows on initial insert); reopen behavior unchanged at ticket level (`resolved_at` / `closed_at` retained)
+- Platform `SupportTicketResource`: relation manager **Internal activity** — append-only table + header **Add internal note** (`CreateAction`, required message); `$isLazy = false` on relation manager so actions resolve reliably in Livewire tests
+- Restaurant panel: unchanged **read-only** tickets — **no** relation manager / timeline / notes UI
+
+### Explicit non-goals (Phase 15B)
+
+- No mobile UI/API for tickets or notes
+- No customer-visible replies or threads
+- No notifications or automation
+- No analytics/widgets
+- No restaurant-visible internal timeline or note entry
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)

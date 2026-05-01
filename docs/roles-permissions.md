@@ -239,9 +239,9 @@ Phase 14B adds **authenticated** mobile endpoints under `/api/mobile` using **`a
 
 Non-customer tokens / missing customer role → **`mobile.customer`** middleware responds **403**.
 
-## Support tickets (Phase 15A)
+## Support tickets (Phase 15A–15B)
 
-Phase 15A adds **Support tickets** (`SupportTicket`) resources to both panels (dashboard-only; **no** mobile ticket API in this phase).
+Phase 15A adds **Support tickets** (`SupportTicket`) resources to both panels (dashboard-only; **no** mobile ticket API). Phase 15B adds **platform-only** `SupportTicketActivity` timeline + internal notes — restaurant roles never see or author activity rows.
 
 ### `/platform`
 
@@ -251,14 +251,15 @@ Allowed:
 
 Capabilities:
 - Full CRUD over all tickets (including platform-level tickets with no restaurant)
-- Native row actions only: **Mark in progress**, **Resolve**, **Close**, **Reopen** (restaurant panel has **no** workflow actions)
+- Native row actions only: **Mark in progress**, **Resolve**, **Close**, **Reopen** (restaurant panel has **no** workflow actions); each transition writes an append-only **status_change** activity after the ticket exists
+- **Phase 15B**: ticket **view/edit** pages include relation manager **Internal activity** (read-only rows) + **Add internal note** (`note` activities); rows are append-only (no edit/delete)
 
 ### `/restaurant`
 
 - `restaurant_owner`: **read-only** access to tickets for assigned restaurant(s), including restaurant-wide (`branch_id=null`) and branch-scoped rows
 - `branch_manager` / `restaurant_host`: **read-only** access to **branch-scoped** tickets only (`branch_id` must be in scope); restaurant-wide tickets and platform-level (`restaurant_id=null`) tickets must not appear or be reachable (**403/404**)
 
-Restaurant roles must **not** create, edit, delete, change ticket status, or edit internal notes in Phase 15A.
+Restaurant roles must **not** create, edit, delete, change ticket status, edit internal notes, add timeline notes, or view the activity relation manager (Phase 15A–15B).
 
 Out-of-scope URLs:
 - Restaurant panel direct links outside `RestaurantPanelScope::supportTickets()` fail as **403** or **404** (consistent with other scoped resources).

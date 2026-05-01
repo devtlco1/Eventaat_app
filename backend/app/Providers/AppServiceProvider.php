@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Http\Middleware\EnsureMobileCustomer;
 use App\Http\Middleware\EnsureValidSanctumToken;
 use App\Http\Responses\FilamentLogoutResponse;
+use App\Models\SupportTicket;
+use App\Observers\SupportTicketObserver;
 use App\Services\Otp\LocalLogOtpSender;
 use App\Services\Otp\OtpSender;
 use Filament\Auth\Http\Responses\Contracts\LogoutResponse as FilamentLogoutResponseContract;
@@ -27,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        SupportTicket::observe(SupportTicketObserver::class);
+
         Route::aliasMiddleware('mobile.customer', EnsureMobileCustomer::class);
         Route::aliasMiddleware('mobile.token', EnsureValidSanctumToken::class);
     }

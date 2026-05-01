@@ -1,4 +1,4 @@
-## Eventaat (Phase 15A support tickets dashboard foundation)
+## Eventaat (Phase 15B support ticket activity timeline)
 
 This repository is a rebuild of Eventaat following the phased plan in `docs/eventaat_blueprint_v1.md`.
 
@@ -98,6 +98,12 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
     - `restaurant_owner`: restaurant-wide (`branch_id` null) + branch tickets for assigned restaurants
     - `branch_manager` / `restaurant_host`: branch-scoped tickets only (no restaurant-wide rows; `restaurant_id` null platform tickets never appear)
   - No mobile API/UI, notifications, threading, or analytics in this phase
+- **Support ticket activity timeline + internal notes (Phase 15B)** (dashboard-only):
+  - Model `SupportTicketActivity` (`support_ticket_activities`): append-only rows (`note`, `status_change`; `system` reserved); optional `user_id`; `message`; `old_status` / `new_status` for transitions; internal-only flag defaults true
+  - `SupportTicketActivityService` (`recordNote`, `recordStatusChange`) plus `SupportTicketObserver` logs **every post-create status change** (table actions + edit form); initial ticket creation does not emit a status-change row
+  - Platform ticket **view/edit**: relation manager **Internal activity** (read-only rows) + **Add internal note** (modal, message required); status workflow unchanged and writes `status_change` activities
+  - Restaurant panel: **no** activity timeline and **no** add-note action (still read-only ticket list/view only)
+  - No mobile/API customer replies, notifications, or automation in this phase
 - **Filament view-page consistency polish**:
   - View pages use consistent native infolist Sections/Grids for clean, readable details with relation managers below
 

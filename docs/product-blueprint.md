@@ -1,6 +1,6 @@
-## Product blueprint (Phase 0–15A)
+## Product blueprint (Phase 0–15B)
 
-Phase 0–15A builds on earlier phases including **mobile REST endpoints for customer reviews** (Phase 14B) and adds **dashboard-only support tickets / complaints** (Phase 15A): operators manage `SupportTicket` records in Filament (platform-wide or restaurant-linked), while restaurant staff get **read-only** scoped visibility — **no** mobile/API submission or threaded messaging in Phase 15A. This file exists to match the repository structure required by `docs/eventaat_blueprint_v1.md`.
+Phase 0–15B builds on earlier phases including **mobile REST endpoints for customer reviews** (Phase 14B) and adds **dashboard-only support tickets / complaints** (Phase 15A) plus **platform-only internal activity + notes** (Phase 15B): operators manage `SupportTicket` records and append-only `SupportTicketActivity` timeline rows in Filament; restaurant staff keep **read-only** scoped ticket visibility — **no** mobile/API submission, threaded messaging, or restaurant-visible ops notes in Phase 15B. This file exists to match the repository structure required by `docs/eventaat_blueprint_v1.md`.
 
 Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
@@ -138,3 +138,8 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - Adds `SupportTicket` for internal complaint tracking: may be **platform-level** (`restaurant_id` null) or tied to a restaurant (and optionally branch/booking/customer).
 - **Platform** operators have full CRUD and status workflow actions; **Restaurant** staff have read-only access to tickets in their scope (owners see restaurant-wide + branch; branch roles see branch rows only).
 - No customer-facing submission, mobile APIs, notifications, or conversation threads in this phase.
+
+### Support ticket activity timeline (Phase 15B)
+
+- Adds append-only `SupportTicketActivity` rows (`note`, `status_change`) scoped per ticket; platform Filament shows timeline + **Add internal note**; status transitions also persist automatically via observer after tickets exist.
+- Restaurant dashboard continues to hide internal ops commentary — tickets remain view-only without activity tabs.
