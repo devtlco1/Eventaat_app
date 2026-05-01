@@ -25,6 +25,15 @@ Role direction from `docs/eventaat_blueprint_v1.md`:
 - Any user created via mobile OTP verification is **always** assigned the `customer` role.
 - Customers must not access Filament panels (`/platform`, `/restaurant`).
 
+## Unified dashboard login (`/login`)
+
+- **`GET /login` / `POST /login`**: shared staff/customer credential form using the **web** session guard (not Sanctum). Intended for dashboard operators only.
+- After sign-in (or when an already authenticated user opens `/login`), redirects follow role precedence:
+  1. **`super_admin` / `operations_admin`** → `/platform`
+  2. **`restaurant_owner` / `branch_manager` / `restaurant_host`** → `/restaurant`
+  3. Otherwise (typically **`customer`** only or no dashboard role): session cleared and redirect back to `/login` with an explanatory message — customers must use the **mobile app**.
+- **`/platform/login`** and **`/restaurant/login`** remain valid Filament entry points with the same panel access rules as today.
+
 ## Panel access rules (Phase 1)
 
 ### `/platform`

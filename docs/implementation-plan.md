@@ -232,3 +232,11 @@ Adds internal lifecycle notification rows only (no outbound channels):
 - No WhatsApp, SMS, push, or email sending
 - No queues, workers, retries, send actions, restaurant-panel notification UI, mobile notification UI, notification APIs, or custom dashboards/widgets/stats
 
+### Unified dashboard login entry
+
+- Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)
+- After successful authentication, redirect by Spatie role precedence: **platform** roles (`super_admin`, `operations_admin`) → `/platform`; else **restaurant** roles (`restaurant_owner`, `branch_manager`, `restaurant_host`) → `/restaurant`; else treat as **no dashboard access** — `Auth::logout()`, invalidate session, redirect to `/login` with flash message (e.g. customer-only accounts)
+- Authenticated users hitting `GET /login` are redirected the same way (customers are logged out and sent back with the message)
+- Filament panel logins **`/platform/login`** and **`/restaurant/login`** remain unchanged; panel `canAccessPanel` rules unchanged
+- No Sanctum, mobile OTP, or API route changes
+
