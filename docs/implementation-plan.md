@@ -357,6 +357,25 @@ Allows dashboard/manual bookings to optionally link to a published `RestaurantEv
 - No payments or ticketing
 - No forcing booking `starts_at` to the event time
 
+### Phase 11C: event booking operations polish
+
+Make event operations usable from the dashboard:
+
+- Add **Bookings** relation manager under RestaurantEvent in both panels
+  - Shows bookings linked to the event (`bookings.restaurant_event_id`)
+  - Read-only table (no delete / no bulk delete); optional navigation to existing booking edit page
+- Add capacity summary (read-only) on event view/edit:
+  - Active reserved seats: sum `party_size` for linked bookings in statuses `pending, accepted, arrived, seated`
+  - Remaining seats: `capacity - active_reserved_seats` (or “Unlimited” when capacity is null)
+
+### Explicit non-goals (Phase 11C)
+
+- No mobile UI
+- No mobile API endpoints
+- No payments or ticketing
+- No booking lifecycle rule changes
+- No custom dashboards/widgets
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BookingStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -69,6 +70,32 @@ class RestaurantEvent extends Model
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class, 'restaurant_event_id');
+    }
+
+    public function activeReservedSeats(): int
+    {
+        $statuses = [
+            BookingStatus::Pending->value,
+            BookingStatus::Accepted->value,
+            BookingStatus::Arrived->value,
+            BookingStatus::Seated->value,
+        ];
+
+        return (int) Booking::query()
+            ->where('restaurant_event_id', $this->id)
+            ->whereIn('status', $statuses)
+            ->sum('party_size');
+    }
+
+    public function remainingSeats(): ?int
+    {
+        if ($this->capacity === null) {
+            return null;
+        }
+
+        $remaining = (int) $this->capacity - $this->activeReservedSeats();
+
+        return max(0, $remaining);
     }
 }
 

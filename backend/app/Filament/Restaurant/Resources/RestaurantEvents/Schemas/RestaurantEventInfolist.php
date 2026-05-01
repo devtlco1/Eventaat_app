@@ -22,6 +22,18 @@ class RestaurantEventInfolist
             TextEntry::make('price_label')->label('Price'),
             TextEntry::make('description')->markdown()->columnSpanFull(),
             TextEntry::make('notes')->markdown()->columnSpanFull(),
+            TextEntry::make('active_reserved_seats')
+                ->label('Active reserved seats')
+                ->state(fn ($record) => $record?->activeReservedSeats()),
+            TextEntry::make('remaining_seats')
+                ->label('Remaining seats')
+                ->state(function ($record) {
+                    if (! $record) {
+                        return null;
+                    }
+
+                    return $record->capacity === null ? 'Unlimited' : $record->remainingSeats();
+                }),
         ]);
     }
 }

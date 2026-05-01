@@ -151,3 +151,10 @@ Phase 11B allows linking bookings to events from dashboards:
 - Restaurant panel bookings:
   - `restaurant_owner`: can link to compatible events in assigned restaurant(s)
   - `branch_manager` / `restaurant_host`: can link only to compatible branch-scoped events in their assigned branch scope
+
+## Event bookings operations view (Phase 11C)
+
+Phase 11C adds event-side operational visibility in dashboards:
+
+- Platform panel: platform roles can view linked bookings on an event record (relation manager table).
+- Restaurant panel: restaurant staff can view linked bookings only for in-scope events (resource scoping applies).

@@ -6,6 +6,7 @@ use App\Filament\Restaurant\Resources\RestaurantEvents\Pages\CreateRestaurantEve
 use App\Filament\Restaurant\Resources\RestaurantEvents\Pages\EditRestaurantEvent;
 use App\Filament\Restaurant\Resources\RestaurantEvents\Pages\ListRestaurantEvents;
 use App\Filament\Restaurant\Resources\RestaurantEvents\Pages\ViewRestaurantEvent;
+use App\Filament\Restaurant\Resources\RestaurantEvents\RelationManagers\BookingsRelationManager;
 use App\Filament\Restaurant\Resources\RestaurantEvents\Schemas\RestaurantEventForm;
 use App\Filament\Restaurant\Resources\RestaurantEvents\Schemas\RestaurantEventInfolist;
 use App\Filament\Restaurant\Resources\RestaurantEvents\Tables\RestaurantEventsTable;
@@ -111,7 +112,9 @@ class RestaurantEventResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            BookingsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

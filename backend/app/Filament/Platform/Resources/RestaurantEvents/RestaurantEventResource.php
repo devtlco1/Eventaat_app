@@ -6,6 +6,7 @@ use App\Filament\Platform\Resources\RestaurantEvents\Pages\CreateRestaurantEvent
 use App\Filament\Platform\Resources\RestaurantEvents\Pages\EditRestaurantEvent;
 use App\Filament\Platform\Resources\RestaurantEvents\Pages\ListRestaurantEvents;
 use App\Filament\Platform\Resources\RestaurantEvents\Pages\ViewRestaurantEvent;
+use App\Filament\Platform\Resources\RestaurantEvents\RelationManagers\BookingsRelationManager;
 use App\Filament\Platform\Resources\RestaurantEvents\Schemas\RestaurantEventForm;
 use App\Filament\Platform\Resources\RestaurantEvents\Schemas\RestaurantEventInfolist;
 use App\Filament\Platform\Resources\RestaurantEvents\Tables\RestaurantEventsTable;
@@ -49,7 +50,9 @@ class RestaurantEventResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            BookingsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array

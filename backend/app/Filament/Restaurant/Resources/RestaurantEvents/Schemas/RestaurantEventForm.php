@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\RestaurantEvent;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -100,6 +101,18 @@ class RestaurantEventForm
                 ->numeric()
                 ->minValue(1)
                 ->nullable(),
+            Placeholder::make('active_reserved_seats')
+                ->label('Active reserved seats')
+                ->content(fn (?RestaurantEvent $record) => $record ? (string) $record->activeReservedSeats() : '—'),
+            Placeholder::make('remaining_seats')
+                ->label('Remaining seats')
+                ->content(function (?RestaurantEvent $record) {
+                    if (! $record) {
+                        return '—';
+                    }
+
+                    return $record->capacity === null ? 'Unlimited' : (string) $record->remainingSeats();
+                }),
             TextInput::make('price_label')
                 ->maxLength(255)
                 ->nullable(),

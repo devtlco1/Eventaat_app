@@ -71,3 +71,10 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - Event must be published and bookable (`booking_mode` is `normal_booking` or `event_booking`, not `info_only`).
 - Capacity is enforced per event using active booking statuses only (`pending, accepted, arrived, seated`).
 
+### Event booking operations polish (Phase 11C)
+
+- Event pages show linked bookings (native Filament relation manager table).
+- Event view/edit shows capacity summary:
+  - active reserved seats (consuming statuses only)
+  - remaining seats (or “Unlimited” if capacity is null)
+

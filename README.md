@@ -55,6 +55,9 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Event booking link foundation (Phase 11B)**:
   - Manual/dashboard bookings can optionally link to a published `RestaurantEvent` via `bookings.restaurant_event_id`
   - Event eligibility + capacity rules are validated in the shared booking creation validator (no mobile work in this phase)
+- **Event booking operations polish (Phase 11C)**:
+  - Event pages show linked bookings via a native Filament relation manager table
+  - Event view/edit show capacity summary: active reserved seats + remaining seats (or Unlimited)
 
 ### Phase 1: local test users (dev only)
 
