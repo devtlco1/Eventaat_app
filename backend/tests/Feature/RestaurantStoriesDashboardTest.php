@@ -17,7 +17,10 @@ use App\Models\User;
 use Database\Seeders\RolesAndTestUsersSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -126,6 +129,8 @@ class RestaurantStoriesDashboardTest extends TestCase
         Filament::setCurrentPanel('platform');
         $this->actingAs($admin);
 
+        $itemKey = (string) Str::uuid();
+
         Livewire::test(PlatformCreateRestaurantStory::class)
             ->set('data.restaurant_id', $data['a']->id)
             ->set('data.branch_id', null)
@@ -133,17 +138,13 @@ class RestaurantStoriesDashboardTest extends TestCase
             ->set('data.slug', 'new-text')
             ->set('data.status', RestaurantStory::STATUS_DRAFT)
             ->set('data.display_order', 0)
+            ->set('data.items.'.$itemKey.'.item_type', RestaurantStoryItem::TYPE_TEXT)
+            ->set('data.items.'.$itemKey.'.body', 'Body')
+            ->set('data.items.'.$itemKey.'.sort_order', 0)
             ->call('create')
             ->assertHasNoErrors();
 
         $story = RestaurantStory::query()->where('slug', 'new-text')->firstOrFail();
-
-        RestaurantStoryItem::create([
-            'restaurant_story_id' => $story->id,
-            'item_type' => RestaurantStoryItem::TYPE_TEXT,
-            'body' => 'Body',
-            'sort_order' => 0,
-        ]);
 
         $this->assertDatabaseHas('restaurant_stories', [
             'slug' => 'new-text',
@@ -153,6 +154,112 @@ class RestaurantStoriesDashboardTest extends TestCase
             'restaurant_story_id' => $story->id,
             'item_type' => RestaurantStoryItem::TYPE_TEXT,
         ]);
+    }
+
+    public function test_platform_can_create_story_with_image_item_in_same_form(): void
+    {
+        Storage::fake('public');
+
+        $data = $this->seedRestaurantsAndStories();
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        $itemKey = (string) Str::uuid();
+        $upload = UploadedFile::fake()->image('story-slide.jpg');
+
+        Livewire::test(PlatformCreateRestaurantStory::class)
+            ->set('data.restaurant_id', $data['a']->id)
+            ->set('data.branch_id', null)
+            ->set('data.title', 'Image story')
+            ->set('data.slug', 'image-slide-story')
+            ->set('data.status', RestaurantStory::STATUS_DRAFT)
+            ->set('data.display_order', 0)
+            ->set('data.items.'.$itemKey.'.item_type', RestaurantStoryItem::TYPE_IMAGE)
+            ->set('data.items.'.$itemKey.'.media_path', [$upload])
+            ->set('data.items.'.$itemKey.'.sort_order', 0)
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $story = RestaurantStory::query()->where('slug', 'image-slide-story')->firstOrFail();
+        $path = $story->items()->value('media_path');
+        $this->assertNotNull($path);
+        Storage::disk('public')->assertExists($path);
+    }
+
+    public function test_platform_can_create_story_with_video_item_in_same_form(): void
+    {
+        Storage::fake('public');
+
+        $data = $this->seedRestaurantsAndStories();
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        $itemKey = (string) Str::uuid();
+        $upload = UploadedFile::fake()->create('story-slide.mp4', 300, 'video/mp4');
+
+        Livewire::test(PlatformCreateRestaurantStory::class)
+            ->set('data.restaurant_id', $data['a']->id)
+            ->set('data.branch_id', null)
+            ->set('data.title', 'Video story')
+            ->set('data.slug', 'video-slide-story')
+            ->set('data.status', RestaurantStory::STATUS_DRAFT)
+            ->set('data.display_order', 0)
+            ->set('data.items.'.$itemKey.'.item_type', RestaurantStoryItem::TYPE_VIDEO)
+            ->set('data.items.'.$itemKey.'.media_path', [$upload])
+            ->set('data.items.'.$itemKey.'.sort_order', 0)
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $story = RestaurantStory::query()->where('slug', 'video-slide-story')->firstOrFail();
+        $path = $story->items()->value('media_path');
+        $this->assertNotNull($path);
+        Storage::disk('public')->assertExists($path);
+    }
+
+    public function test_platform_create_rejects_incomplete_image_slide(): void
+    {
+        $data = $this->seedRestaurantsAndStories();
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        $itemKey = (string) Str::uuid();
+
+        Livewire::test(PlatformCreateRestaurantStory::class)
+            ->set('data.restaurant_id', $data['a']->id)
+            ->set('data.branch_id', null)
+            ->set('data.title', 'Bad image slide')
+            ->set('data.slug', 'bad-image-slide-story')
+            ->set('data.status', RestaurantStory::STATUS_DRAFT)
+            ->set('data.display_order', 0)
+            ->set('data.items.'.$itemKey.'.item_type', RestaurantStoryItem::TYPE_IMAGE)
+            ->set('data.items.'.$itemKey.'.sort_order', 0)
+            ->call('create')
+            ->assertHasErrors();
+    }
+
+    public function test_platform_pending_review_requires_at_least_one_slide(): void
+    {
+        $data = $this->seedRestaurantsAndStories();
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        Livewire::test(PlatformCreateRestaurantStory::class)
+            ->set('data.restaurant_id', $data['a']->id)
+            ->set('data.branch_id', null)
+            ->set('data.title', 'No slides')
+            ->set('data.slug', 'no-slides-pending-story')
+            ->set('data.status', RestaurantStory::STATUS_PENDING_REVIEW)
+            ->set('data.display_order', 0)
+            ->call('create')
+            ->assertHasErrors(['data.items']);
     }
 
     public function test_restaurant_owner_sees_only_assigned_restaurant_stories_including_restaurant_wide(): void
@@ -316,7 +423,7 @@ class RestaurantStoriesDashboardTest extends TestCase
             ->set('data.status', RestaurantStory::STATUS_PUBLISHED)
             ->set('data.display_order', 0)
             ->call('create')
-            ->assertHasErrors(['data.title']);
+            ->assertHasErrors(['data.items']);
     }
 
     public function test_story_item_requires_media_for_image_items(): void
@@ -398,23 +505,22 @@ class RestaurantStoriesDashboardTest extends TestCase
             ->call('create')
             ->assertHasErrors(['data.status']);
 
-        $draft = RestaurantStory::create([
-            'restaurant_id' => $data['a']->id,
-            'branch_id' => null,
-            'title' => 'Draft',
-            'slug' => 'draft-story',
-            'story_type' => RestaurantStory::TYPE_TEXT,
-            'body' => 'X',
-            'status' => RestaurantStory::STATUS_DRAFT,
-            'display_order' => 0,
-        ]);
+        $itemKey = (string) Str::uuid();
 
-        RestaurantStoryItem::create([
-            'restaurant_story_id' => $draft->id,
-            'item_type' => RestaurantStoryItem::TYPE_TEXT,
-            'body' => 'Slide',
-            'sort_order' => 0,
-        ]);
+        Livewire::test(RestaurantCreateRestaurantStory::class)
+            ->set('data.restaurant_id', $data['a']->id)
+            ->set('data.branch_id', null)
+            ->set('data.title', 'Draft')
+            ->set('data.slug', 'draft-story')
+            ->set('data.status', RestaurantStory::STATUS_DRAFT)
+            ->set('data.display_order', 0)
+            ->set('data.items.'.$itemKey.'.item_type', RestaurantStoryItem::TYPE_TEXT)
+            ->set('data.items.'.$itemKey.'.body', 'Slide')
+            ->set('data.items.'.$itemKey.'.sort_order', 0)
+            ->call('create')
+            ->assertHasNoErrors();
+
+        $draft = RestaurantStory::query()->where('slug', 'draft-story')->firstOrFail();
 
         Livewire::test(ListRestaurantStories::class)
             ->callTableAction('submit_for_review', $draft);

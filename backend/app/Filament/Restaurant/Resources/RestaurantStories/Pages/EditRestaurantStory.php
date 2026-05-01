@@ -17,6 +17,7 @@ class EditRestaurantStory extends EditRecord
     {
         /** @var RestaurantStory $record */
         $record = $this->getRecord();
+        $record->refresh();
 
         return $this->applyRestaurantStoryLifetimeFields($data, $record);
     }

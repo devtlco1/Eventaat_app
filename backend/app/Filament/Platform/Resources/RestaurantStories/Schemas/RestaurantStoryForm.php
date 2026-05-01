@@ -2,6 +2,7 @@
 
 namespace App\Filament\Platform\Resources\RestaurantStories\Schemas;
 
+use App\Filament\Support\RestaurantStoryContentRepeater;
 use App\Models\Branch;
 use App\Models\Restaurant;
 use App\Models\RestaurantStory;
@@ -9,7 +10,6 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -91,32 +91,7 @@ class RestaurantStoryForm
                 ->maxLength(255)
                 ->unique(ignoreRecord: true),
 
-            Section::make('Legacy container fields (deprecated)')
-                ->collapsed()
-                ->schema([
-                    Select::make('story_type')
-                        ->label('Legacy story type')
-                        ->reactive()
-                        ->options(array_combine(RestaurantStory::STORY_TYPES, RestaurantStory::STORY_TYPES))
-                        ->default(RestaurantStory::TYPE_IMAGE)
-                        ->afterStateUpdated(function (Set $set, ?string $state): void {
-                            if ($state === RestaurantStory::TYPE_TEXT) {
-                                $set('media_url', null);
-                            } else {
-                                $set('body', null);
-                            }
-                        }),
-
-                    TextInput::make('media_url')
-                        ->label('Legacy media URL')
-                        ->nullable()
-                        ->maxLength(2048),
-
-                    Textarea::make('body')
-                        ->label('Legacy body')
-                        ->rows(6)
-                        ->nullable(),
-                ]),
+            RestaurantStoryContentRepeater::section(),
 
             TextInput::make('cta_label')
                 ->label('CTA label')

@@ -31,7 +31,11 @@ class RestaurantStoryInfolist
             Section::make('Status')
                 ->schema([
                     Grid::make(3)->schema([
-                        TextEntry::make('story_type')->label('Legacy story type')->badge()->placeholder('—'),
+                        TextEntry::make('story_type')
+                            ->label('Legacy story type')
+                            ->badge()
+                            ->placeholder('—')
+                            ->visible(fn (RestaurantStory $record): bool => ! $record->items()->exists()),
                         TextEntry::make('status')->badge(),
                         TextEntry::make('display_order')->label('Display order'),
                     ]),
@@ -108,13 +112,25 @@ class RestaurantStoryInfolist
                         ->placeholder('No items yet'),
                 ]),
 
+            Section::make('Story CTA')
+                ->collapsed()
+                ->schema([
+                    TextEntry::make('cta_label')->label('CTA label')->placeholder('—'),
+                    TextEntry::make('cta_url')->label('CTA URL')->columnSpanFull()->placeholder('—'),
+                ]),
+
             Section::make('Legacy container content')
                 ->collapsed()
+                ->visible(fn (RestaurantStory $record): bool => ! $record->items()->exists()
+                    && $record->hasRenderableLegacyContent())
                 ->schema([
                     TextEntry::make('media_url')->label('Legacy media URL')->columnSpanFull()->placeholder('—'),
                     TextEntry::make('body')->markdown()->columnSpanFull()->placeholder('—'),
-                    TextEntry::make('cta_label')->label('Story CTA label')->placeholder('—'),
-                    TextEntry::make('cta_url')->label('Story CTA URL')->columnSpanFull()->placeholder('—'),
+                ]),
+
+            Section::make('Notes')
+                ->collapsed()
+                ->schema([
                     TextEntry::make('notes')->markdown()->columnSpanFull()->placeholder('—'),
                 ]),
         ]);

@@ -13,6 +13,10 @@ trait RestaurantStoryLifecycle
      */
     protected function ensureRenderableStoryContent(RestaurantStory $story, ?array $incomingAttributes = null): void
     {
+        if (is_array($incomingAttributes) && ($incomingAttributes['_story_items_pending_valid'] ?? false)) {
+            return;
+        }
+
         $story->loadMissing('items');
 
         $merged = $story;
@@ -27,7 +31,7 @@ trait RestaurantStoryLifecycle
         }
 
         throw ValidationException::withMessages([
-            'data.title' => ['Add at least one story item (or legacy media/body) before publishing.'],
+            'data.title' => ['Add at least one story slide before publishing.'],
         ]);
     }
 
