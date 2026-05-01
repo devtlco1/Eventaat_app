@@ -1,10 +1,10 @@
-## Eventaat (Phase 8A branch availability)
+## Eventaat (Phase 9A booking notification foundation)
 
 This repository is a rebuild of Eventaat following the phased plan in `docs/eventaat_blueprint_v1.md`.
 
 Source of truth: `docs/eventaat_blueprint_v1.md`.
 
-### What exists (Phases 0–8A)
+### What exists (Phases 0–9A)
 
 - **Backend**: Laravel app in `backend/`
 - **Database**: PostgreSQL configuration (see `backend/.env`)
@@ -27,6 +27,10 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - One `BranchAvailabilityRule` per branch (optional row): enabled flag, advance limits, weekday flags, optional daily open/close times
   - Enforced via shared `BookingCreationValidator` for mobile API + Filament manual booking creation
   - Managed per branch under **Restaurant Setup → Branches → Booking availability** (Platform + Restaurant panels)
+- **Booking notification foundation (Phase 9A)**:
+  - Internal `booking_notifications` rows (`pending`, no outbound sending): lifecycle events recorded after successful booking creation and valid transitions
+  - `BookingNotificationService` builds title/message/payload; insert failures are reported without failing the booking flow
+  - Platform Filament **Booking notifications** list (read-only) for `super_admin` and `operations_admin` only
 
 ### Phase 1: local test users (dev only)
 
@@ -80,7 +84,7 @@ Demo data includes:
 - No advanced mobile UI kits/design system
 - No custom dashboard pages/cards/stats/widgets
 - No sidebar links to unimplemented features
-- No notifications/WhatsApp integration
+- No WhatsApp, SMS, push, email delivery, queues/workers/retries, or mobile notification UI (Phase 9A stores internal notification rows only)
 
 ### Phase 3: mobile customer auth API (dev only)
 
@@ -132,6 +136,10 @@ Phase 6 extends restaurant day-of operations:
 - Statuses: `arrived|seated|completed|no_show` (in addition to Phase 5 statuses)
 - Timestamps: `arrived_at|seated_at|completed_at|no_show_at`
 - Native Filament actions for day-of transitions (scoped in Restaurant panel)
+
+### Phase 9A: booking notification foundation (dev only)
+
+Phase 9A adds an internal notification log (`booking_notifications`) for lifecycle events (`booking_created`, `booking_accepted`, `booking_rejected`, `booking_cancelled`, `booking_arrived`, `booking_seated`, `booking_completed`, `booking_no_show`). Rows are written from mobile booking creation, Filament/manual booking creation, and successful `BookingTransitionService` transitions only. Platform Filament exposes a read-only **Booking notifications** resource for platform admins.
 
 ### Filament usability polish
 

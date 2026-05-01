@@ -78,3 +78,11 @@ Manual booking creation (Filament):
 - Platform and Restaurant panel users can create bookings manually using customer phone (phone-first input), within their allowed scope.
 - Manual creation can create/reuse customer users by phone and assigns only the `customer` role.
 
+## Platform booking notifications (Phase 9A)
+
+Phase 9A adds a **read-only** Filament resource **Booking notifications** under `/platform`:
+
+- Allowed: `super_admin`, `operations_admin`
+- Denied for all other roles (including restaurant staff)
+
+Restaurant panel users do **not** get a booking notification resource in Phase 9A.

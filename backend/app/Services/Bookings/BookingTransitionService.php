@@ -4,10 +4,16 @@ namespace App\Services\Bookings;
 
 use App\Enums\BookingStatus;
 use App\Models\Booking;
+use App\Models\BookingNotification;
+use App\Services\Notifications\BookingNotificationService;
 use Illuminate\Support\Carbon;
 
 class BookingTransitionService
 {
+    public function __construct(
+        private readonly BookingNotificationService $bookingNotifications,
+    ) {}
+
     private function hasFinalTimestamp(Booking $booking): bool
     {
         return (bool) ($booking->rejected_at || $booking->cancelled_at || $booking->completed_at || $booking->no_show_at);
@@ -83,6 +89,8 @@ class BookingTransitionService
 
         $booking->save();
 
+        $this->bookingNotifications->record($booking, BookingNotification::EVENT_BOOKING_ACCEPTED);
+
         return $booking;
     }
 
@@ -103,6 +111,8 @@ class BookingTransitionService
 
         $booking->save();
 
+        $this->bookingNotifications->record($booking, BookingNotification::EVENT_BOOKING_REJECTED);
+
         return $booking;
     }
 
@@ -122,6 +132,8 @@ class BookingTransitionService
         $booking->cancelled_at ??= $now;
 
         $booking->save();
+
+        $this->bookingNotifications->record($booking, BookingNotification::EVENT_BOOKING_CANCELLED);
 
         return $booking;
     }
@@ -156,6 +168,8 @@ class BookingTransitionService
 
         $booking->save();
 
+        $this->bookingNotifications->record($booking, BookingNotification::EVENT_BOOKING_ARRIVED);
+
         return $booking;
     }
 
@@ -189,6 +203,8 @@ class BookingTransitionService
 
         $booking->save();
 
+        $this->bookingNotifications->record($booking, BookingNotification::EVENT_BOOKING_SEATED);
+
         return $booking;
     }
 
@@ -221,6 +237,8 @@ class BookingTransitionService
         $booking->completed_at ??= $now;
 
         $booking->save();
+
+        $this->bookingNotifications->record($booking, BookingNotification::EVENT_BOOKING_COMPLETED);
 
         return $booking;
     }
@@ -258,7 +276,8 @@ class BookingTransitionService
 
         $booking->save();
 
+        $this->bookingNotifications->record($booking, BookingNotification::EVENT_BOOKING_NO_SHOW);
+
         return $booking;
     }
 }
-

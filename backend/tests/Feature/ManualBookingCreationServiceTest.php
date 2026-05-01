@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Enums\BranchStatus;
 use App\Enums\BookingStatus;
+use App\Enums\BranchStatus;
 use App\Enums\RestaurantStaffRole;
 use App\Enums\RestaurantStatus;
 use App\Enums\TableStatus;
-use App\Models\Booking;
+use App\Models\BookingNotification;
 use App\Models\Branch;
 use App\Models\Restaurant;
 use App\Models\RestaurantStaffAssignment;
@@ -94,6 +94,13 @@ class ManualBookingCreationServiceTest extends TestCase
         $this->assertTrue($customer->hasRole('customer'));
         $this->assertSame('Alice', $customer->name);
         $this->assertSame($customer->id, $booking->customer_id);
+
+        $this->assertDatabaseHas('booking_notifications', [
+            'booking_id' => $booking->id,
+            'event' => BookingNotification::EVENT_BOOKING_CREATED,
+            'status' => 'pending',
+            'channel' => 'internal',
+        ]);
     }
 
     public function test_manual_booking_new_phone_requires_customer_name(): void
@@ -307,4 +314,3 @@ class ManualBookingCreationServiceTest extends TestCase
             ->tap(fn ($resp) => $this->assertAllowedResponse($resp->getStatusCode()));
     }
 }
-

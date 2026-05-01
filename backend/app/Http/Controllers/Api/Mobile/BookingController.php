@@ -7,9 +7,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Mobile\CreateBookingRequest;
 use App\Http\Resources\Mobile\MobileBookingResource;
 use App\Models\Booking;
+use App\Models\BookingNotification;
 use App\Models\RestaurantTable;
+use App\Models\User;
 use App\Services\Bookings\BookingTransitionException;
 use App\Services\Bookings\BookingTransitionService;
+use App\Services\Notifications\BookingNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -18,7 +21,7 @@ class BookingController extends Controller
 {
     public function index(Request $request): AnonymousResourceCollection
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         $perPage = (int) $request->query('per_page', 15);
@@ -40,9 +43,11 @@ class BookingController extends Controller
         );
     }
 
-    public function store(CreateBookingRequest $request): JsonResponse
-    {
-        /** @var \App\Models\User $user */
+    public function store(
+        CreateBookingRequest $request,
+        BookingNotificationService $bookingNotifications,
+    ): JsonResponse {
+        /** @var User $user */
         $user = $request->user();
 
         $seatingAreaId = $request->input('seating_area_id');
@@ -67,7 +72,9 @@ class BookingController extends Controller
             'restaurant_note' => null,
         ]);
 
-        $booking->load(['restaurant', 'branch', 'seatingArea', 'table']);
+        $booking->load(['restaurant', 'branch', 'seatingArea', 'table', 'customer']);
+
+        $bookingNotifications->record($booking, BookingNotification::EVENT_BOOKING_CREATED);
 
         return response()->json([
             'booking' => new MobileBookingResource($booking),
@@ -76,7 +83,7 @@ class BookingController extends Controller
 
     public function show(Request $request, Booking $booking): MobileBookingResource
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         if ($booking->customer_id !== $user->id) {
@@ -93,7 +100,7 @@ class BookingController extends Controller
         Booking $booking,
         BookingTransitionService $transitions,
     ): JsonResponse {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = $request->user();
 
         if ($booking->customer_id !== $user->id) {
@@ -118,4 +125,3 @@ class BookingController extends Controller
         ]);
     }
 }
-

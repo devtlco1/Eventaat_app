@@ -4,7 +4,9 @@ namespace App\Services\Bookings;
 
 use App\Enums\BookingStatus;
 use App\Models\Booking;
+use App\Models\BookingNotification;
 use App\Models\User;
+use App\Services\Notifications\BookingNotificationService;
 use App\Services\Otp\MobileOtpService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
@@ -15,6 +17,7 @@ class ManualBookingCreationService
 {
     public function __construct(
         private readonly BookingCreationValidator $validator,
+        private readonly BookingNotificationService $bookingNotifications,
     ) {}
 
     /**
@@ -25,7 +28,7 @@ class ManualBookingCreationService
      *   branch_id:int,
      *   seating_area_id?:int|null,
      *   restaurant_table_id?:int|null,
-     *   starts_at:\Illuminate\Support\Carbon,
+     *   starts_at:Carbon,
      *   party_size:int,
      *   customer_note?:string|null,
      *   restaurant_note?:string|null,
@@ -87,6 +90,8 @@ class ManualBookingCreationService
             'restaurant_note' => $data['restaurant_note'] ?? null,
         ]);
 
+        $this->bookingNotifications->record($booking, BookingNotification::EVENT_BOOKING_CREATED);
+
         return $booking;
     }
 
@@ -125,4 +130,3 @@ class ManualBookingCreationService
         return $user;
     }
 }
-

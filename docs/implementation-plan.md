@@ -218,3 +218,17 @@ Adds practical branch-level booking constraints shared across mobile booking cre
 - No holidays/exceptions, multi-shift hours, slot grids, or capacity-based availability engines
 - No dedicated mobile availability picker UI (API returns normal `422` validation messages)
 
+### Phase 9A: booking notification foundation
+
+Adds internal lifecycle notification rows only (no outbound channels):
+
+- Migration `booking_notifications`: required `booking_id` FK to `bookings.id` with `cascadeOnDelete`; nullable `user_id` with `nullOnDelete`; event string; title/message/payload JSON; channel default `internal`; status default `pending`
+- Model `App\Models\BookingNotification` and service `App\Services\Notifications\BookingNotificationService` (centralized copy + payload; `report()` on insert failure without breaking bookings)
+- Recording hooks: mobile `POST /api/mobile/bookings`, `ManualBookingCreationService`, and each successful path in `BookingTransitionService` (invalid transitions create no rows)
+- Filament Platform read-only **Booking notifications** resource visible to `super_admin` and `operations_admin` only
+
+### Explicit non-goals (Phase 9A)
+
+- No WhatsApp, SMS, push, or email sending
+- No queues, workers, retries, send actions, restaurant-panel notification UI, mobile notification UI, notification APIs, or custom dashboards/widgets/stats
+

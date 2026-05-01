@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\BookingStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Booking extends Model
 {
@@ -65,5 +66,9 @@ class Booking extends Model
     {
         return $this->belongsTo(RestaurantTable::class, 'restaurant_table_id');
     }
-}
 
+    public function bookingNotifications(): HasMany
+    {
+        return $this->hasMany(BookingNotification::class);
+    }
+}

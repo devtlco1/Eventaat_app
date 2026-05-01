@@ -2,18 +2,19 @@
 
 namespace Tests\Feature;
 
-use App\Enums\BranchStatus;
 use App\Enums\BookingStatus;
+use App\Enums\BranchStatus;
 use App\Enums\RestaurantStatus;
 use App\Enums\TableStatus;
 use App\Models\Booking;
+use App\Models\BookingNotification;
 use App\Models\Branch;
 use App\Models\Restaurant;
 use App\Models\RestaurantTable;
 use App\Models\SeatingArea;
 use App\Models\User;
-use Database\Seeders\RolesAndTestUsersSeeder;
 use App\Services\Bookings\BookingTransitionService;
+use Database\Seeders\RolesAndTestUsersSeeder;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
@@ -101,6 +102,15 @@ class MobileBookingsApiTest extends TestCase
             'restaurant_id' => $data['restaurant']->id,
             'branch_id' => $data['branch']->id,
             'status' => 'pending',
+        ]);
+
+        $bookingId = $resp->json('booking.id');
+        $this->assertNotNull($bookingId);
+        $this->assertDatabaseHas('booking_notifications', [
+            'booking_id' => $bookingId,
+            'event' => BookingNotification::EVENT_BOOKING_CREATED,
+            'status' => 'pending',
+            'channel' => 'internal',
         ]);
     }
 
@@ -345,4 +355,3 @@ class MobileBookingsApiTest extends TestCase
             ->assertJsonFragment(['status' => 'arrived']);
     }
 }
-
