@@ -58,6 +58,8 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Event booking operations polish (Phase 11C)**:
   - Event pages show linked bookings via a native Filament relation manager table
   - Event view/edit show capacity summary: active reserved seats + remaining seats (or Unlimited)
+- **Filament view-page consistency polish**:
+  - View pages use consistent native infolist Sections/Grids for clean, readable details with relation managers below
 
 ### Phase 1: local test users (dev only)
 

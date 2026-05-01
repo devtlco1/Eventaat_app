@@ -376,6 +376,15 @@ Make event operations usable from the dashboard:
 - No booking lifecycle rule changes
 - No custom dashboards/widgets
 
+### Filament view-page consistency polish
+
+- Standardize View pages to use consistent native Filament infolist layout:
+  - Sections + 2-column grids for core details
+  - Badges for status-like fields
+  - Full-width readable long text fields (description/notes/message bodies)
+  - Relation managers remain below the details area
+- No functional changes (scoping/permissions/actions unchanged)
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)

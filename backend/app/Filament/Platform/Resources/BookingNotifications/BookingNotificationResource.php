@@ -15,6 +15,8 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 
 class BookingNotificationResource extends Resource
 {
@@ -71,20 +73,38 @@ class BookingNotificationResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            TextEntry::make('id'),
-            TextEntry::make('booking_id')->label('Booking'),
-            TextEntry::make('event')->badge(),
-            TextEntry::make('status')->badge(),
-            TextEntry::make('channel'),
-            TextEntry::make('recipient_name')->label('Recipient'),
-            TextEntry::make('recipient_phone')->label('Phone'),
-            TextEntry::make('title'),
-            TextEntry::make('message')->markdown()->columnSpanFull(),
-            TextEntry::make('sent_at')->dateTime(),
-            TextEntry::make('failed_at')->dateTime(),
-            TextEntry::make('failure_reason')->markdown()->columnSpanFull(),
-            TextEntry::make('created_at')->dateTime(),
-            TextEntry::make('updated_at')->dateTime(),
+            Section::make('Details')
+                ->schema([
+                    Grid::make(2)->schema([
+                        TextEntry::make('id'),
+                        TextEntry::make('booking_id')->label('Booking'),
+                        TextEntry::make('event')->badge(),
+                        TextEntry::make('status')->badge(),
+                        TextEntry::make('channel'),
+                        TextEntry::make('recipient_name')->label('Recipient'),
+                        TextEntry::make('recipient_phone')->label('Phone'),
+                        TextEntry::make('sent_at')->dateTime()->placeholder('—'),
+                        TextEntry::make('failed_at')->dateTime()->placeholder('—'),
+                    ]),
+                ]),
+            Section::make('Content')
+                ->schema([
+                    TextEntry::make('title')->columnSpanFull(),
+                    TextEntry::make('message')->markdown()->columnSpanFull(),
+                ]),
+            Section::make('Failure')
+                ->collapsed()
+                ->schema([
+                    TextEntry::make('failure_reason')->markdown()->columnSpanFull()->placeholder('—'),
+                ]),
+            Section::make('System')
+                ->collapsed()
+                ->schema([
+                    Grid::make(2)->schema([
+                        TextEntry::make('created_at')->dateTime(),
+                        TextEntry::make('updated_at')->dateTime(),
+                    ]),
+                ]),
         ]);
     }
 
