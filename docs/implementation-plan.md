@@ -438,6 +438,38 @@ Builds on Phase 12A offers foundation to add:
 - No offer view/click tracking yet
 - No payments, coupons, redemption, or customer claiming
 
+### Phase 13A: stories dashboard foundation (dashboard-only)
+
+Adds restaurant stories management in dashboards using native Filament resources only:
+
+- Model/table: `RestaurantStory` → `restaurant_stories`
+- Story belongs to a restaurant; branch is optional but must belong to the selected restaurant.
+- Types: `image|video|text`
+  - `image|video`: `media_url` is required (URL/text field only; no uploads in this phase)
+  - `text`: `body` is required
+- Status workflow: `draft|pending_review|published|rejected|expired|cancelled`
+- Date rule: `ends_at` must be after `starts_at` when both provided
+- Platform panel:
+  - Full CRUD over all stories
+  - Workflow actions: approve/reject pending review; cancel
+  - Table columns: title, restaurant, branch, story type, status, starts_at, ends_at, display_order
+  - Filters: status, restaurant, branch (simple), story type, active now (simple)
+- Restaurant panel (scoped):
+  - `restaurant_owner`: manage restaurant-wide (`branch_id=null`) and branch-scoped stories within assigned restaurant(s)
+  - `branch_manager` / `restaurant_host`: manage branch-scoped stories only (restaurant-wide stories are hidden/denied)
+  - Actions: submit for review; cancel
+- Expiry foundation:
+  - Artisan command `stories:expire` marks `published` stories with `ends_at < now()` as `expired`
+  - No queue and no scheduler wiring required in this phase
+
+### Explicit non-goals (Phase 13A)
+
+- No mobile UI
+- No mobile API endpoints
+- No story view analytics or customer-facing story viewing
+- No file upload/storage processing (media_url is URL/text only)
+- No custom dashboards/widgets/cards/stats
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)

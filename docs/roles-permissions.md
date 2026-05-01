@@ -175,6 +175,29 @@ Phase 12B adds an approval workflow and expiry foundation for dashboard-only off
   - can keep offers as `draft` or submit `draft -> pending_review`
 - Expiry: ended published offers can be marked `expired` via the `offers:expire` artisan command (no scheduler wiring in this phase).
 
+## Stories (Phase 13A)
+
+Phase 13A adds **Stories** (`RestaurantStory`) resources to both panels (dashboard-only; no mobile/story APIs in this phase):
+
+### `/platform`
+
+Allowed:
+- `super_admin`
+- `operations_admin`
+
+### `/restaurant`
+
+- `restaurant_owner`: can create/edit/view/delete restaurant-wide stories (`branch_id=null`) and branch-scoped stories within their assigned restaurant(s)
+- `branch_manager` / `restaurant_host`: can create/edit/view branch-scoped stories only (branch is required and must be within scope)
+- `branch_manager` / `restaurant_host` must not see or access restaurant-wide stories (`branch_id=null`) in the restaurant panel
+
+Workflow:
+- Restaurant roles can keep stories as `draft` or submit `draft -> pending_review`
+- Platform roles can approve/reject `pending_review` and cancel stories
+
+Expiry:
+- Ended published stories can be marked `expired` via the `stories:expire` artisan command (no scheduler wiring in this phase).
+
 ## Event bookings link (Phase 11B)
 
 Phase 11B allows linking bookings to events from dashboards:

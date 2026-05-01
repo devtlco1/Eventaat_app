@@ -69,6 +69,11 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - Approval workflow for restaurant-submitted offers (submit for review, platform approve/reject/cancel)
   - Expiry foundation via `php artisan offers:expire` (no scheduler wiring in this phase)
   - Note: view/click analytics will be implemented alongside the future mobile offers API/UI
+- **Stories dashboard foundation (Phase 13A)**:
+  - Model `RestaurantStory` (`restaurant_stories`) to manage restaurant stories in dashboards (no mobile/story APIs in this phase)
+  - No file uploads in this phase (`media_url` is URL/text only)
+  - Platform panel can manage all stories and can approve/reject/cancel
+  - Restaurant panel can manage scoped stories and can submit for review/cancel (no direct publishing)
 - **Filament view-page consistency polish**:
   - View pages use consistent native infolist Sections/Grids for clean, readable details with relation managers below
 

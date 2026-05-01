@@ -99,3 +99,16 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - Expiry foundation: `offers:expire` marks ended published offers as expired (manual command; no scheduler wiring in this phase).
 - Analytics note: view/click analytics will be implemented alongside the future mobile offers API/UI.
 
+### Stories dashboard foundation (Phase 13A)
+
+- Adds `RestaurantStory` (stories) as a dashboard-only module (no mobile/story API/UI in this phase).
+- Story types: `image|video|text`
+  - `image|video`: `media_url` required (URL/text only; no uploads in this phase)
+  - `text`: `body` required
+- Status workflow: `draft|pending_review|published|rejected|expired|cancelled`
+- Platform panel can manage all stories and can approve/reject pending review and cancel stories.
+- Restaurant panel scoping:
+  - `restaurant_owner`: restaurant-wide + branch stories
+  - `branch_manager` / `restaurant_host`: branch-scoped stories only (restaurant-wide stories are not visible/accessible)
+- Expiry foundation: `stories:expire` marks ended published stories as expired (manual command; no scheduler wiring in this phase).
+

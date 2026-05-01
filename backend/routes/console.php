@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use App\Models\RestaurantOffer;
+use App\Models\RestaurantStory;
 use Illuminate\Support\Carbon;
 
 Artisan::command('inspire', function () {
@@ -22,3 +23,17 @@ Artisan::command('offers:expire', function () {
 
     return 0;
 })->purpose('Mark ended published offers as expired');
+
+Artisan::command('stories:expire', function () {
+    $now = Carbon::now();
+
+    $count = RestaurantStory::query()
+        ->where('status', RestaurantStory::STATUS_PUBLISHED)
+        ->whereNotNull('ends_at')
+        ->where('ends_at', '<', $now)
+        ->update(['status' => RestaurantStory::STATUS_EXPIRED]);
+
+    $this->info("Expired {$count} story(ies).");
+
+    return 0;
+})->purpose('Mark ended published stories as expired');

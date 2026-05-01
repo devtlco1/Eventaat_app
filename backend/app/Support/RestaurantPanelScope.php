@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\Booking;
 use App\Models\Restaurant;
 use App\Models\RestaurantOffer;
+use App\Models\RestaurantStory;
 use App\Models\RestaurantStaffAssignment;
 use App\Models\RestaurantTable;
 use App\Models\SeatingArea;
@@ -82,6 +83,17 @@ class RestaurantPanelScope
         }
 
         return RestaurantOffer::query()->whereIn('restaurant_id', $user->scopedRestaurantIds());
+    }
+
+    public static function stories(User $user): Builder
+    {
+        $branchIds = $user->scopedBranchIds();
+
+        if (count($branchIds)) {
+            return RestaurantStory::query()->whereIn('branch_id', $branchIds);
+        }
+
+        return RestaurantStory::query()->whereIn('restaurant_id', $user->scopedRestaurantIds());
     }
 }
 

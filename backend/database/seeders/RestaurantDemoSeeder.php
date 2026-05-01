@@ -13,6 +13,7 @@ use App\Models\Restaurant;
 use App\Models\RestaurantStaffAssignment;
 use App\Models\RestaurantTable;
 use App\Models\RestaurantOffer;
+use App\Models\RestaurantStory;
 use App\Models\SeatingArea;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -164,6 +165,44 @@ class RestaurantDemoSeeder extends Seeder
                 'starts_at' => $start,
                 'ends_at' => $end,
                 'terms' => 'Valid for dine-in only.',
+                'notes' => null,
+            ],
+        );
+
+        RestaurantStory::updateOrCreate(
+            ['slug' => 'demo-story-a-image'],
+            [
+                'restaurant_id' => $restaurantA->id,
+                'branch_id' => null,
+                'title' => 'Welcome story',
+                'story_type' => RestaurantStory::TYPE_IMAGE,
+                'media_url' => 'https://example.com/demo-story-a.jpg',
+                'body' => null,
+                'cta_label' => 'Book now',
+                'cta_url' => 'https://example.com',
+                'status' => RestaurantStory::STATUS_PUBLISHED,
+                'starts_at' => $start,
+                'ends_at' => $end,
+                'display_order' => 0,
+                'notes' => null,
+            ],
+        );
+
+        RestaurantStory::updateOrCreate(
+            ['slug' => 'demo-story-b-text'],
+            [
+                'restaurant_id' => $restaurantB->id,
+                'branch_id' => $branchB1->id,
+                'title' => 'Chef note',
+                'story_type' => RestaurantStory::TYPE_TEXT,
+                'media_url' => null,
+                'body' => 'Today’s special is available while supplies last.',
+                'cta_label' => null,
+                'cta_url' => null,
+                'status' => RestaurantStory::STATUS_PUBLISHED,
+                'starts_at' => $start,
+                'ends_at' => $end,
+                'display_order' => 0,
                 'notes' => null,
             ],
         );
