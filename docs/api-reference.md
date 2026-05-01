@@ -165,6 +165,21 @@ Response:
         "id": 10,
         "name": "Main Branch",
         "code": "main",
+        "booking_availability": {
+          "is_booking_enabled": true,
+          "booking_duration_minutes": 90,
+          "min_advance_minutes": 60,
+          "max_advance_days": 30,
+          "open_time": "10:00:00",
+          "close_time": "23:00:00",
+          "mon": true,
+          "tue": true,
+          "wed": true,
+          "thu": true,
+          "fri": true,
+          "sat": true,
+          "sun": true
+        },
         "seating_areas": [
           {
             "id": 100,
@@ -180,6 +195,15 @@ Response:
   }
 }
 ```
+
+**`booking_availability` (Phase 8B):** each branch includes this key. If the branch has no `BranchAvailabilityRule` row, the value is **`null`**. When present, the object contains **only** customer-facing fields (no `id`, `branch_id`, `notes`, or timestamps):
+
+- `is_booking_enabled` (boolean)
+- `booking_duration_minutes`, `min_advance_minutes`, `max_advance_days` (integers)
+- `open_time`, `close_time` (strings such as `HH:mm:ss`, or `null` when unset)
+- `mon` … `sun` (booleans) — weekday flags use the same meaning as server validation (ISO weekday Monday = 1 … Sunday = 7 maps to `mon` … `sun`)
+
+The mobile app may use these values for UX and best-effort client checks; **`POST /api/mobile/bookings`** validation remains authoritative.
 
 When API endpoints are introduced in later phases, this file must be updated in the same step, per `docs/eventaat_blueprint_v1.md`.
 

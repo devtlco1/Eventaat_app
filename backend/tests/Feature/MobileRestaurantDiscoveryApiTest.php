@@ -9,7 +9,6 @@ use App\Models\Restaurant;
 use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class MobileRestaurantDiscoveryApiTest extends TestCase
@@ -21,6 +20,7 @@ class MobileRestaurantDiscoveryApiTest extends TestCase
         $this->seed(DatabaseSeeder::class);
 
         $user = User::where('email', 'customer@eventaat.test')->firstOrFail();
+
         return $user->createToken('mobile')->plainTextToken;
     }
 
@@ -98,6 +98,21 @@ class MobileRestaurantDiscoveryApiTest extends TestCase
                         'id',
                         'name',
                         'code',
+                        'booking_availability' => [
+                            'is_booking_enabled',
+                            'booking_duration_minutes',
+                            'min_advance_minutes',
+                            'max_advance_days',
+                            'open_time',
+                            'close_time',
+                            'mon',
+                            'tue',
+                            'wed',
+                            'thu',
+                            'fri',
+                            'sat',
+                            'sun',
+                        ],
                         'seating_areas' => [
                             '*' => [
                                 'id',
@@ -116,6 +131,47 @@ class MobileRestaurantDiscoveryApiTest extends TestCase
                 ],
             ],
         ]);
+    }
+
+    public function test_restaurant_detail_booking_availability_exposes_only_customer_safe_fields(): void
+    {
+        $token = $this->authCustomer();
+
+        $resp = $this->withToken($token)->getJson('/api/mobile/restaurants/demo-restaurant-a');
+        $resp->assertOk();
+        $resp->assertJsonPath('data.branches.0.booking_availability.is_booking_enabled', true);
+        $resp->assertJsonPath('data.branches.0.booking_availability.min_advance_minutes', 60);
+        $resp->assertJsonPath('data.branches.0.booking_availability.max_advance_days', 30);
+
+        $payload = $resp->json('data.branches.0.booking_availability');
+        $this->assertIsArray($payload);
+        $this->assertArrayNotHasKey('id', $payload);
+        $this->assertArrayNotHasKey('branch_id', $payload);
+        $this->assertArrayNotHasKey('notes', $payload);
+        $this->assertArrayNotHasKey('created_at', $payload);
+        $this->assertArrayNotHasKey('updated_at', $payload);
+    }
+
+    public function test_restaurant_detail_branch_without_rule_returns_null_booking_availability(): void
+    {
+        $token = $this->authCustomer();
+
+        $restaurant = Restaurant::create([
+            'name' => 'No Avail Rule R',
+            'slug' => 'no-avail-rule-r',
+            'status' => RestaurantStatus::Active,
+        ]);
+
+        Branch::create([
+            'restaurant_id' => $restaurant->id,
+            'name' => 'Solo Branch',
+            'code' => 'main',
+            'status' => BranchStatus::Active,
+        ]);
+
+        $resp = $this->withToken($token)->getJson('/api/mobile/restaurants/no-avail-rule-r');
+        $resp->assertOk();
+        $resp->assertJsonPath('data.branches.0.booking_availability', null);
     }
 
     public function test_inactive_restaurant_detail_returns_404(): void
@@ -138,6 +194,4 @@ class MobileRestaurantDiscoveryApiTest extends TestCase
 
         $this->withToken($token)->getJson('/api/mobile/restaurants/hidden-restaurant')->assertStatus(404);
     }
-
 }
-

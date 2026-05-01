@@ -14,7 +14,11 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
 - Each branch may have **one** availability rule record (`BranchAvailabilityRule`): booking on/off, min/max advance window, weekday toggles, optional daily open/close times (single window).
 - Enforcement is **shared** between mobile booking creation and Filament manual booking creation via `BookingCreationValidator`.
-- Mobile UI does **not** implement an availability picker; the API returns normal **422** validation errors when rules reject a time.
+
+### Mobile availability guidance (Phase 8B)
+
+- Restaurant detail API exposes the same rule fields per branch as **`booking_availability`** (or **`null`**).
+- The mobile app shows summaries on restaurant details and create booking, and runs **best-effort** checks before submit; the API still returns **422** when the server rejects a time.
 
 ### Booking notification foundation (Phase 9A)
 

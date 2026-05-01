@@ -9,6 +9,7 @@ import { LoadingState } from "../components/LoadingState";
 import { getRestaurant } from "../api/endpoints";
 import { getErrorMessage, isAuthError } from "../api/errors";
 import type { MobileRestaurantDetails } from "../api/types";
+import { formatBookingAvailabilitySummary } from "../booking/availabilityChecks";
 
 type Props = NativeStackScreenProps<RootStackParamList, "RestaurantDetails">;
 
@@ -76,6 +77,13 @@ export function RestaurantDetailsScreen({ route, navigation }: Props) {
             <View key={b.id} style={styles.card}>
               <Text style={styles.cardTitle}>{b.name}</Text>
               <Text style={styles.muted}>Code: {b.code}</Text>
+              <View style={styles.availabilityBlock}>
+                {formatBookingAvailabilitySummary(b.booking_availability ?? null).map((line, idx) => (
+                  <Text key={idx} style={styles.muted}>
+                    {line}
+                  </Text>
+                ))}
+              </View>
 
               <View style={styles.subsection}>
                 <Text style={styles.subTitle}>Seating areas</Text>
@@ -117,6 +125,7 @@ const styles = StyleSheet.create({
   subtitle: { color: "#4B5563" },
   section: { marginTop: 8, gap: 10 },
   subsection: { marginTop: 10, gap: 10 },
+  availabilityBlock: { marginTop: 8, gap: 4 },
   sectionTitle: { fontSize: 16, fontWeight: "700", color: "#111827" },
   subTitle: { fontSize: 14, fontWeight: "700", color: "#111827" },
   infoBox: {

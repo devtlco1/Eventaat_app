@@ -218,6 +218,12 @@ Adds practical branch-level booking constraints shared across mobile booking cre
 - No holidays/exceptions, multi-shift hours, slot grids, or capacity-based availability engines
 - No dedicated mobile availability picker UI (API returns normal `422` validation messages)
 
+### Phase 8B: mobile availability UX + booking form guidance
+
+- Extends **`GET /api/mobile/restaurants/{slug}`** only: each branch includes **`booking_availability`** (nullable object with `is_booking_enabled`, advance limits, `open_time` / `close_time`, weekday booleans) or **`null`** when no rule; excludes internal fields (`notes`, ids, timestamps)
+- Mobile: restaurant details + create booking show branch rule summaries; **client-side checks** mirror `BookingCreationValidator` where practical (disabled branch, min/max advance, weekday, open/close); **422 from `POST /api/mobile/bookings`** remains authoritative
+- No new booking endpoint; **no change** to `BookingCreationValidator` logic
+
 ### Phase 9A: booking notification foundation
 
 Adds internal lifecycle notification rows only (no outbound channels):

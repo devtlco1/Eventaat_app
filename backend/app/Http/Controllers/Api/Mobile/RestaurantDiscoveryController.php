@@ -11,7 +11,6 @@ use App\Http\Resources\Mobile\MobileRestaurantResource;
 use App\Models\Restaurant;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Support\Facades\DB;
 
 class RestaurantDiscoveryController extends Controller
 {
@@ -31,7 +30,7 @@ class RestaurantDiscoveryController extends Controller
         if ($q !== '') {
             // Portable case-insensitive search (works in Postgres + SQLite tests).
             $needle = mb_strtolower($q);
-            $query->whereRaw('lower(name) like ?', ['%' . $needle . '%']);
+            $query->whereRaw('lower(name) like ?', ['%'.$needle.'%']);
         }
 
         return MobileRestaurantResource::collection(
@@ -51,6 +50,7 @@ class RestaurantDiscoveryController extends Controller
                 $q->where('status', BranchStatus::Active->value)
                     ->orderBy('name')
                     ->with([
+                        'availabilityRule',
                         'seatingAreas' => function ($q) {
                             $q->where('status', 'active')
                                 ->orderBy('name')
@@ -65,4 +65,3 @@ class RestaurantDiscoveryController extends Controller
         return new MobileRestaurantDetailResource($restaurant);
     }
 }
-

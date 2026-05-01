@@ -21,9 +21,13 @@ import type {
   MobileBranch,
   MobileRestaurantDetails,
   MobileRestaurantListItem,
-  MobileSeatingArea,
   MobileRestaurantTable,
+  MobileSeatingArea,
 } from "../api/types";
+import {
+  formatBookingAvailabilitySummary,
+  validateClientBranchAvailability,
+} from "../booking/availabilityChecks";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CreateBooking">;
 
@@ -143,7 +147,14 @@ export function CreateBookingScreen({ route, navigation }: Props) {
     const errs: Record<string, string> = {};
     if (!restaurant) errs.restaurant_id = "Restaurant is required.";
     if (!branch) errs.branch_id = "Branch is required.";
+    if (branch?.booking_availability && !branch.booking_availability.is_booking_enabled) {
+      errs.branch_id = "Booking is currently disabled for this branch.";
+    }
     if (!startsAtDate) errs.starts_at = "Please pick a date and time.";
+    if (startsAtDate && branch?.booking_availability?.is_booking_enabled) {
+      const r = validateClientBranchAvailability(branch.booking_availability, startsAtDate);
+      if (!r.ok) errs.starts_at = r.message;
+    }
     const ps = Number(partySize);
     if (!partySize.trim() || Number.isNaN(ps) || ps < 1) errs.party_size = "Party size must be at least 1.";
     setFieldErrors(errs);
@@ -251,6 +262,17 @@ export function CreateBookingScreen({ route, navigation }: Props) {
       )}
       {fieldErrors.branch_id ? <Text style={styles.fieldError}>{fieldErrors.branch_id}</Text> : null}
 
+      {branch ? (
+        <View style={styles.availabilityBox}>
+          <Text style={styles.sectionTitle}>Branch availability</Text>
+          {formatBookingAvailabilitySummary(branch.booking_availability ?? null).map((line, idx) => (
+            <Text key={idx} style={styles.muted}>
+              {line}
+            </Text>
+          ))}
+        </View>
+      ) : null}
+
       <Text style={styles.sectionTitle}>Seating area (optional)</Text>
       <TouchableOpacity
         style={[styles.choice, !seatingArea ? styles.choiceSelected : null]}
@@ -300,7 +322,8 @@ export function CreateBookingScreen({ route, navigation }: Props) {
         error={fieldErrors.starts_at ?? null}
       />
       <Text style={styles.muted}>
-        Branch availability (opening hours and advance-booking limits) is enforced by the server; invalid times appear as validation messages above.
+        The server still validates your time; if anything differs from your device clock, you may see a validation
+        message after submit.
       </Text>
       <Text style={styles.muted}>Format sent to backend: YYYY-MM-DD HH:mm</Text>
 
@@ -348,6 +371,7 @@ const styles = StyleSheet.create({
     borderColor: "#111827",
   },
   choiceTitle: { fontWeight: "700", color: "#111827" },
+  availabilityBox: { gap: 6, paddingVertical: 4 },
   muted: { color: "#4B5563" },
   fieldError: { color: "#991B1B" },
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 8, padding: 16 },

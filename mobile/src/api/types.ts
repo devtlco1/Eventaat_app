@@ -33,10 +33,28 @@ export type MobileSeatingArea = {
   tables: MobileRestaurantTable[];
 };
 
+/** Mirrors GET /api/mobile/restaurants/{slug} branch.booking_availability (customer-safe fields only). */
+export type MobileBranchBookingAvailability = {
+  is_booking_enabled: boolean;
+  booking_duration_minutes: number;
+  min_advance_minutes: number;
+  max_advance_days: number;
+  open_time: string | null;
+  close_time: string | null;
+  mon: boolean;
+  tue: boolean;
+  wed: boolean;
+  thu: boolean;
+  fri: boolean;
+  sat: boolean;
+  sun: boolean;
+};
+
 export type MobileBranch = {
   id: number;
   name: string;
   code: string;
+  booking_availability: MobileBranchBookingAvailability | null;
   seating_areas: MobileSeatingArea[];
 };
 

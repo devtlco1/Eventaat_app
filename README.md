@@ -28,6 +28,9 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - One `BranchAvailabilityRule` per branch (optional row): enabled flag, advance limits, weekday flags, optional daily open/close times
   - Enforced via shared `BookingCreationValidator` for mobile API + Filament manual booking creation
   - Managed per branch under **Restaurant Setup → Branches → Booking availability** (Platform + Restaurant panels)
+- **Mobile availability UX (Phase 8B)**:
+  - `GET /api/mobile/restaurants/{slug}` includes per-branch **`booking_availability`** (customer-safe fields) or **`null`** when no rule exists
+  - Restaurant details and create-booking screens show summaries and best-effort pre-submit checks; **server validation unchanged**
 - **Booking notification foundation (Phase 9A)**:
   - Internal `booking_notifications` rows (`pending`, no outbound sending): lifecycle events recorded after successful booking creation and valid transitions
   - `BookingNotificationService` builds title/message/payload; insert failures are reported without failing the booking flow
