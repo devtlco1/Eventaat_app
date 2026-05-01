@@ -74,14 +74,22 @@ class RestaurantStoryInfolist
                             ImageEntry::make('media_path')
                                 ->label('Image')
                                 ->disk('public')
-                                ->visible(fn (RestaurantStoryItem $record): bool => $record->item_type === RestaurantStoryItem::TYPE_IMAGE && filled($record->media_path))
+                                ->visible(fn (?RestaurantStoryItem $record): bool => $record !== null
+                                    && $record->item_type === RestaurantStoryItem::TYPE_IMAGE
+                                    && filled($record->media_path))
                                 ->columnSpanFull(),
                             TextEntry::make('media_path')
                                 ->label('Video')
                                 ->html()
                                 ->columnSpanFull()
-                                ->visible(fn (RestaurantStoryItem $record): bool => $record->item_type === RestaurantStoryItem::TYPE_VIDEO && filled($record->media_path))
+                                ->visible(fn (?RestaurantStoryItem $record): bool => $record !== null
+                                    && $record->item_type === RestaurantStoryItem::TYPE_VIDEO
+                                    && filled($record->media_path))
                                 ->formatStateUsing(function (?string $state): string {
+                                    if (! filled($state)) {
+                                        return '';
+                                    }
+
                                     $url = e(Storage::disk('public')->url((string) $state));
 
                                     return '<video controls style="max-width:100%;max-height:420px" src="'.$url.'"></video>';
@@ -90,7 +98,8 @@ class RestaurantStoryInfolist
                                 ->label('Text')
                                 ->markdown()
                                 ->columnSpanFull()
-                                ->visible(fn (RestaurantStoryItem $record): bool => $record->item_type === RestaurantStoryItem::TYPE_TEXT),
+                                ->visible(fn (?RestaurantStoryItem $record): bool => $record !== null
+                                    && $record->item_type === RestaurantStoryItem::TYPE_TEXT),
                             Grid::make(2)->schema([
                                 TextEntry::make('cta_label')->label('Item CTA label')->placeholder('—'),
                                 TextEntry::make('cta_url')->label('Item CTA URL')->placeholder('—')->columnSpanFull(),

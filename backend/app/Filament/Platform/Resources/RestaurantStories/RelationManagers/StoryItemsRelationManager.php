@@ -81,7 +81,9 @@ class StoryItemsRelationManager extends RelationManager
                     ->disk('public')
                     ->square()
                     ->height(56)
-                    ->visible(fn (RestaurantStoryItem $record): bool => $record->item_type === RestaurantStoryItem::TYPE_IMAGE && filled($record->media_path)),
+                    ->visible(fn (?RestaurantStoryItem $record): bool => $record !== null
+                        && $record->item_type === RestaurantStoryItem::TYPE_IMAGE
+                        && filled($record->media_path)),
                 TextColumn::make('media_path')
                     ->label('Media')
                     ->limit(40)
