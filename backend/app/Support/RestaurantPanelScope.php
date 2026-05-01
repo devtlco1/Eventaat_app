@@ -11,6 +11,7 @@ use App\Models\RestaurantStaffAssignment;
 use App\Models\RestaurantStory;
 use App\Models\RestaurantTable;
 use App\Models\SeatingArea;
+use App\Models\SupportTicket;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -106,5 +107,16 @@ class RestaurantPanelScope
         }
 
         return RestaurantReview::query()->whereIn('restaurant_id', $user->scopedRestaurantIds());
+    }
+
+    public static function supportTickets(User $user): Builder
+    {
+        $branchIds = $user->scopedBranchIds();
+
+        if (count($branchIds)) {
+            return SupportTicket::query()->whereIn('branch_id', $branchIds);
+        }
+
+        return SupportTicket::query()->whereIn('restaurant_id', $user->scopedRestaurantIds());
     }
 }

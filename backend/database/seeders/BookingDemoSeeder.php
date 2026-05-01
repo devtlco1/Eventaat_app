@@ -8,6 +8,7 @@ use App\Models\Branch;
 use App\Models\Restaurant;
 use App\Models\RestaurantTable;
 use App\Models\SeatingArea;
+use App\Models\SupportTicket;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -38,7 +39,7 @@ class BookingDemoSeeder extends Seeder
 
         $startsAt = Carbon::now()->addDay()->setTime(19, 0, 0);
 
-        Booking::updateOrCreate(
+        $booking = Booking::updateOrCreate(
             [
                 'customer_id' => $customer->id,
                 'branch_id' => $branch->id,
@@ -53,6 +54,27 @@ class BookingDemoSeeder extends Seeder
                 'customer_note' => 'Demo booking request',
             ]
         );
+
+        SupportTicket::updateOrCreate(
+            [
+                'subject' => 'Demo: Booking follow-up',
+                'restaurant_id' => $restaurant->id,
+            ],
+            [
+                'branch_id' => $branch->id,
+                'booking_id' => $booking->id,
+                'user_id' => $customer->id,
+                'customer_name' => filled((string) $customer->name) ? $customer->name : 'Customer',
+                'customer_phone' => $customer->phone,
+                'category' => SupportTicket::CATEGORY_BOOKING,
+                'priority' => SupportTicket::PRIORITY_NORMAL,
+                'status' => SupportTicket::STATUS_OPEN,
+                'source' => SupportTicket::SOURCE_DASHBOARD,
+                'message' => 'Please confirm seating preference.',
+                'internal_notes' => null,
+                'resolved_at' => null,
+                'closed_at' => null,
+            ],
+        );
     }
 }
-

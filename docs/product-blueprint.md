@@ -1,6 +1,6 @@
-## Product blueprint (Phase 0–14B)
+## Product blueprint (Phase 0–15A)
 
-Phase 0–14B builds on earlier phases and adds **mobile REST endpoints for customer reviews** (Phase 14B): authenticated customers can submit reviews after **completed** bookings and read **published** reviews per active restaurant via JSON — **without** new mobile UI in that phase. Earlier **dashboard-only customer reviews** (Phase 14A) remain the operator workflow in Filament. This file exists to match the repository structure required by `docs/eventaat_blueprint_v1.md`.
+Phase 0–15A builds on earlier phases including **mobile REST endpoints for customer reviews** (Phase 14B) and adds **dashboard-only support tickets / complaints** (Phase 15A): operators manage `SupportTicket` records in Filament (platform-wide or restaurant-linked), while restaurant staff get **read-only** scoped visibility — **no** mobile/API submission or threaded messaging in Phase 15A. This file exists to match the repository structure required by `docs/eventaat_blueprint_v1.md`.
 
 Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
@@ -132,3 +132,9 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
 - **Backend/API only** (no new Expo screens required for this phase label): authenticated mobile customers use Sanctum tokens (`mobile.customer`) to submit reviews for **their own completed bookings** and to list/show **their own** reviews (including `pending_review` rows).
 - **Published discovery**: `GET /api/mobile/restaurants/{slug}/reviews` lists **published** reviews for an **active** restaurant using a minimal customer-safe payload (display name + rating + comment + timestamp — no phone numbers or internal notes).
+
+### Support tickets dashboard foundation (Phase 15A)
+
+- Adds `SupportTicket` for internal complaint tracking: may be **platform-level** (`restaurant_id` null) or tied to a restaurant (and optionally branch/booking/customer).
+- **Platform** operators have full CRUD and status workflow actions; **Restaurant** staff have read-only access to tickets in their scope (owners see restaurant-wide + branch; branch roles see branch rows only).
+- No customer-facing submission, mobile APIs, notifications, or conversation threads in this phase.

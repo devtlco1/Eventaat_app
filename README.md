@@ -1,4 +1,4 @@
-## Eventaat (Phase 14B mobile reviews API)
+## Eventaat (Phase 15A support tickets dashboard foundation)
 
 This repository is a rebuild of Eventaat following the phased plan in `docs/eventaat_blueprint_v1.md`.
 
@@ -91,6 +91,13 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - Authenticated customer (`auth:sanctum` + `mobile.token` + `mobile.customer`): submit a review for **own completed booking** (`POST /api/mobile/bookings/{booking}/review`), list/show **own** reviews (`GET /api/mobile/me/reviews`, `GET /api/mobile/me/reviews/{review}`)
   - Same auth stack as other mobile routes: browse **published** reviews for an **active** restaurant (`GET /api/mobile/restaurants/{slug}/reviews`) with a minimal public payload (no phone, admin notes, booking id, or non-published statuses)
   - One review per booking (DB unique on `booking_id`); submissions default to `pending_review` with `source=mobile`
+- **Support tickets / complaints dashboard foundation (Phase 15A)** (dashboard-only):
+  - Model `SupportTicket` (`support_tickets`) for platform-level or restaurant-scoped complaints; optional `restaurant_id`, `branch_id`, `booking_id`, `user_id`, customer snapshot fields, subject, category/priority/status/source enums, message, internal notes, `resolved_at` / `closed_at`
+  - Platform (`super_admin`, `operations_admin`): full CRUD + native workflow actions (**Mark in progress**, **Resolve**, **Close**, **Reopen**) — reopen keeps `resolved_at` / `closed_at` for audit
+  - Restaurant panel: **read-only** scoped tickets via `RestaurantPanelScope::supportTickets()`:
+    - `restaurant_owner`: restaurant-wide (`branch_id` null) + branch tickets for assigned restaurants
+    - `branch_manager` / `restaurant_host`: branch-scoped tickets only (no restaurant-wide rows; `restaurant_id` null platform tickets never appear)
+  - No mobile API/UI, notifications, threading, or analytics in this phase
 - **Filament view-page consistency polish**:
   - View pages use consistent native infolist Sections/Grids for clean, readable details with relation managers below
 

@@ -16,6 +16,7 @@ use App\Models\RestaurantStaffAssignment;
 use App\Models\RestaurantStory;
 use App\Models\RestaurantTable;
 use App\Models\SeatingArea;
+use App\Models\SupportTicket;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -241,6 +242,28 @@ class RestaurantDemoSeeder extends Seeder
                 'status' => RestaurantReview::STATUS_PENDING_REVIEW,
                 'source' => RestaurantReview::SOURCE_DASHBOARD,
                 'admin_notes' => null,
+            ],
+        );
+
+        SupportTicket::updateOrCreate(
+            [
+                'subject' => 'Demo: Hours inquiry',
+                'restaurant_id' => $restaurantB->id,
+            ],
+            [
+                'branch_id' => $branchB1->id,
+                'booking_id' => null,
+                'user_id' => null,
+                'customer_name' => 'Demo Guest',
+                'customer_phone' => null,
+                'category' => SupportTicket::CATEGORY_GENERAL,
+                'priority' => SupportTicket::PRIORITY_NORMAL,
+                'status' => SupportTicket::STATUS_RESOLVED,
+                'source' => SupportTicket::SOURCE_DASHBOARD,
+                'message' => 'Question about opening hours.',
+                'internal_notes' => null,
+                'resolved_at' => Carbon::now()->subDay(),
+                'closed_at' => null,
             ],
         );
     }

@@ -239,6 +239,30 @@ Phase 14B adds **authenticated** mobile endpoints under `/api/mobile` using **`a
 
 Non-customer tokens / missing customer role → **`mobile.customer`** middleware responds **403**.
 
+## Support tickets (Phase 15A)
+
+Phase 15A adds **Support tickets** (`SupportTicket`) resources to both panels (dashboard-only; **no** mobile ticket API in this phase).
+
+### `/platform`
+
+Allowed:
+- `super_admin`
+- `operations_admin`
+
+Capabilities:
+- Full CRUD over all tickets (including platform-level tickets with no restaurant)
+- Native row actions only: **Mark in progress**, **Resolve**, **Close**, **Reopen** (restaurant panel has **no** workflow actions)
+
+### `/restaurant`
+
+- `restaurant_owner`: **read-only** access to tickets for assigned restaurant(s), including restaurant-wide (`branch_id=null`) and branch-scoped rows
+- `branch_manager` / `restaurant_host`: **read-only** access to **branch-scoped** tickets only (`branch_id` must be in scope); restaurant-wide tickets and platform-level (`restaurant_id=null`) tickets must not appear or be reachable (**403/404**)
+
+Restaurant roles must **not** create, edit, delete, change ticket status, or edit internal notes in Phase 15A.
+
+Out-of-scope URLs:
+- Restaurant panel direct links outside `RestaurantPanelScope::supportTickets()` fail as **403** or **404** (consistent with other scoped resources).
+
 ## Event bookings link (Phase 11B)
 
 Phase 11B allows linking bookings to events from dashboards:

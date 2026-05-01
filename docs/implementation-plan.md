@@ -542,6 +542,25 @@ Adds authenticated mobile REST endpoints for customers to submit and read review
 - No public HTML pages / guest web listings beyond the JSON API above
 - No customer-facing approve/reject/hide endpoints
 
+### Phase 15A: complaints / support tickets dashboard foundation (dashboard-only)
+
+Adds `SupportTicket` → `support_tickets` with native Filament in Platform + Restaurant panels:
+
+- Fields: nullable `restaurant_id` / `branch_id` / `booking_id` / `user_id`; optional `customer_name` / `customer_phone`; required `subject`; `category` (`general|booking|restaurant|payment|app|other`); `priority` (`low|normal|high|urgent`); `status` (`open|in_progress|resolved|closed`); `source` (`dashboard|mobile|phone|whatsapp|import`); `message` / `internal_notes`; `resolved_at` / `closed_at`
+- Validation (model-layer): platform-level ticket = `restaurant_id` null ⇒ `branch_id` and `booking_id` must be null; **`booking_id` requires `restaurant_id`** and booking must belong to restaurant; branch must belong to restaurant; if both branch and booking, booking’s branch matches; infer `user_id` from `booking.customer_id`; prefill empty customer fields from linked `User`; auto-set `resolved_at` / `closed_at` when status becomes resolved/closed if still null; **reopen** → `open` without clearing audit timestamps
+- Platform: full CRUD; table filters (status, priority, category, restaurant, branch, source); row actions: mark in progress, resolve, close, reopen
+- Restaurant: **read-only** list + view; scoped with `RestaurantPanelScope::supportTickets(User $user)` (same branching pattern as reviews/offers)
+- Demo seed: one open booking-related ticket for Demo Restaurant A (after `BookingDemoSeeder`), one resolved general ticket for Demo Restaurant B
+
+### Explicit non-goals (Phase 15A)
+
+- No mobile UI or API for tickets
+- No customer submission flow
+- No notifications or call-center automation
+- No analytics/widgets
+- No message threads / replies
+- No restaurant-side workflow or internal-notes editing
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)
