@@ -4,6 +4,7 @@ namespace App\Filament\Restaurant\Resources\RestaurantStories\Tables;
 
 use App\Models\Restaurant;
 use App\Models\RestaurantStory;
+use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -15,12 +16,13 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class RestaurantStoriesTable
 {
     public static function configure(Table $table): Table
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Filament::auth()->user();
 
         $restaurantIds = $user?->scopedRestaurantIds() ?? [];
@@ -73,8 +75,26 @@ class RestaurantStoriesTable
                     ->requiresConfirmation()
                     ->visible(fn (RestaurantStory $record): bool => $record->status === RestaurantStory::STATUS_DRAFT)
                     ->action(function (RestaurantStory $record): void {
-                        $record->forceFill(['status' => RestaurantStory::STATUS_PENDING_REVIEW])->save();
-                        Notification::make()->title('Submitted for review')->success()->send();
+                        try {
+                            $record->loadMissing('items');
+
+                            if (! $record->hasRenderableContent()) {
+                                throw ValidationException::withMessages([
+                                    'title' => 'Add at least one story item (or legacy media/body) before submitting.',
+                                ]);
+                            }
+
+                            $record->applyLifetimeWindowForPublishing();
+                            $record->forceFill(['status' => RestaurantStory::STATUS_PENDING_REVIEW])->save();
+
+                            Notification::make()->title('Submitted for review')->success()->send();
+                        } catch (ValidationException $e) {
+                            Notification::make()
+                                ->title('Unable to submit')
+                                ->danger()
+                                ->body(collect($e->errors())->flatten()->first() ?? 'Validation failed.')
+                                ->send();
+                        }
                     }),
                 Action::make('cancel')
                     ->label('Cancel')
@@ -91,4 +111,3 @@ class RestaurantStoriesTable
             ]);
     }
 }
-

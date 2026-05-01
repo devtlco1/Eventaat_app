@@ -444,9 +444,7 @@ Adds restaurant stories management in dashboards using native Filament resources
 
 - Model/table: `RestaurantStory` → `restaurant_stories`
 - Story belongs to a restaurant; branch is optional but must belong to the selected restaurant.
-- Types: `image|video|text`
-  - `image|video`: `media_url` is required (URL/text field only; no uploads in this phase)
-  - `text`: `body` is required
+- Legacy container fields (`story_type`, `media_url`, `body`) exist for backward compatibility and older demos/tests (no requirement that these remain the primary authoring path long-term).
 - Status workflow: `draft|pending_review|published|rejected|expired|cancelled`
 - Date rule: `ends_at` must be after `starts_at` when both provided
 - Platform panel:
@@ -467,8 +465,29 @@ Adds restaurant stories management in dashboards using native Filament resources
 - No mobile UI
 - No mobile API endpoints
 - No story view analytics or customer-facing story viewing
-- No file upload/storage processing (media_url is URL/text only)
 - No custom dashboards/widgets/cards/stats
+
+### Phase 13B: stories uploads + multi-item architecture (dashboard-only)
+
+Builds on Phase 13A story scoping/workflow without changing restaurant/staff visibility rules:
+
+- Schema:
+  - Add `lifetime_mode` + optional `lifetime_hours` fields on `restaurant_stories`
+  - Add `restaurant_story_items` table + `RestaurantStoryItem` model (`image|video|text`, uploads + optional text slides)
+- Filament:
+  - Relation managers (`StoryItemsRelationManager`) on story edit/view pages in **both** panels
+  - Story view infolist previews slides (images + HTML `<video>` preview for uploads)
+  - Publishing guardrails: cannot approve/publish/submit-for-review without renderable content (items **or** legacy container fields)
+- Storage:
+  - `public` disk uploads under `stories/{story_id}`
+  - Local dev docs emphasize `php artisan storage:link`
+
+### Explicit non-goals (Phase 13B)
+
+- No mobile UI / no mobile story APIs
+- No customer-facing story viewer
+- No story analytics/impressions
+- No transcoding/thumbnails/CDN pipeline
 
 ### Unified dashboard login entry
 

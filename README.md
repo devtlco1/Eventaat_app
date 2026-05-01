@@ -71,9 +71,14 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - Note: view/click analytics will be implemented alongside the future mobile offers API/UI
 - **Stories dashboard foundation (Phase 13A)**:
   - Model `RestaurantStory` (`restaurant_stories`) to manage restaurant stories in dashboards (no mobile/story APIs in this phase)
-  - No file uploads in this phase (`media_url` is URL/text only)
+  - Legacy single-slide fields remain on the container (`story_type`, `media_url`, `body`) for backward compatibility
   - Platform panel can manage all stories and can approve/reject/cancel
   - Restaurant panel can manage scoped stories and can submit for review/cancel (no direct publishing)
+- **Stories uploads + multi-item architecture (Phase 13B)**:
+  - Adds `RestaurantStoryItem` (`restaurant_story_items`) plus Filament relation managers for multi-slide stories (image/video uploads on `public` disk under `storage/app/public/stories/{story_id}`)
+  - Adds lifetime presets (`12h|24h|48h|manual`) with predictable `starts_at`/`ends_at` derivation when approving/publishing (manual stays user-controlled)
+  - Requires `php artisan storage:link` locally so uploaded previews resolve via `/storage/...`
+  - Analytics note: story impressions/views remain **out of scope** until a mobile/customer story viewer exists
 - **Filament view-page consistency polish**:
   - View pages use consistent native infolist Sections/Grids for clean, readable details with relation managers below
 
@@ -211,6 +216,12 @@ Configure PostgreSQL credentials in `backend/.env` if needed, then run:
 
 ```bash
 php artisan migrate
+```
+
+If you’re testing story media uploads/previews locally:
+
+```bash
+php artisan storage:link
 ```
 
 Create a Filament admin user (for local login testing):

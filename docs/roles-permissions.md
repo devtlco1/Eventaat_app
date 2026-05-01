@@ -175,9 +175,10 @@ Phase 12B adds an approval workflow and expiry foundation for dashboard-only off
   - can keep offers as `draft` or submit `draft -> pending_review`
 - Expiry: ended published offers can be marked `expired` via the `offers:expire` artisan command (no scheduler wiring in this phase).
 
-## Stories (Phase 13A)
+## Stories (Phase 13A + Phase 13B)
 
-Phase 13A adds **Stories** (`RestaurantStory`) resources to both panels (dashboard-only; no mobile/story APIs in this phase):
+Phase 13A adds **Stories** (`RestaurantStory`) resources to both panels (dashboard-only; no mobile/story APIs in this phase).
+Phase 13B adds **`RestaurantStoryItem` slides** managed via Filament relation managers on each story record (same parent-story scoping rules apply).
 
 ### `/platform`
 
@@ -197,6 +198,13 @@ Workflow:
 
 Expiry:
 - Ended published stories can be marked `expired` via the `stories:expire` artisan command (no scheduler wiring in this phase).
+
+Story items:
+- Items are created/edited/deleted **only through an in-scope parent story** (Filament relation managers inherit the parent resource authorization/scoping).
+- Uploads require `APP_URL` + `php artisan storage:link` locally so `/storage/...` previews resolve.
+
+Analytics note:
+- Story impressions/views/analytics remain **out of scope** until mobile/customer story viewing exists.
 
 ## Event bookings link (Phase 11B)
 

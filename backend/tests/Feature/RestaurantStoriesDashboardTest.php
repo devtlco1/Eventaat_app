@@ -7,15 +7,18 @@ use App\Enums\RestaurantStaffRole;
 use App\Enums\RestaurantStatus;
 use App\Filament\Platform\Resources\RestaurantStories\Pages\CreateRestaurantStory as PlatformCreateRestaurantStory;
 use App\Filament\Restaurant\Resources\RestaurantStories\Pages\CreateRestaurantStory as RestaurantCreateRestaurantStory;
+use App\Filament\Restaurant\Resources\RestaurantStories\Pages\ListRestaurantStories;
 use App\Models\Branch;
 use App\Models\Restaurant;
 use App\Models\RestaurantStaffAssignment;
 use App\Models\RestaurantStory;
+use App\Models\RestaurantStoryItem;
 use App\Models\User;
 use Database\Seeders\RolesAndTestUsersSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -128,16 +131,27 @@ class RestaurantStoriesDashboardTest extends TestCase
             ->set('data.branch_id', null)
             ->set('data.title', 'New text')
             ->set('data.slug', 'new-text')
-            ->set('data.story_type', RestaurantStory::TYPE_TEXT)
-            ->set('data.body', 'Body')
             ->set('data.status', RestaurantStory::STATUS_DRAFT)
             ->set('data.display_order', 0)
             ->call('create')
             ->assertHasNoErrors();
 
+        $story = RestaurantStory::query()->where('slug', 'new-text')->firstOrFail();
+
+        RestaurantStoryItem::create([
+            'restaurant_story_id' => $story->id,
+            'item_type' => RestaurantStoryItem::TYPE_TEXT,
+            'body' => 'Body',
+            'sort_order' => 0,
+        ]);
+
         $this->assertDatabaseHas('restaurant_stories', [
             'slug' => 'new-text',
-            'story_type' => RestaurantStory::TYPE_TEXT,
+        ]);
+
+        $this->assertDatabaseHas('restaurant_story_items', [
+            'restaurant_story_id' => $story->id,
+            'item_type' => RestaurantStoryItem::TYPE_TEXT,
         ]);
     }
 
@@ -191,6 +205,59 @@ class RestaurantStoriesDashboardTest extends TestCase
 
         $this->get("/restaurant/restaurant-stories/{$data['aRestaurantWide']->id}")
             ->tap(fn ($resp) => $this->assertDeniedOrNotFound($resp->getStatusCode()));
+
+        $this->get("/restaurant/restaurant-stories/{$data['aBranchStory']->id}/edit")->assertOk();
+    }
+
+    public function test_story_has_many_items_relationship(): void
+    {
+        $data = $this->seedRestaurantsAndStories();
+
+        RestaurantStoryItem::create([
+            'restaurant_story_id' => $data['aBranchStory']->id,
+            'item_type' => RestaurantStoryItem::TYPE_TEXT,
+            'body' => 'Slide',
+            'sort_order' => 1,
+        ]);
+
+        $data['aBranchStory']->refresh();
+
+        $this->assertCount(1, $data['aBranchStory']->items);
+        $this->assertSame(RestaurantStoryItem::TYPE_TEXT, $data['aBranchStory']->items()->first()->item_type);
+    }
+
+    public function test_apply_lifetime_window_modes(): void
+    {
+        try {
+            Carbon::setTestNow(Carbon::parse('2026-06-02 09:00:00', 'UTC'));
+
+            $s12 = new RestaurantStory([
+                'lifetime_mode' => RestaurantStory::LIFETIME_12H,
+                'starts_at' => null,
+                'ends_at' => null,
+            ]);
+            $s12->applyLifetimeWindowForPublishing();
+            $this->assertNotNull($s12->starts_at);
+            $this->assertTrue($s12->ends_at->equalTo($s12->starts_at->copy()->addHours(12)));
+
+            $s48 = new RestaurantStory([
+                'lifetime_mode' => RestaurantStory::LIFETIME_48H,
+                'starts_at' => Carbon::parse('2026-06-02 08:00:00', 'UTC'),
+                'ends_at' => null,
+            ]);
+            $s48->applyLifetimeWindowForPublishing();
+            $this->assertTrue($s48->ends_at->equalTo($s48->starts_at->copy()->addHours(48)));
+
+            $manual = new RestaurantStory([
+                'lifetime_mode' => RestaurantStory::LIFETIME_MANUAL,
+                'starts_at' => Carbon::parse('2026-06-02 08:00:00', 'UTC'),
+                'ends_at' => null,
+            ]);
+            $manual->applyLifetimeWindowForPublishing();
+            $this->assertNull($manual->ends_at);
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     public function test_branch_must_belong_to_selected_restaurant_validation(): void
@@ -206,8 +273,6 @@ class RestaurantStoriesDashboardTest extends TestCase
             ->set('data.branch_id', $data['bBranch']->id)
             ->set('data.title', 'Bad Branch')
             ->set('data.slug', 'bad-branch-story')
-            ->set('data.story_type', RestaurantStory::TYPE_TEXT)
-            ->set('data.body', 'X')
             ->set('data.status', RestaurantStory::STATUS_DRAFT)
             ->set('data.display_order', 0)
             ->call('create')
@@ -227,8 +292,6 @@ class RestaurantStoriesDashboardTest extends TestCase
             ->set('data.branch_id', null)
             ->set('data.title', 'Bad Dates')
             ->set('data.slug', 'bad-dates-story')
-            ->set('data.story_type', RestaurantStory::TYPE_TEXT)
-            ->set('data.body', 'X')
             ->set('data.status', RestaurantStory::STATUS_DRAFT)
             ->set('data.starts_at', '2026-06-04 12:00:00')
             ->set('data.ends_at', '2026-06-04 11:00:00')
@@ -237,7 +300,7 @@ class RestaurantStoriesDashboardTest extends TestCase
             ->assertHasErrors(['data.ends_at']);
     }
 
-    public function test_image_story_requires_media_url(): void
+    public function test_platform_cannot_publish_story_without_items_or_legacy_content(): void
     {
         $data = $this->seedRestaurantsAndStories();
 
@@ -248,35 +311,64 @@ class RestaurantStoriesDashboardTest extends TestCase
         Livewire::test(PlatformCreateRestaurantStory::class)
             ->set('data.restaurant_id', $data['a']->id)
             ->set('data.branch_id', null)
-            ->set('data.title', 'Image missing url')
-            ->set('data.slug', 'image-missing-url')
-            ->set('data.story_type', RestaurantStory::TYPE_IMAGE)
-            ->set('data.media_url', null)
-            ->set('data.status', RestaurantStory::STATUS_DRAFT)
+            ->set('data.title', 'No content')
+            ->set('data.slug', 'no-content-story')
+            ->set('data.status', RestaurantStory::STATUS_PUBLISHED)
             ->set('data.display_order', 0)
             ->call('create')
-            ->assertHasErrors(['data.media_url']);
+            ->assertHasErrors(['data.title']);
     }
 
-    public function test_text_story_requires_body(): void
+    public function test_story_item_requires_media_for_image_items(): void
     {
+        $this->expectException(ValidationException::class);
+
         $data = $this->seedRestaurantsAndStories();
 
-        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
-        Filament::setCurrentPanel('platform');
-        $this->actingAs($admin);
+        $story = RestaurantStory::create([
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => null,
+            'title' => 'Item validation',
+            'slug' => 'item-validation-story',
+            'story_type' => RestaurantStory::TYPE_IMAGE,
+            'media_url' => null,
+            'body' => null,
+            'status' => RestaurantStory::STATUS_DRAFT,
+            'display_order' => 0,
+        ]);
 
-        Livewire::test(PlatformCreateRestaurantStory::class)
-            ->set('data.restaurant_id', $data['a']->id)
-            ->set('data.branch_id', null)
-            ->set('data.title', 'Text missing body')
-            ->set('data.slug', 'text-missing-body')
-            ->set('data.story_type', RestaurantStory::TYPE_TEXT)
-            ->set('data.body', null)
-            ->set('data.status', RestaurantStory::STATUS_DRAFT)
-            ->set('data.display_order', 0)
-            ->call('create')
-            ->assertHasErrors(['data.body']);
+        RestaurantStoryItem::create([
+            'restaurant_story_id' => $story->id,
+            'item_type' => RestaurantStoryItem::TYPE_IMAGE,
+            'media_path' => null,
+            'sort_order' => 0,
+        ]);
+    }
+
+    public function test_story_item_requires_body_for_text_items(): void
+    {
+        $this->expectException(ValidationException::class);
+
+        $data = $this->seedRestaurantsAndStories();
+
+        $story = RestaurantStory::create([
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => null,
+            'title' => 'Item validation text',
+            'slug' => 'item-validation-text-story',
+            'story_type' => RestaurantStory::TYPE_TEXT,
+            'media_url' => null,
+            'body' => null,
+            'status' => RestaurantStory::STATUS_DRAFT,
+            'display_order' => 0,
+        ]);
+
+        RestaurantStoryItem::create([
+            'restaurant_story_id' => $story->id,
+            'item_type' => RestaurantStoryItem::TYPE_TEXT,
+            'body' => null,
+            'sort_order' => 0,
+        ]);
     }
 
     public function test_restaurant_user_can_submit_draft_for_review_and_cannot_publish_directly(): void
@@ -301,8 +393,6 @@ class RestaurantStoriesDashboardTest extends TestCase
             ->set('data.branch_id', null)
             ->set('data.title', 'Try publish')
             ->set('data.slug', 'try-publish-story')
-            ->set('data.story_type', RestaurantStory::TYPE_TEXT)
-            ->set('data.body', 'X')
             ->set('data.status', RestaurantStory::STATUS_PUBLISHED)
             ->set('data.display_order', 0)
             ->call('create')
@@ -319,7 +409,14 @@ class RestaurantStoriesDashboardTest extends TestCase
             'display_order' => 0,
         ]);
 
-        Livewire::test(\App\Filament\Restaurant\Resources\RestaurantStories\Pages\ListRestaurantStories::class)
+        RestaurantStoryItem::create([
+            'restaurant_story_id' => $draft->id,
+            'item_type' => RestaurantStoryItem::TYPE_TEXT,
+            'body' => 'Slide',
+            'sort_order' => 0,
+        ]);
+
+        Livewire::test(ListRestaurantStories::class)
             ->callTableAction('submit_for_review', $draft);
 
         $this->assertDatabaseHas('restaurant_stories', [
@@ -343,17 +440,36 @@ class RestaurantStoriesDashboardTest extends TestCase
             'display_order' => 0,
         ]);
 
+        RestaurantStoryItem::create([
+            'restaurant_story_id' => $pending->id,
+            'item_type' => RestaurantStoryItem::TYPE_TEXT,
+            'body' => 'Slide',
+            'sort_order' => 0,
+        ]);
+
         $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
         Filament::setCurrentPanel('platform');
         $this->actingAs($admin);
 
-        Livewire::test(\App\Filament\Platform\Resources\RestaurantStories\Pages\ListRestaurantStories::class)
-            ->callTableAction('approve', $pending);
+        try {
+            Carbon::setTestNow(Carbon::parse('2026-06-01 10:00:00', 'UTC'));
 
-        $this->assertDatabaseHas('restaurant_stories', [
-            'id' => $pending->id,
-            'status' => RestaurantStory::STATUS_PUBLISHED,
-        ]);
+            Livewire::test(\App\Filament\Platform\Resources\RestaurantStories\Pages\ListRestaurantStories::class)
+                ->callTableAction('approve', $pending);
+
+            $pending->refresh();
+
+            $this->assertDatabaseHas('restaurant_stories', [
+                'id' => $pending->id,
+                'status' => RestaurantStory::STATUS_PUBLISHED,
+            ]);
+
+            $this->assertNotNull($pending->starts_at);
+            $this->assertNotNull($pending->ends_at);
+            $this->assertTrue($pending->ends_at->equalTo($pending->starts_at->copy()->addHours(24)));
+        } finally {
+            Carbon::setTestNow();
+        }
 
         $pending2 = RestaurantStory::create([
             'restaurant_id' => $data['a']->id,
@@ -364,6 +480,13 @@ class RestaurantStoriesDashboardTest extends TestCase
             'body' => 'X',
             'status' => RestaurantStory::STATUS_PENDING_REVIEW,
             'display_order' => 0,
+        ]);
+
+        RestaurantStoryItem::create([
+            'restaurant_story_id' => $pending2->id,
+            'item_type' => RestaurantStoryItem::TYPE_TEXT,
+            'body' => 'Slide',
+            'sort_order' => 0,
         ]);
 
         Livewire::test(\App\Filament\Platform\Resources\RestaurantStories\Pages\ListRestaurantStories::class)
@@ -386,43 +509,47 @@ class RestaurantStoriesDashboardTest extends TestCase
     public function test_stories_expire_command_expires_only_old_published_stories(): void
     {
         $data = $this->seedRestaurantsAndStories();
-        Carbon::setTestNow(Carbon::parse('2026-06-10 12:00:00', 'UTC'));
 
-        $publishedOld = RestaurantStory::create([
-            'restaurant_id' => $data['a']->id,
-            'branch_id' => $data['aBranch']->id,
-            'title' => 'Old published',
-            'slug' => 'old-published-story',
-            'story_type' => RestaurantStory::TYPE_TEXT,
-            'body' => 'X',
-            'status' => RestaurantStory::STATUS_PUBLISHED,
-            'ends_at' => Carbon::now()->subDay(),
-            'display_order' => 0,
-        ]);
+        try {
+            Carbon::setTestNow(Carbon::parse('2026-06-10 12:00:00', 'UTC'));
 
-        $draftOld = RestaurantStory::create([
-            'restaurant_id' => $data['a']->id,
-            'branch_id' => $data['aBranch']->id,
-            'title' => 'Old draft',
-            'slug' => 'old-draft-story',
-            'story_type' => RestaurantStory::TYPE_TEXT,
-            'body' => 'X',
-            'status' => RestaurantStory::STATUS_DRAFT,
-            'ends_at' => Carbon::now()->subDay(),
-            'display_order' => 0,
-        ]);
+            $publishedOld = RestaurantStory::create([
+                'restaurant_id' => $data['a']->id,
+                'branch_id' => $data['aBranch']->id,
+                'title' => 'Old published',
+                'slug' => 'old-published-story',
+                'story_type' => RestaurantStory::TYPE_TEXT,
+                'body' => 'X',
+                'status' => RestaurantStory::STATUS_PUBLISHED,
+                'ends_at' => Carbon::now()->subDay(),
+                'display_order' => 0,
+            ]);
 
-        $this->artisan('stories:expire')->assertExitCode(0);
+            $draftOld = RestaurantStory::create([
+                'restaurant_id' => $data['a']->id,
+                'branch_id' => $data['aBranch']->id,
+                'title' => 'Old draft',
+                'slug' => 'old-draft-story',
+                'story_type' => RestaurantStory::TYPE_TEXT,
+                'body' => 'X',
+                'status' => RestaurantStory::STATUS_DRAFT,
+                'ends_at' => Carbon::now()->subDay(),
+                'display_order' => 0,
+            ]);
 
-        $this->assertDatabaseHas('restaurant_stories', [
-            'id' => $publishedOld->id,
-            'status' => RestaurantStory::STATUS_EXPIRED,
-        ]);
+            $this->artisan('stories:expire')->assertExitCode(0);
 
-        $this->assertDatabaseHas('restaurant_stories', [
-            'id' => $draftOld->id,
-            'status' => RestaurantStory::STATUS_DRAFT,
-        ]);
+            $this->assertDatabaseHas('restaurant_stories', [
+                'id' => $publishedOld->id,
+                'status' => RestaurantStory::STATUS_EXPIRED,
+            ]);
+
+            $this->assertDatabaseHas('restaurant_stories', [
+                'id' => $draftOld->id,
+                'status' => RestaurantStory::STATUS_DRAFT,
+            ]);
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 }
-

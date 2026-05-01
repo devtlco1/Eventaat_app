@@ -6,6 +6,7 @@ use App\Filament\Restaurant\Resources\RestaurantStories\Pages\CreateRestaurantSt
 use App\Filament\Restaurant\Resources\RestaurantStories\Pages\EditRestaurantStory;
 use App\Filament\Restaurant\Resources\RestaurantStories\Pages\ListRestaurantStories;
 use App\Filament\Restaurant\Resources\RestaurantStories\Pages\ViewRestaurantStory;
+use App\Filament\Restaurant\Resources\RestaurantStories\RelationManagers\StoryItemsRelationManager;
 use App\Filament\Restaurant\Resources\RestaurantStories\Schemas\RestaurantStoryForm;
 use App\Filament\Restaurant\Resources\RestaurantStories\Schemas\RestaurantStoryInfolist;
 use App\Filament\Restaurant\Resources\RestaurantStories\Tables\RestaurantStoriesTable;
@@ -105,7 +106,9 @@ class RestaurantStoryResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            StoryItemsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
@@ -118,4 +121,3 @@ class RestaurantStoryResource extends Resource
         ];
     }
 }
-

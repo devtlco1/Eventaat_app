@@ -102,13 +102,19 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 ### Stories dashboard foundation (Phase 13A)
 
 - Adds `RestaurantStory` (stories) as a dashboard-only module (no mobile/story API/UI in this phase).
-- Story types: `image|video|text`
-  - `image|video`: `media_url` required (URL/text only; no uploads in this phase)
-  - `text`: `body` required
+- Legacy container fields (`story_type`, `media_url`, `body`) remain for backward compatibility with older seeded/demo rows (dashboard-only).
 - Status workflow: `draft|pending_review|published|rejected|expired|cancelled`
 - Platform panel can manage all stories and can approve/reject pending review and cancel stories.
 - Restaurant panel scoping:
   - `restaurant_owner`: restaurant-wide + branch stories
   - `branch_manager` / `restaurant_host`: branch-scoped stories only (restaurant-wide stories are not visible/accessible)
 - Expiry foundation: `stories:expire` marks ended published stories as expired (manual command; no scheduler wiring in this phase).
+
+### Stories uploads + multi-item architecture (Phase 13B)
+
+- Primary authoring moves to **`RestaurantStoryItem`** slides (`image|video|text`) managed via Filament relation managers on each story record (scoped exactly like Phase 13A parent stories).
+- Uploads use Filament `FileUpload` on the `public` disk (`storage/app/public/stories/{story_id}`); local dev requires `php artisan storage:link`.
+- Adds lifetime presets on the story container (`12h|24h|48h|manual`) plus optional manual shortcut hours when `ends_at` isn’t explicitly set.
+- Approval/publishing derives `starts_at`/`ends_at` predictably for non-manual modes when `ends_at` is empty (manual keeps end-time user-controlled).
+- Customer/mobile story viewing + analytics remain explicitly **out of scope** until later phases introduce mobile APIs/UI.
 

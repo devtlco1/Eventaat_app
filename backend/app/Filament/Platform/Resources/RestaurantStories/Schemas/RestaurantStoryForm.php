@@ -9,6 +9,7 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -53,6 +54,7 @@ class RestaurantStoryForm
                         $restaurantId = $get('restaurant_id');
                         if (! $restaurantId) {
                             $fail('Select a restaurant first.');
+
                             return;
                         }
 
@@ -89,31 +91,32 @@ class RestaurantStoryForm
                 ->maxLength(255)
                 ->unique(ignoreRecord: true),
 
-            Select::make('story_type')
-                ->label('Story type')
-                ->required()
-                ->reactive()
-                ->options(array_combine(RestaurantStory::STORY_TYPES, RestaurantStory::STORY_TYPES))
-                ->default(RestaurantStory::TYPE_IMAGE)
-                ->afterStateUpdated(function (Set $set, ?string $state): void {
-                    if ($state === RestaurantStory::TYPE_TEXT) {
-                        $set('media_url', null);
-                    } else {
-                        $set('body', null);
-                    }
-                }),
+            Section::make('Legacy container fields (deprecated)')
+                ->collapsed()
+                ->schema([
+                    Select::make('story_type')
+                        ->label('Legacy story type')
+                        ->reactive()
+                        ->options(array_combine(RestaurantStory::STORY_TYPES, RestaurantStory::STORY_TYPES))
+                        ->default(RestaurantStory::TYPE_IMAGE)
+                        ->afterStateUpdated(function (Set $set, ?string $state): void {
+                            if ($state === RestaurantStory::TYPE_TEXT) {
+                                $set('media_url', null);
+                            } else {
+                                $set('body', null);
+                            }
+                        }),
 
-            TextInput::make('media_url')
-                ->label('Media URL')
-                ->nullable()
-                ->maxLength(2048)
-                ->required(fn (Get $get): bool => in_array($get('story_type'), [RestaurantStory::TYPE_IMAGE, RestaurantStory::TYPE_VIDEO], true)),
+                    TextInput::make('media_url')
+                        ->label('Legacy media URL')
+                        ->nullable()
+                        ->maxLength(2048),
 
-            Textarea::make('body')
-                ->label('Body')
-                ->rows(6)
-                ->nullable()
-                ->required(fn (Get $get): bool => $get('story_type') === RestaurantStory::TYPE_TEXT),
+                    Textarea::make('body')
+                        ->label('Legacy body')
+                        ->rows(6)
+                        ->nullable(),
+                ]),
 
             TextInput::make('cta_label')
                 ->label('CTA label')
@@ -156,7 +159,29 @@ class RestaurantStoryForm
                             $fail('Ends at must be after starts at.');
                         }
                     },
-                ]),
+                ])
+                ->helperText('For manual lifetime mode, provide ends_at (and optionally starts_at). Other modes derive ends_at automatically when publishing/approving if ends_at is empty.'),
+
+            Select::make('lifetime_mode')
+                ->label('Lifetime mode')
+                ->required()
+                ->options([
+                    RestaurantStory::LIFETIME_12H => '12 hours',
+                    RestaurantStory::LIFETIME_24H => '24 hours',
+                    RestaurantStory::LIFETIME_48H => '48 hours',
+                    RestaurantStory::LIFETIME_MANUAL => 'Manual (starts/ends)',
+                ])
+                ->default(RestaurantStory::LIFETIME_24H)
+                ->reactive(),
+
+            TextInput::make('lifetime_hours')
+                ->label('Lifetime hours (manual shortcut)')
+                ->numeric()
+                ->minValue(1)
+                ->maxValue(24 * 30)
+                ->nullable()
+                ->visible(fn (Get $get): bool => $get('lifetime_mode') === RestaurantStory::LIFETIME_MANUAL)
+                ->helperText('Optional: if Ends at is empty, we’ll use Starts at + these hours (defaults starts_at to now when publishing).'),
 
             TextInput::make('display_order')
                 ->label('Display order')
@@ -170,4 +195,3 @@ class RestaurantStoryForm
         ]);
     }
 }
-

@@ -15,6 +15,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class RestaurantStoriesTable
 {
@@ -74,8 +75,26 @@ class RestaurantStoriesTable
                     ->requiresConfirmation()
                     ->visible(fn (RestaurantStory $record): bool => $record->status === RestaurantStory::STATUS_PENDING_REVIEW)
                     ->action(function (RestaurantStory $record): void {
-                        $record->forceFill(['status' => RestaurantStory::STATUS_PUBLISHED])->save();
-                        Notification::make()->title('Story approved')->success()->send();
+                        try {
+                            $record->loadMissing('items');
+
+                            if (! $record->hasRenderableContent()) {
+                                throw ValidationException::withMessages([
+                                    'title' => 'Story has no renderable items (or legacy media/body).',
+                                ]);
+                            }
+
+                            $record->applyLifetimeWindowForPublishing();
+                            $record->forceFill(['status' => RestaurantStory::STATUS_PUBLISHED])->save();
+
+                            Notification::make()->title('Story approved')->success()->send();
+                        } catch (ValidationException $e) {
+                            Notification::make()
+                                ->title('Unable to approve')
+                                ->danger()
+                                ->body(collect($e->errors())->flatten()->first() ?? 'Validation failed.')
+                                ->send();
+                        }
                     }),
                 Action::make('reject')
                     ->label('Reject')
@@ -103,4 +122,3 @@ class RestaurantStoriesTable
             ]);
     }
 }
-
