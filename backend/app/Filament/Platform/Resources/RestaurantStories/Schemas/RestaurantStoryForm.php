@@ -10,6 +10,7 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -86,27 +87,41 @@ class RestaurantStoryForm
                     $set('slug', Str::slug($state));
                 }),
 
-            TextInput::make('slug')
+            Section::make('Publishing')
+                ->description('Slug and ordering are rarely changed once live.')
+                ->collapsed()
+                ->schema([
+                    TextInput::make('slug')
+                        ->required()
+                        ->maxLength(255)
+                        ->unique(ignoreRecord: true),
+                    TextInput::make('display_order')
+                        ->label('Display order')
+                        ->numeric()
+                        ->required()
+                        ->default(0),
+                ]),
+
+            Select::make('lifetime_mode')
+                ->label('Lifetime mode')
                 ->required()
-                ->maxLength(255)
-                ->unique(ignoreRecord: true),
+                ->options([
+                    RestaurantStory::LIFETIME_12H => '12 hours',
+                    RestaurantStory::LIFETIME_24H => '24 hours',
+                    RestaurantStory::LIFETIME_48H => '48 hours',
+                    RestaurantStory::LIFETIME_MANUAL => 'Manual (starts/ends)',
+                ])
+                ->default(RestaurantStory::LIFETIME_24H)
+                ->reactive(),
 
-            RestaurantStoryContentRepeater::section(),
-
-            TextInput::make('cta_label')
-                ->label('CTA label')
-                ->maxLength(255)
-                ->nullable(),
-
-            TextInput::make('cta_url')
-                ->label('CTA URL')
-                ->maxLength(2048)
-                ->nullable(),
-
-            Select::make('status')
-                ->required()
-                ->options(array_combine(RestaurantStory::STATUSES, RestaurantStory::STATUSES))
-                ->default(RestaurantStory::STATUS_DRAFT),
+            TextInput::make('lifetime_hours')
+                ->label('Lifetime hours (manual shortcut)')
+                ->numeric()
+                ->minValue(1)
+                ->maxValue(24 * 30)
+                ->nullable()
+                ->visible(fn (Get $get): bool => $get('lifetime_mode') === RestaurantStory::LIFETIME_MANUAL)
+                ->helperText('Optional: if Ends at is empty, we’ll use Starts at + these hours (defaults starts_at to now when publishing).'),
 
             DateTimePicker::make('starts_at')
                 ->label('Starts at')
@@ -137,36 +152,34 @@ class RestaurantStoryForm
                 ])
                 ->helperText('For manual lifetime mode, provide ends_at (and optionally starts_at). Other modes derive ends_at automatically when publishing/approving if ends_at is empty.'),
 
-            Select::make('lifetime_mode')
-                ->label('Lifetime mode')
+            Select::make('status')
                 ->required()
-                ->options([
-                    RestaurantStory::LIFETIME_12H => '12 hours',
-                    RestaurantStory::LIFETIME_24H => '24 hours',
-                    RestaurantStory::LIFETIME_48H => '48 hours',
-                    RestaurantStory::LIFETIME_MANUAL => 'Manual (starts/ends)',
-                ])
-                ->default(RestaurantStory::LIFETIME_24H)
-                ->reactive(),
+                ->options(array_combine(RestaurantStory::STATUSES, RestaurantStory::STATUSES))
+                ->default(RestaurantStory::STATUS_DRAFT),
 
-            TextInput::make('lifetime_hours')
-                ->label('Lifetime hours (manual shortcut)')
-                ->numeric()
-                ->minValue(1)
-                ->maxValue(24 * 30)
-                ->nullable()
-                ->visible(fn (Get $get): bool => $get('lifetime_mode') === RestaurantStory::LIFETIME_MANUAL)
-                ->helperText('Optional: if Ends at is empty, we’ll use Starts at + these hours (defaults starts_at to now when publishing).'),
+            RestaurantStoryContentRepeater::section(),
 
-            TextInput::make('display_order')
-                ->label('Display order')
-                ->numeric()
-                ->required()
-                ->default(0),
+            Section::make('Story link button')
+                ->description('Optional link shown with the whole story (not per slide).')
+                ->collapsed()
+                ->schema([
+                    TextInput::make('cta_label')
+                        ->label('Button label')
+                        ->maxLength(255)
+                        ->nullable(),
+                    TextInput::make('cta_url')
+                        ->label('Link URL')
+                        ->maxLength(2048)
+                        ->nullable(),
+                ]),
 
-            Textarea::make('notes')
-                ->rows(4)
-                ->nullable(),
+            Section::make('Notes')
+                ->collapsed()
+                ->schema([
+                    Textarea::make('notes')
+                        ->rows(4)
+                        ->nullable(),
+                ]),
         ]);
     }
 }
