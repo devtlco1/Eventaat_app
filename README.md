@@ -58,6 +58,12 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Event booking operations polish (Phase 11C)**:
   - Event pages show linked bookings via a native Filament relation manager table
   - Event view/edit show capacity summary: active reserved seats + remaining seats (or Unlimited)
+- **Offers dashboard foundation (Phase 12A)**:
+  - Model `RestaurantOffer` (`restaurant_offers`) to manage restaurant offers in dashboards (no mobile/offers APIs in this phase)
+  - Platform panel can manage all offers
+  - Restaurant panel can manage scoped offers:
+    - `restaurant_owner`: restaurant-wide + branch offers
+    - `branch_manager` / `restaurant_host`: branch-scoped offers only (restaurant-wide offers are not visible/accessible)
 - **Filament view-page consistency polish**:
   - View pages use consistent native infolist Sections/Grids for clean, readable details with relation managers below
 

@@ -78,3 +78,15 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
   - active reserved seats (consuming statuses only)
   - remaining seats (or “Unlimited” if capacity is null)
 
+### Offers dashboard foundation (Phase 12A)
+
+- Adds `RestaurantOffer` (offers) as a dashboard-only module (no mobile/offers API in this phase).
+- Offers belong to a restaurant; branch is optional but must belong to the selected restaurant.
+- Offer types:
+  - `text_only` (no discount value)
+  - `percentage` (`discount_value` required, 1–100)
+  - `fixed_amount` (`discount_value` required, > 0)
+- Restaurant panel scoping:
+  - `restaurant_owner`: restaurant-wide + branch offers
+  - `branch_manager` / `restaurant_host`: branch-scoped offers only (restaurant-wide offers are not visible/accessible)
+

@@ -143,6 +143,22 @@ Allowed:
 - `restaurant_owner`: can create/edit/view/delete restaurant-wide (`branch_id=null`) and branch-scoped events within their assigned restaurant(s)
 - `branch_manager` / `restaurant_host`: can create/edit/view branch-scoped events only (branch is required and must be within scope)
 
+## Offers (Phase 12A)
+
+Phase 12A adds **Offers** (`RestaurantOffer`) resources to both panels (dashboard-only; no mobile/offers APIs in this phase):
+
+### `/platform`
+
+Allowed:
+- `super_admin`
+- `operations_admin`
+
+### `/restaurant`
+
+- `restaurant_owner`: can create/edit/view/delete restaurant-wide offers (`branch_id=null`) and branch-scoped offers within their assigned restaurant(s)
+- `branch_manager` / `restaurant_host`: can create/edit/view branch-scoped offers only (branch is required and must be within scope)
+- `branch_manager` / `restaurant_host` must not see or access restaurant-wide offers (`branch_id=null`) in the restaurant panel
+
 ## Event bookings link (Phase 11B)
 
 Phase 11B allows linking bookings to events from dashboards:

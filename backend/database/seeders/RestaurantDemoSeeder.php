@@ -12,9 +12,11 @@ use App\Models\BranchAvailabilityRule;
 use App\Models\Restaurant;
 use App\Models\RestaurantStaffAssignment;
 use App\Models\RestaurantTable;
+use App\Models\RestaurantOffer;
 use App\Models\SeatingArea;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
 
 class RestaurantDemoSeeder extends Seeder
 {
@@ -128,5 +130,42 @@ class RestaurantDemoSeeder extends Seeder
                 ['status' => 'active'],
             );
         }
+
+        $start = Carbon::now()->subDays(1)->startOfHour();
+        $end = Carbon::now()->addDays(14)->startOfHour();
+
+        RestaurantOffer::updateOrCreate(
+            ['slug' => 'demo-lunch-combo-offer'],
+            [
+                'restaurant_id' => $restaurantA->id,
+                'branch_id' => null,
+                'title' => 'Lunch Combo Offer',
+                'description' => 'Weekday lunch combo — limited time.',
+                'status' => RestaurantOffer::STATUS_PUBLISHED,
+                'offer_type' => RestaurantOffer::TYPE_FIXED_AMOUNT,
+                'discount_value' => 15.00,
+                'starts_at' => $start,
+                'ends_at' => $end,
+                'terms' => 'Valid on weekdays only. Not combinable with other offers.',
+                'notes' => null,
+            ],
+        );
+
+        RestaurantOffer::updateOrCreate(
+            ['slug' => 'demo-chef-special-discount'],
+            [
+                'restaurant_id' => $restaurantB->id,
+                'branch_id' => $branchB1->id,
+                'title' => 'Chef Special Discount',
+                'description' => 'Seasonal chef special — while supplies last.',
+                'status' => RestaurantOffer::STATUS_PUBLISHED,
+                'offer_type' => RestaurantOffer::TYPE_PERCENTAGE,
+                'discount_value' => 10.00,
+                'starts_at' => $start,
+                'ends_at' => $end,
+                'terms' => 'Valid for dine-in only.',
+                'notes' => null,
+            ],
+        );
     }
 }

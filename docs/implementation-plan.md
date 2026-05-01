@@ -385,6 +385,37 @@ Make event operations usable from the dashboard:
   - Relation managers remain below the details area
 - No functional changes (scoping/permissions/actions unchanged)
 
+### Phase 12A: offers dashboard foundation (dashboard-only)
+
+Adds restaurant offers management in dashboards using native Filament resources only:
+
+- Model/table: `RestaurantOffer` → `restaurant_offers`
+- Offer belongs to a restaurant; branch is optional but must belong to the selected restaurant.
+- Status: `draft|published|expired|cancelled` (default `draft`)
+- Offer type: `text_only|percentage|fixed_amount` (default `text_only`)
+- Type rules:
+  - `percentage`: `discount_value` required, 1–100
+  - `fixed_amount`: `discount_value` required, > 0
+  - `text_only`: `discount_value` nullable/ignored
+- Date rule: `ends_at` must be after `starts_at` when both provided
+- Platform panel:
+  - Full CRUD over all offers
+  - Table columns: title, restaurant, branch, status, offer type, discount, starts_at, ends_at
+  - Filters: status, restaurant, branch, offer type, active now (simple)
+- Restaurant panel (scoped):
+  - `restaurant_owner`: manage restaurant-wide offers (`branch_id=null`) and branch-scoped offers within assigned restaurant(s)
+  - `branch_manager` / `restaurant_host`: manage branch-scoped offers only (restaurant-wide offers are hidden/denied)
+  - Out-of-scope direct URLs denied/unavailable
+
+### Explicit non-goals (Phase 12A)
+
+- No mobile UI
+- No mobile API endpoints
+- No coupon/redemption/claiming logic
+- No customer offer claiming
+- No cover image upload
+- No custom dashboards/widgets/cards/stats
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)
