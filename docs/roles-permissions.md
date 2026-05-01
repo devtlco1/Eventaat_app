@@ -159,6 +159,22 @@ Allowed:
 - `branch_manager` / `restaurant_host`: can create/edit/view branch-scoped offers only (branch is required and must be within scope)
 - `branch_manager` / `restaurant_host` must not see or access restaurant-wide offers (`branch_id=null`) in the restaurant panel
 
+## Offers approval workflow (Phase 12B)
+
+Phase 12B adds an approval workflow and expiry foundation for dashboard-only offers:
+
+- Statuses: `draft|pending_review|published|rejected|expired|cancelled`
+- Platform roles (`super_admin`, `operations_admin`):
+  - can create/edit offers
+  - can publish directly
+  - can approve/reject `pending_review`
+  - can cancel offers
+- Restaurant roles:
+  - can create/edit in-scope offers
+  - cannot publish/approve directly
+  - can keep offers as `draft` or submit `draft -> pending_review`
+- Expiry: ended published offers can be marked `expired` via the `offers:expire` artisan command (no scheduler wiring in this phase).
+
 ## Event bookings link (Phase 11B)
 
 Phase 11B allows linking bookings to events from dashboards:

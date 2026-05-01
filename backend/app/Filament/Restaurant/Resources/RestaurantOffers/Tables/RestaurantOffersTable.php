@@ -4,9 +4,11 @@ namespace App\Filament\Restaurant\Resources\RestaurantOffers\Tables;
 
 use App\Models\Restaurant;
 use App\Models\RestaurantOffer;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Facades\Filament;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -66,6 +68,27 @@ class RestaurantOffersTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                Action::make('submit_for_review')
+                    ->label('Submit for review')
+                    ->color('primary')
+                    ->requiresConfirmation()
+                    ->visible(fn (RestaurantOffer $record): bool => $record->status === RestaurantOffer::STATUS_DRAFT)
+                    ->action(function (RestaurantOffer $record): void {
+                        $record->forceFill(['status' => RestaurantOffer::STATUS_PENDING_REVIEW])->save();
+                        Notification::make()->title('Submitted for review')->success()->send();
+                    }),
+                Action::make('cancel')
+                    ->label('Cancel')
+                    ->color('gray')
+                    ->requiresConfirmation()
+                    ->visible(fn (RestaurantOffer $record): bool => in_array($record->status, [
+                        RestaurantOffer::STATUS_DRAFT,
+                        RestaurantOffer::STATUS_PENDING_REVIEW,
+                    ], true))
+                    ->action(function (RestaurantOffer $record): void {
+                        $record->forceFill(['status' => RestaurantOffer::STATUS_CANCELLED])->save();
+                        Notification::make()->title('Offer cancelled')->success()->send();
+                    }),
             ]);
     }
 }

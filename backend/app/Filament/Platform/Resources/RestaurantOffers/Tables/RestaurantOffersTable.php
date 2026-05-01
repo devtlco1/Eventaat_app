@@ -5,8 +5,10 @@ namespace App\Filament\Platform\Resources\RestaurantOffers\Tables;
 use App\Models\Branch;
 use App\Models\Restaurant;
 use App\Models\RestaurantOffer;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -66,6 +68,38 @@ class RestaurantOffersTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                Action::make('approve')
+                    ->label('Approve')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->visible(fn (RestaurantOffer $record): bool => $record->status === RestaurantOffer::STATUS_PENDING_REVIEW)
+                    ->action(function (RestaurantOffer $record): void {
+                        $record->forceFill(['status' => RestaurantOffer::STATUS_PUBLISHED])->save();
+                        Notification::make()->title('Offer approved')->success()->send();
+                    }),
+                Action::make('reject')
+                    ->label('Reject')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->visible(fn (RestaurantOffer $record): bool => $record->status === RestaurantOffer::STATUS_PENDING_REVIEW)
+                    ->action(function (RestaurantOffer $record): void {
+                        $record->forceFill(['status' => RestaurantOffer::STATUS_REJECTED])->save();
+                        Notification::make()->title('Offer rejected')->success()->send();
+                    }),
+                Action::make('cancel')
+                    ->label('Cancel')
+                    ->color('gray')
+                    ->requiresConfirmation()
+                    ->visible(fn (RestaurantOffer $record): bool => in_array($record->status, [
+                        RestaurantOffer::STATUS_DRAFT,
+                        RestaurantOffer::STATUS_PENDING_REVIEW,
+                        RestaurantOffer::STATUS_PUBLISHED,
+                        RestaurantOffer::STATUS_REJECTED,
+                    ], true))
+                    ->action(function (RestaurantOffer $record): void {
+                        $record->forceFill(['status' => RestaurantOffer::STATUS_CANCELLED])->save();
+                        Notification::make()->title('Offer cancelled')->success()->send();
+                    }),
             ]);
     }
 }

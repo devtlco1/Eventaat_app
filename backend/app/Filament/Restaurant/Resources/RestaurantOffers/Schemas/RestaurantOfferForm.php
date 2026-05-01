@@ -28,6 +28,12 @@ class RestaurantOfferForm
 
         $isBranchScoped = count($branchIds) > 0;
 
+        $allowedStatuses = [
+            RestaurantOffer::STATUS_DRAFT,
+            RestaurantOffer::STATUS_PENDING_REVIEW,
+            RestaurantOffer::STATUS_CANCELLED,
+        ];
+
         return $schema->components([
             TextInput::make('title')
                 ->required()
@@ -111,7 +117,7 @@ class RestaurantOfferForm
 
             Select::make('status')
                 ->required()
-                ->options(array_combine(RestaurantOffer::STATUSES, RestaurantOffer::STATUSES))
+                ->options(array_combine($allowedStatuses, $allowedStatuses))
                 ->default(RestaurantOffer::STATUS_DRAFT),
 
             Select::make('offer_type')

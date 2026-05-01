@@ -15,6 +15,7 @@ use App\Models\User;
 use Database\Seeders\RolesAndTestUsersSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -387,6 +388,171 @@ class RestaurantOffersDashboardTest extends TestCase
             ->set('data.offer_type', RestaurantOffer::TYPE_TEXT_ONLY)
             ->call('create')
             ->assertHasErrors(['data.branch_id']);
+    }
+
+    public function test_platform_can_approve_pending_review_offer(): void
+    {
+        $data = $this->seedRestaurantsAndOffers();
+
+        $offer = RestaurantOffer::create([
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => $data['aBranch']->id,
+            'title' => 'Needs review',
+            'slug' => 'needs-review',
+            'status' => RestaurantOffer::STATUS_PENDING_REVIEW,
+            'offer_type' => RestaurantOffer::TYPE_TEXT_ONLY,
+            'discount_value' => null,
+        ]);
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        Livewire::test(\App\Filament\Platform\Resources\RestaurantOffers\Pages\ListRestaurantOffers::class)
+            ->callTableAction('approve', $offer);
+
+        $this->assertDatabaseHas('restaurant_offers', [
+            'id' => $offer->id,
+            'status' => RestaurantOffer::STATUS_PUBLISHED,
+        ]);
+    }
+
+    public function test_platform_can_reject_pending_review_offer(): void
+    {
+        $data = $this->seedRestaurantsAndOffers();
+
+        $offer = RestaurantOffer::create([
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => $data['aBranch']->id,
+            'title' => 'Needs review 2',
+            'slug' => 'needs-review-2',
+            'status' => RestaurantOffer::STATUS_PENDING_REVIEW,
+            'offer_type' => RestaurantOffer::TYPE_TEXT_ONLY,
+            'discount_value' => null,
+        ]);
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        Livewire::test(\App\Filament\Platform\Resources\RestaurantOffers\Pages\ListRestaurantOffers::class)
+            ->callTableAction('reject', $offer);
+
+        $this->assertDatabaseHas('restaurant_offers', [
+            'id' => $offer->id,
+            'status' => RestaurantOffer::STATUS_REJECTED,
+        ]);
+    }
+
+    public function test_platform_can_cancel_offer(): void
+    {
+        $data = $this->seedRestaurantsAndOffers();
+
+        $offer = RestaurantOffer::create([
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => $data['aBranch']->id,
+            'title' => 'Cancelable',
+            'slug' => 'cancelable',
+            'status' => RestaurantOffer::STATUS_PUBLISHED,
+            'offer_type' => RestaurantOffer::TYPE_TEXT_ONLY,
+            'discount_value' => null,
+        ]);
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        Livewire::test(\App\Filament\Platform\Resources\RestaurantOffers\Pages\ListRestaurantOffers::class)
+            ->callTableAction('cancel', $offer);
+
+        $this->assertDatabaseHas('restaurant_offers', [
+            'id' => $offer->id,
+            'status' => RestaurantOffer::STATUS_CANCELLED,
+        ]);
+    }
+
+    public function test_restaurant_user_cannot_publish_directly(): void
+    {
+        $data = $this->seedRestaurantsAndOffers();
+
+        $owner = User::where('email', 'restaurant_owner@eventaat.test')->firstOrFail();
+        RestaurantStaffAssignment::create([
+            'user_id' => $owner->id,
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => null,
+            'role' => RestaurantStaffRole::RestaurantOwner,
+            'status' => 'active',
+        ]);
+
+        $ownerForPanel = User::query()->findOrFail($owner->id);
+        Filament::setCurrentPanel('restaurant');
+        Livewire::actingAs($ownerForPanel, 'web');
+
+        Livewire::test(RestaurantCreateRestaurantOffer::class)
+            ->set('data.restaurant_id', $data['a']->id)
+            ->set('data.branch_id', null)
+            ->set('data.title', 'Try publish')
+            ->set('data.slug', 'try-publish')
+            ->set('data.status', RestaurantOffer::STATUS_PUBLISHED)
+            ->set('data.offer_type', RestaurantOffer::TYPE_TEXT_ONLY)
+            ->call('create')
+            ->assertHasErrors(['data.status']);
+    }
+
+    public function test_offers_expire_command_expires_only_old_published_offers(): void
+    {
+        $data = $this->seedRestaurantsAndOffers();
+        Carbon::setTestNow(Carbon::parse('2026-06-10 12:00:00', 'UTC'));
+
+        $expired = RestaurantOffer::create([
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => $data['aBranch']->id,
+            'title' => 'Old published',
+            'slug' => 'old-published',
+            'status' => RestaurantOffer::STATUS_PUBLISHED,
+            'offer_type' => RestaurantOffer::TYPE_TEXT_ONLY,
+            'discount_value' => null,
+            'ends_at' => Carbon::now()->subDay(),
+        ]);
+
+        $draft = RestaurantOffer::create([
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => $data['aBranch']->id,
+            'title' => 'Old draft',
+            'slug' => 'old-draft',
+            'status' => RestaurantOffer::STATUS_DRAFT,
+            'offer_type' => RestaurantOffer::TYPE_TEXT_ONLY,
+            'discount_value' => null,
+            'ends_at' => Carbon::now()->subDay(),
+        ]);
+
+        $rejected = RestaurantOffer::create([
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => $data['aBranch']->id,
+            'title' => 'Old rejected',
+            'slug' => 'old-rejected',
+            'status' => RestaurantOffer::STATUS_REJECTED,
+            'offer_type' => RestaurantOffer::TYPE_TEXT_ONLY,
+            'discount_value' => null,
+            'ends_at' => Carbon::now()->subDay(),
+        ]);
+
+        $this->artisan('offers:expire')->assertExitCode(0);
+
+        $this->assertDatabaseHas('restaurant_offers', [
+            'id' => $expired->id,
+            'status' => RestaurantOffer::STATUS_EXPIRED,
+        ]);
+
+        $this->assertDatabaseHas('restaurant_offers', [
+            'id' => $draft->id,
+            'status' => RestaurantOffer::STATUS_DRAFT,
+        ]);
+
+        $this->assertDatabaseHas('restaurant_offers', [
+            'id' => $rejected->id,
+            'status' => RestaurantOffer::STATUS_REJECTED,
+        ]);
     }
 
     public function test_restaurant_branch_scoped_user_cannot_craft_out_of_scope_restaurant_or_branch(): void

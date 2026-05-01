@@ -64,6 +64,11 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - Restaurant panel can manage scoped offers:
     - `restaurant_owner`: restaurant-wide + branch offers
     - `branch_manager` / `restaurant_host`: branch-scoped offers only (restaurant-wide offers are not visible/accessible)
+- **Offers approval workflow + view polish (Phase 12B)**:
+  - Offer view pages use the same polished Filament-native Sections/Grids layout style as Restaurant/Event views
+  - Approval workflow for restaurant-submitted offers (submit for review, platform approve/reject/cancel)
+  - Expiry foundation via `php artisan offers:expire` (no scheduler wiring in this phase)
+  - Note: view/click analytics will be implemented alongside the future mobile offers API/UI
 - **Filament view-page consistency polish**:
   - View pages use consistent native infolist Sections/Grids for clean, readable details with relation managers below
 

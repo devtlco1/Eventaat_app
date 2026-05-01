@@ -8,14 +8,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class RestaurantOffer extends Model
 {
     public const STATUS_DRAFT = 'draft';
+    public const STATUS_PENDING_REVIEW = 'pending_review';
     public const STATUS_PUBLISHED = 'published';
+    public const STATUS_REJECTED = 'rejected';
     public const STATUS_EXPIRED = 'expired';
     public const STATUS_CANCELLED = 'cancelled';
 
     /** @var list<string> */
     public const STATUSES = [
         self::STATUS_DRAFT,
+        self::STATUS_PENDING_REVIEW,
         self::STATUS_PUBLISHED,
+        self::STATUS_REJECTED,
         self::STATUS_EXPIRED,
         self::STATUS_CANCELLED,
     ];

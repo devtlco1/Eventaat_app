@@ -416,6 +416,28 @@ Adds restaurant offers management in dashboards using native Filament resources 
 - No cover image upload
 - No custom dashboards/widgets/cards/stats
 
+### Phase 12B: offers approval workflow + view polish (dashboard-only)
+
+Builds on Phase 12A offers foundation to add:
+
+- Polished Filament view pages for offers (native Sections/Grids, consistent with Restaurant/Event view style)
+- Approval workflow:
+  - Statuses: `draft|pending_review|published|rejected|expired|cancelled`
+  - Platform roles can approve/reject pending offers and cancel offers
+  - Restaurant roles can create/edit in-scope offers but cannot publish directly (submit for review only)
+- Expiry foundation:
+  - Artisan command `offers:expire` marks `published` offers with `ends_at < now()` as `expired`
+  - No queue and no scheduler wiring required in this phase
+- Analytics note:
+  - Customer view/click analytics will be implemented when mobile offers API/UI is introduced; dashboard-only offers have no real customer view counts yet.
+
+### Explicit non-goals (Phase 12B)
+
+- No mobile UI
+- No mobile API endpoints
+- No offer view/click tracking yet
+- No payments, coupons, redemption, or customer claiming
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)

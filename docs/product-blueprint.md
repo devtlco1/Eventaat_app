@@ -90,3 +90,12 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
   - `restaurant_owner`: restaurant-wide + branch offers
   - `branch_manager` / `restaurant_host`: branch-scoped offers only (restaurant-wide offers are not visible/accessible)
 
+### Offers approval workflow + view polish (Phase 12B)
+
+- Polishes offer view pages in both panels to match the Filament-native Sections/Grids style used across Restaurant/Event views.
+- Adds approval workflow statuses: `draft|pending_review|published|rejected|expired|cancelled`
+- Platform roles can approve/reject pending offers and cancel offers.
+- Restaurant roles can submit draft offers for review but cannot publish/approve directly.
+- Expiry foundation: `offers:expire` marks ended published offers as expired (manual command; no scheduler wiring in this phase).
+- Analytics note: view/click analytics will be implemented alongside the future mobile offers API/UI.
+
