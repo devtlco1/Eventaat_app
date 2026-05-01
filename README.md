@@ -1,10 +1,10 @@
-## Eventaat (Phase 9A booking notification foundation)
+## Eventaat (Phase 9B notification templates + preview)
 
 This repository is a rebuild of Eventaat following the phased plan in `docs/eventaat_blueprint_v1.md`.
 
 Source of truth: `docs/eventaat_blueprint_v1.md`.
 
-### What exists (Phases 0–9A)
+### What exists (Phases 0–9B)
 
 - **Backend**: Laravel app in `backend/`
 - **Database**: PostgreSQL configuration (see `backend/.env`)
@@ -35,6 +35,10 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - Internal `booking_notifications` rows (`pending`, no outbound sending): lifecycle events recorded after successful booking creation and valid transitions
   - `BookingNotificationService` builds title/message/payload; insert failures are reported without failing the booking flow
   - Platform Filament **Booking notifications** list (read-only) for `super_admin` and `operations_admin` only
+- **Notification templates + preview (Phase 9B)**:
+  - Configurable `notification_templates` (internal channel, `en` locale) for the 8 booking lifecycle events
+  - `BookingNotificationService` uses an active template when available; otherwise falls back to the Phase 9A hardcoded copy (never breaks booking flow)
+  - Platform Filament **Notification templates** resource (CRUD + preview modal) for `super_admin` and `operations_admin` only
 
 ### Phase 1: local test users (dev only)
 
@@ -88,7 +92,7 @@ Demo data includes:
 - No advanced mobile UI kits/design system
 - No custom dashboard pages/cards/stats/widgets
 - No sidebar links to unimplemented features
-- No WhatsApp, SMS, push, email delivery, queues/workers/retries, or mobile notification UI (Phase 9A stores internal notification rows only)
+- No WhatsApp, SMS, push, email delivery, queues/workers/retries, or mobile notification UI (Phase 9B stores internal notification rows only)
 
 ### Phase 3: mobile customer auth API (dev only)
 

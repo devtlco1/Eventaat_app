@@ -96,3 +96,12 @@ Phase 9A adds a **read-only** Filament resource **Booking notifications** under 
 - Denied for all other roles (including restaurant staff)
 
 Restaurant panel users do **not** get a booking notification resource in Phase 9A.
+
+## Platform notification templates (Phase 9B)
+
+Phase 9B adds a Filament resource **Notification templates** under `/platform`:
+
+- Allowed: `super_admin`, `operations_admin`
+- Denied for all other roles (including restaurant staff and customers)
+
+This resource is preview-only and does not send notifications (no WhatsApp/SMS/push/email, queues, workers, or retries).

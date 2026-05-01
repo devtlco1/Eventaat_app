@@ -4,6 +4,7 @@ namespace App\Services\Notifications;
 
 use App\Models\Booking;
 use App\Models\BookingNotification;
+use App\Models\NotificationTemplate;
 use App\Models\User;
 use Throwable;
 
@@ -29,7 +30,7 @@ class BookingNotificationService
                 ? trim((string) $customer->name)
                 : null;
 
-            [$title, $message] = $this->copyForEvent($booking, $event);
+            [$title, $message] = $this->copyForEventWithTemplateFallback($booking, $event);
 
             BookingNotification::create([
                 'booking_id' => $booking->id,
@@ -46,6 +47,61 @@ class BookingNotificationService
         } catch (Throwable $e) {
             report($e);
         }
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function copyForEventWithTemplateFallback(Booking $booking, string $event): array
+    {
+        try {
+            $template = NotificationTemplate::query()
+                ->where('event', $event)
+                ->where('channel', 'internal')
+                ->where('locale', 'en')
+                ->where('is_active', true)
+                ->first();
+
+            if (! $template) {
+                return $this->copyForEvent($booking, $event);
+            }
+
+            $data = $this->templateData($booking);
+
+            $renderer = app(NotificationTemplateRenderer::class);
+
+            return [
+                $renderer->render((string) $template->title_template, $data),
+                $renderer->render((string) $template->body_template, $data),
+            ];
+        } catch (Throwable $e) {
+            report($e);
+
+            return $this->copyForEvent($booking, $event);
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function templateData(Booking $booking): array
+    {
+        $customerName = $booking->customer && trim((string) $booking->customer->name) !== ''
+            ? trim((string) $booking->customer->name)
+            : null;
+
+        $customerPhone = $booking->customer?->phone ? (string) $booking->customer->phone : null;
+
+        return [
+            'customer_name' => $customerName,
+            'customer_phone' => $customerPhone,
+            'restaurant_name' => $booking->restaurant?->name,
+            'branch_name' => $booking->branch?->name,
+            'booking_id' => $booking->id,
+            'booking_status' => $booking->status?->value,
+            'starts_at' => $booking->starts_at?->toIso8601String(),
+            'party_size' => $booking->party_size,
+        ];
     }
 
     /**

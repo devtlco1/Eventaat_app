@@ -1,6 +1,6 @@
-## Product blueprint (Phase 0–9A)
+## Product blueprint (Phase 0–9B)
 
-Phase 0–9A focuses on foundation + role-based access + restaurant operational foundation + mobile customer API + mobile app auth UI foundation + core booking flow foundation + day-of booking operations + **branch-level booking availability rules** + **internal booking notification rows** (no outbound delivery). This file exists to match the repository structure required by `docs/eventaat_blueprint_v1.md`.
+Phase 0–9B focuses on foundation + role-based access + restaurant operational foundation + mobile customer API + mobile app auth UI foundation + core booking flow foundation + day-of booking operations + **branch-level booking availability rules** + **internal booking notification rows** + **configurable notification templates + preview** (no outbound delivery). This file exists to match the repository structure required by `docs/eventaat_blueprint_v1.md`.
 
 Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
@@ -25,4 +25,15 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - Lifecycle events produce **`booking_notifications`** rows (`pending`, internal channel only): creation plus accepted/rejected/cancelled/arrived/seated/completed/no-show after successful transitions.
 - Platform admins (`super_admin`, `operations_admin`) can browse rows read-only in Filament; restaurant panel has no notification UI in this phase.
 - No WhatsApp/SMS/push/email, queues, workers, retries, or customer-facing notification surfaces.
+
+### Notification templates + preview (Phase 9B)
+
+- Each booking lifecycle event can have an active template in `notification_templates` to generate `title` + `message` for outbox rows.
+- Supported placeholders:
+  - `{{customer_name}}`, `{{customer_phone}}`, `{{restaurant_name}}`, `{{branch_name}}`
+  - `{{booking_id}}`, `{{booking_status}}`, `{{starts_at}}`, `{{party_size}}`
+- Rendering is intentionally simple:
+  - Unknown placeholders remain unchanged.
+  - Failures fall back to the Phase 9A hardcoded copy and never break booking flows.
+- Platform panel provides CRUD + preview modal for templates; restaurant panel does not expose templates in this phase.
 

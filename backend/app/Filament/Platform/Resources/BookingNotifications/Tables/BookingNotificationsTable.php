@@ -20,6 +20,7 @@ class BookingNotificationsTable
                 TextColumn::make('channel')->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('recipient_phone')->label('Phone')->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('title')->limit(40)->searchable(),
+                TextColumn::make('message')->label('Message')->limit(60)->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')->dateTime()->sortable(),
             ])
             ->defaultSort('created_at', 'desc')

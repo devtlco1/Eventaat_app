@@ -238,6 +238,26 @@ Adds internal lifecycle notification rows only (no outbound channels):
 - No WhatsApp, SMS, push, or email sending
 - No queues, workers, retries, send actions, restaurant-panel notification UI, mobile notification UI, notification APIs, or custom dashboards/widgets/stats
 
+### Phase 9B: notification templates + preview
+
+Adds configurable templates (no outbound delivery) so each booking lifecycle event produces predictable internal copy:
+
+- Model/table: `NotificationTemplate` → `notification_templates`
+- Templates are keyed by a unique `event` for this phase; `channel=internal`, `locale=en`
+- Simple placeholder rendering with `{{placeholders}}`:
+  - Supported: `customer_name`, `customer_phone`, `restaurant_name`, `branch_name`, `booking_id`, `booking_status`, `starts_at`, `party_size`
+  - Unknown placeholders remain unchanged (never crash)
+- `BookingNotificationService` uses an active template when present; otherwise falls back to Phase 9A hardcoded copy
+- Platform Filament: **Notification templates** resource (CRUD) with a preview modal showing rendered output from a sample payload
+
+### Explicit non-goals (Phase 9B)
+
+- No WhatsApp/SMS/push/email sending
+- No queues/workers/retries
+- No restaurant-panel notification UI
+- No mobile notification UI
+- No API changes or notification endpoints
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)

@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RolesAndTestUsersSeeder::class,
+            NotificationTemplatesSeeder::class,
             RestaurantDemoSeeder::class,
             BookingDemoSeeder::class,
         ]);
