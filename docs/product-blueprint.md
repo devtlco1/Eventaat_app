@@ -1,6 +1,6 @@
-## Product blueprint (Phase 0–14A)
+## Product blueprint (Phase 0–14B)
 
-Phase 0–14A focuses on foundation + role-based access + restaurant operational foundation + mobile customer API + mobile app auth UI foundation + core booking flow foundation + day-of booking operations + **branch-level booking availability rules** + **internal booking notification rows** + **configurable notification templates + preview** + **internal dispatch actions** + **provider-ready dry-run dispatch with attempts** (no outbound delivery) + **dashboard-only customer reviews** (capture + moderation in Filament only; no mobile API or public display in this phase). This file exists to match the repository structure required by `docs/eventaat_blueprint_v1.md`.
+Phase 0–14B builds on earlier phases and adds **mobile REST endpoints for customer reviews** (Phase 14B): authenticated customers can submit reviews after **completed** bookings and read **published** reviews per active restaurant via JSON — **without** new mobile UI in that phase. Earlier **dashboard-only customer reviews** (Phase 14A) remain the operator workflow in Filament. This file exists to match the repository structure required by `docs/eventaat_blueprint_v1.md`.
 
 Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
@@ -120,11 +120,15 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
 ### Customer reviews dashboard foundation (Phase 14A)
 
-- Adds `RestaurantReview` (`restaurant_reviews`) as a **dashboard-only** module (operators capture reviews in Filament; no customer submission UI/API and no public listing in this phase).
+- Adds `RestaurantReview` (`restaurant_reviews`) as the shared persistence model for reviews (operators capture/edit/moderate in Filament on `/platform`; restaurant panel stays **read-only** scoped).
 - Reviews belong to a restaurant; optional branch and optional booking link must align with restaurant (and booking branch must match when both branch and booking are set).
-- Rating is required (1–5). Status workflow for moderation: `pending_review|published|rejected|hidden`. Source tracks provenance (`dashboard|mobile|import`; Phase 14A seeds/dashboard usage defaults to `dashboard`).
+- Rating is required (1–5). Status workflow for moderation: `pending_review|published|rejected|hidden`. Source tracks provenance (`dashboard|mobile|import`).
 - Platform roles (`super_admin`, `operations_admin`) manage reviews fully (CRUD) with native row actions: approve / reject / hide.
 - Restaurant panel is **read-only**:
   - `restaurant_owner`: sees assigned restaurant-wide + branch reviews
   - `branch_manager` / `restaurant_host`: sees branch-scoped reviews only (restaurant-wide reviews are not visible/accessible)
 
+### Mobile customer reviews API (Phase 14B)
+
+- **Backend/API only** (no new Expo screens required for this phase label): authenticated mobile customers use Sanctum tokens (`mobile.customer`) to submit reviews for **their own completed bookings** and to list/show **their own** reviews (including `pending_review` rows).
+- **Published discovery**: `GET /api/mobile/restaurants/{slug}/reviews` lists **published** reviews for an **active** restaurant using a minimal customer-safe payload (display name + rating + comment + timestamp — no phone numbers or internal notes).

@@ -229,6 +229,16 @@ Capabilities:
 Out-of-scope URLs:
 - Restaurant panel direct links to reviews outside `RestaurantPanelScope::reviews()` must fail as **403** or **404** (consistent with other scoped resources).
 
+## Mobile customer reviews API (Phase 14B)
+
+Phase 14B adds **authenticated** mobile endpoints under `/api/mobile` using **`auth:sanctum`** + **`mobile.token`** + **`mobile.customer`** (same stack as bookings/discovery):
+
+- **`customer`** (Sanctum): may submit a review for **own completed** bookings; may list/show **own** reviews (`/api/mobile/me/reviews` …); may call **`GET /api/mobile/restaurants/{slug}/reviews`** for **published** reviews of an **active** restaurant only.
+- Customers **cannot** approve/reject/hide reviews via API (moderation remains Platform Filament only).
+- Wrong booking ownership / wrong review ownership → **404** (consistent with booking detail endpoints).
+
+Non-customer tokens / missing customer role → **`mobile.customer`** middleware responds **403**.
+
 ## Event bookings link (Phase 11B)
 
 Phase 11B allows linking bookings to events from dashboards:

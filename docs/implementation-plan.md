@@ -516,13 +516,31 @@ Adds customer reviews management in Platform and Restaurant Filament panels usin
 
 ### Explicit non-goals (Phase 14A)
 
-- No mobile UI / no mobile review API endpoints
-- No public review display or customer submission flow
+- No mobile UI (Filament/dashboard-only capture and moderation in Phase 14A)
+- Phase 14A did **not** include mobile REST endpoints (those ship in Phase 14B)
 - No analytics/stats/widgets
 - No AI moderation
 - No review notifications
 - No bulk moderation
 - No CSV import
+
+### Phase 14B: mobile customer reviews API (backend-only)
+
+Adds authenticated mobile REST endpoints for customers to submit and read reviews (same middleware stack as existing `/api/mobile/*` routes):
+
+- **POST `/api/mobile/bookings/{booking}/review`**: customer submits `{ rating, comment? }` for their own booking; booking must be **`completed`**; infers `restaurant_id`, `branch_id`, `booking_id`, `user_id`, snapshots `customer_name` / optional `customer_phone`; **`status=pending_review`**, **`source=mobile`**; duplicate booking rejected with **422**; enforced **unique `booking_id`** at DB level
+- **GET `/api/mobile/me/reviews`**: paginated list of authenticated customer’s reviews (full mobile review resource: restaurant, branch, booking_id, rating, comment, status, source, timestamps)
+- **GET `/api/mobile/me/reviews/{review}`**: same full shape for **own** review or **404**
+- **GET `/api/mobile/restaurants/{restaurant:slug}/reviews`**: **active** restaurant only (else **404**); **published** reviews only; response includes **only** `id`, `customer_name`, `rating`, `comment`, `created_at` (no phone, admin notes, status, source, booking_id)
+- Ownership: wrong booking or wrong review returns **404** (match existing bookings mobile API)
+
+### Explicit non-goals (Phase 14B)
+
+- No mobile app UI/screens for reviews yet
+- No Filament/dashboard UX changes required for this phase
+- No analytics, AI moderation, or notifications on review status changes
+- No public HTML pages / guest web listings beyond the JSON API above
+- No customer-facing approve/reject/hide endpoints
 
 ### Unified dashboard login entry
 

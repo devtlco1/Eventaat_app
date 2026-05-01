@@ -1,4 +1,4 @@
-## Eventaat (Phase 14A customer reviews dashboard foundation)
+## Eventaat (Phase 14B mobile reviews API)
 
 This repository is a rebuild of Eventaat following the phased plan in `docs/eventaat_blueprint_v1.md`.
 
@@ -80,13 +80,17 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - Requires `php artisan storage:link` locally so uploaded previews resolve via `/storage/...`
   - Analytics note: story impressions/views remain **out of scope** until a mobile/customer story viewer exists
 - **Customer reviews dashboard foundation (Phase 14A)**:
-  - Model `RestaurantReview` (`restaurant_reviews`) for collecting customer reviews from inside the dashboards (no mobile UI/API, no public display in this phase)
+  - Model `RestaurantReview` (`restaurant_reviews`) for collecting customer reviews from inside the dashboards (Filament-only management; restaurant staff still have no moderation actions in `/restaurant`)
   - Validation rules at the model layer: `rating` is required and must be 1–5, `status` is one of `pending_review|published|rejected|hidden`, `source` is one of `dashboard|mobile|import`, optional branch/booking must belong to the selected restaurant, and `user_id` is inferred from a linked booking when blank
   - Platform panel can fully manage reviews (CRUD) and run native moderation actions: **Approve**, **Reject**, **Hide**
   - Restaurant panel exposes a **read-only**, scoped Reviews resource:
     - `restaurant_owner`: assigned restaurant-wide and branch-scoped reviews
     - `branch_manager` / `restaurant_host`: branch-scoped reviews only (restaurant-wide reviews are not visible/accessible)
     - No create/edit/delete and no moderation actions for any restaurant role
+- **Mobile customer reviews API (Phase 14B)** (no new mobile app UI in this phase):
+  - Authenticated customer (`auth:sanctum` + `mobile.token` + `mobile.customer`): submit a review for **own completed booking** (`POST /api/mobile/bookings/{booking}/review`), list/show **own** reviews (`GET /api/mobile/me/reviews`, `GET /api/mobile/me/reviews/{review}`)
+  - Same auth stack as other mobile routes: browse **published** reviews for an **active** restaurant (`GET /api/mobile/restaurants/{slug}/reviews`) with a minimal public payload (no phone, admin notes, booking id, or non-published statuses)
+  - One review per booking (DB unique on `booking_id`); submissions default to `pending_review` with `source=mobile`
 - **Filament view-page consistency polish**:
   - View pages use consistent native infolist Sections/Grids for clean, readable details with relation managers below
 

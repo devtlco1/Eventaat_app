@@ -391,3 +391,113 @@ Response:
 }
 ```
 
+## Phase 14B: mobile customer reviews API
+
+Auth for all endpoints below matches existing mobile routes:
+
+`Authorization: Bearer <token>` — Sanctum token issued to a **`customer`** user only.
+
+Middleware stack on each route: **`auth:sanctum`**, **`mobile.token`**, **`mobile.customer`**.
+
+### POST `/api/mobile/bookings/{booking}/review`
+
+Creates a review for the authenticated customer’s booking.
+
+Rules:
+
+- Booking **`customer_id`** must match the authenticated user (**otherwise `404`**, same style as booking detail endpoints).
+- Booking **`status`** must be **`completed`** (**otherwise `422`** with `errors.booking`).
+- **One review per booking**: duplicate submissions return **`422`** with a clear message (also enforced by a DB unique index on `booking_id`).
+- **`rating`** required: integer **1–5**.
+- **`comment`** optional: string, **max 2000** characters.
+
+Server-derived fields (ignored if sent by client):
+
+- `restaurant_id`, `branch_id`, `booking_id`, `user_id` from the booking / auth user
+- `status` → **`pending_review`**
+- `source` → **`mobile`**
+- `customer_name` → snapshot from user **`name`**, or **`Customer`** when name is blank
+- `customer_phone` → optional snapshot from user **`phone`** (stored only; **never** returned from the public restaurant reviews endpoint)
+
+Response (**201**):
+
+```json
+{
+  "review": {
+    "id": 10,
+    "restaurant": { "id": 1, "name": "Review Cafe", "slug": "review-cafe" },
+    "branch": { "id": 2, "name": "Main", "code": "main" },
+    "booking_id": 55,
+    "rating": 5,
+    "comment": "Great experience",
+    "status": "pending_review",
+    "source": "mobile",
+    "created_at": "2026-05-01T12:00:00.000000Z",
+    "updated_at": "2026-05-01T12:00:00.000000Z"
+  }
+}
+```
+
+Duplicate example (**422**):
+
+```json
+{
+  "message": "A review already exists for this booking.",
+  "errors": {
+    "booking": ["A review already exists for this booking."]
+  }
+}
+```
+
+Non-completed booking example (**422**):
+
+```json
+{
+  "message": "Cannot submit review for this booking.",
+  "errors": {
+    "booking": ["The booking must be completed before submitting a review."]
+  }
+}
+```
+
+### GET `/api/mobile/me/reviews`
+
+Lists reviews belonging to the authenticated customer only.
+
+Query params:
+
+- `per_page` (optional): pagination size (**max 50**)
+
+Response: paginated collection of review objects with the **same shape** as `review` in the POST response (`restaurant` and `branch` nested objects included).
+
+### GET `/api/mobile/me/reviews/{review}`
+
+Returns one review if it belongs to the authenticated customer.
+
+If the review belongs to another user → **`404`**.
+
+Response body: single review object (same keys as `review` above).
+
+### GET `/api/mobile/restaurants/{restaurant:slug}/reviews`
+
+Lists **published** reviews for an **active** restaurant.
+
+Rules:
+
+- If the restaurant slug does not exist or the restaurant is **not active** → **`404`**.
+- Only reviews with **`status=published`** are returned.
+
+Query params:
+
+- `per_page` (optional): pagination size (**max 50**)
+
+Each item in `data` contains **only**:
+
+- `id`
+- `customer_name` (display string)
+- `rating`
+- `comment`
+- `created_at`
+
+Does **not** include: `customer_phone`, `phone`, `admin_notes`, `status`, `source`, `booking_id`, or nested restaurant/branch objects.
+
