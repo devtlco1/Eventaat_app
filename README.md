@@ -1,10 +1,10 @@
-## Eventaat (Phase 9C internal notification dispatch foundation)
+## Eventaat (Phase 10A notification provider foundation)
 
 This repository is a rebuild of Eventaat following the phased plan in `docs/eventaat_blueprint_v1.md`.
 
 Source of truth: `docs/eventaat_blueprint_v1.md`.
 
-### What exists (Phases 0–9C)
+### What exists (Phases 0–10A)
 
 - **Backend**: Laravel app in `backend/`
 - **Database**: PostgreSQL configuration (see `backend/.env`)
@@ -42,6 +42,10 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Notification dispatch foundation (Phase 9C)**:
   - Internal-only dispatch actions for `booking_notifications` (`pending -> sent|skipped|failed`) with safe, final statuses (no external delivery)
   - Platform Filament **Booking notifications** adds native actions: Mark sent / Mark skipped / Mark failed (reason required)
+- **Notification provider foundation (Phase 10A)**:
+  - Provider abstraction (`NotificationProvider` + `NotificationProviderResult`) plus an `InternalDryRunNotificationProvider` (no external API calls)
+  - Dispatch attempt tracking (`notification_dispatch_attempts`) for provider-ready auditing
+  - Platform Filament adds **Dry-run dispatch** for pending/internal booking notifications and shows dispatch attempt history on the view page
 
 ### Phase 1: local test users (dev only)
 
@@ -95,7 +99,7 @@ Demo data includes:
 - No advanced mobile UI kits/design system
 - No custom dashboard pages/cards/stats/widgets
 - No sidebar links to unimplemented features
-- No WhatsApp, SMS, push, email delivery, queues/workers/retries, or mobile notification UI (Phase 9C is internal-only)
+- No real WhatsApp/SMS/push/email sending, no queues/workers/retries, and no mobile notification UI (Phase 10A is dry-run only)
 
 ### Phase 3: mobile customer auth API (dev only)
 

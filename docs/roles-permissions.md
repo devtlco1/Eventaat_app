@@ -118,3 +118,12 @@ Actions are internal-only and do not send messages externally:
 - Mark sent
 - Mark skipped
 - Mark failed (reason required)
+
+## Platform provider dry-run dispatch (Phase 10A)
+
+Phase 10A adds a **Dry-run dispatch** action and a read-only dispatch attempt history on the Platform Booking notifications resource:
+
+- Allowed: `super_admin`, `operations_admin`
+- Denied for all other roles (including restaurant staff and customers)
+
+This is provider-ready foundation only (no real WhatsApp/SMS/push/email sending, no external API calls, no retries).

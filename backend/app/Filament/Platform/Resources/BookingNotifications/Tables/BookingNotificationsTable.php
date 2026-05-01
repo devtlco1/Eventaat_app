@@ -5,6 +5,7 @@ namespace App\Filament\Platform\Resources\BookingNotifications\Tables;
 use App\Models\BookingNotification;
 use App\Services\Notifications\NotificationDispatchService;
 use Filament\Actions\Action;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
@@ -44,6 +45,7 @@ class BookingNotificationsTable
                     ]),
             ])
             ->recordActions([
+                ViewAction::make(),
                 Action::make('mark_sent')
                     ->label('Mark sent')
                     ->color('success')
@@ -80,6 +82,17 @@ class BookingNotificationsTable
                         $ok = app(NotificationDispatchService::class)->markFailed($record, (string) ($data['reason'] ?? ''));
 
                         $n = Notification::make()->title($ok ? 'Marked failed' : 'No change');
+                        ($ok ? $n->success() : $n->warning())->send();
+                    }),
+                Action::make('dry_run_dispatch')
+                    ->label('Dry-run dispatch')
+                    ->color('primary')
+                    ->requiresConfirmation()
+                    ->visible(fn (BookingNotification $record): bool => $record->channel === 'internal' && $record->status === 'pending')
+                    ->action(function (BookingNotification $record): void {
+                        $ok = app(NotificationDispatchService::class)->dispatchInternalDryRun($record);
+
+                        $n = Notification::make()->title($ok ? 'Dry-run dispatched' : 'No change');
                         ($ok ? $n->success() : $n->warning())->send();
                     }),
             ]);

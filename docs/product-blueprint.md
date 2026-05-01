@@ -1,6 +1,6 @@
-## Product blueprint (Phase 0–9C)
+## Product blueprint (Phase 0–10A)
 
-Phase 0–9C focuses on foundation + role-based access + restaurant operational foundation + mobile customer API + mobile app auth UI foundation + core booking flow foundation + day-of booking operations + **branch-level booking availability rules** + **internal booking notification rows** + **configurable notification templates + preview** + **internal dispatch actions** (no outbound delivery). This file exists to match the repository structure required by `docs/eventaat_blueprint_v1.md`.
+Phase 0–10A focuses on foundation + role-based access + restaurant operational foundation + mobile customer API + mobile app auth UI foundation + core booking flow foundation + day-of booking operations + **branch-level booking availability rules** + **internal booking notification rows** + **configurable notification templates + preview** + **internal dispatch actions** + **provider-ready dry-run dispatch with attempts** (no outbound delivery). This file exists to match the repository structure required by `docs/eventaat_blueprint_v1.md`.
 
 Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
@@ -45,4 +45,15 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
   - `pending -> skipped`
   - `pending -> failed` (sets `failed_at` + `failure_reason`)
 - `sent`, `skipped`, and `failed` are final for this phase (no retries).
+
+### Notification provider foundation (Phase 10A)
+
+- Introduces provider abstraction for future WhatsApp/SMS providers, without external API calls:
+  - `NotificationProvider` interface
+  - `NotificationProviderResult` value object
+  - `InternalDryRunNotificationProvider` implementation
+- Adds dispatch attempt tracking (`notification_dispatch_attempts`) for auditing provider interactions (dry-run payloads/results for now).
+- Platform admins can run **Dry-run dispatch** on pending/internal outbox rows:
+  - Creates an attempt row
+  - Marks notification `sent` on success or `failed` on failure
 

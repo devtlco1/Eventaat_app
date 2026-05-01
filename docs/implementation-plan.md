@@ -281,6 +281,34 @@ Adds safe, internal-only dispatch state transitions for the notification outbox 
 - No API endpoints
 - No mobile notification UI
 
+### Phase 10A: notification provider foundation (WhatsApp-ready, dry-run only)
+
+Prepares the notification system for future providers without integrating any external APIs:
+
+- Provider abstraction:
+  - `NotificationProvider` interface
+  - `NotificationProviderResult` value object (`success`, `provider_message_id`, `failure_reason`)
+  - `InternalDryRunNotificationProvider` (no external calls)
+- Attempt tracking:
+  - Model/table: `NotificationDispatchAttempt` → `notification_dispatch_attempts`
+  - Stores provider/channel/status, request/response payloads, provider message id, failure reason, and `attempted_at`
+- Dispatch service:
+  - Adds `dispatchInternalDryRun(BookingNotification $notification)`
+  - Allowed only for `pending` + `internal`
+  - Creates an attempt row
+  - Marks notification `sent` on success, or `failed` with reason on failure
+  - Non-pending returns `false` and creates no attempt
+- Platform Filament:
+  - Adds a **Dry-run dispatch** action on Booking notifications (pending/internal only)
+  - Booking notification view shows related dispatch attempts (read-only)
+
+### Explicit non-goals (Phase 10A)
+
+- No real WhatsApp/SMS/push/email sending or external API calls
+- No queues/workers/retries
+- No API endpoints
+- No mobile notification UI
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)

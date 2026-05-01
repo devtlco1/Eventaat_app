@@ -3,6 +3,8 @@
 namespace App\Services\Notifications;
 
 use App\Models\BookingNotification;
+use App\Models\NotificationDispatchAttempt;
+use App\Services\Notifications\Providers\InternalDryRunNotificationProvider;
 use Illuminate\Support\Carbon;
 use Throwable;
 
@@ -17,6 +19,55 @@ class NotificationDispatchService
     public const STATUS_SKIPPED = 'skipped';
 
     public const STATUS_FAILED = 'failed';
+
+    public function dispatchInternalDryRun(BookingNotification $notification): bool
+    {
+        if ($notification->channel !== self::CHANNEL_INTERNAL) {
+            return false;
+        }
+
+        if ($notification->status !== self::STATUS_PENDING) {
+            return false;
+        }
+
+        $attemptedAt = Carbon::now();
+
+        try {
+            $provider = app(InternalDryRunNotificationProvider::class);
+            $result = $provider->send($notification);
+
+            NotificationDispatchAttempt::create([
+                'booking_notification_id' => $notification->id,
+                'provider' => InternalDryRunNotificationProvider::PROVIDER_NAME,
+                'channel' => $notification->channel,
+                'status' => $result->success ? 'success' : 'failed',
+                'request_payload' => [
+                    'booking_notification_id' => $notification->id,
+                    'event' => $notification->event,
+                    'channel' => $notification->channel,
+                    'recipient_phone' => $notification->recipient_phone,
+                    'recipient_name' => $notification->recipient_name,
+                    'title' => $notification->title,
+                    'message' => $notification->message,
+                    'payload' => $notification->payload,
+                ],
+                'response_payload' => $result->toArray(),
+                'provider_message_id' => $result->provider_message_id,
+                'failure_reason' => $result->failure_reason,
+                'attempted_at' => $attemptedAt,
+            ]);
+
+            if ($result->success) {
+                return $this->markSent($notification);
+            }
+
+            return $this->markFailed($notification, $result->failure_reason ?? 'Provider reported failure.');
+        } catch (Throwable $e) {
+            report($e);
+
+            return false;
+        }
+    }
 
     public function markSent(BookingNotification $notification): bool
     {

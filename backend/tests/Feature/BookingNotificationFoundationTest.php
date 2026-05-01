@@ -160,7 +160,8 @@ class BookingNotificationFoundationTest extends TestCase
             ->assertOk()
             ->assertSee('Mark sent')
             ->assertSee('Mark skipped')
-            ->assertSee('Mark failed');
+            ->assertSee('Mark failed')
+            ->assertSee('Dry-run dispatch');
     }
 
     public function test_restaurant_owner_cannot_access_platform_booking_notifications(): void
