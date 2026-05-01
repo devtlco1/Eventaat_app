@@ -3,10 +3,13 @@
 namespace App\Filament\Restaurant\Resources\RestaurantMenus\Schemas;
 
 use App\Models\RestaurantMenu;
+use App\Models\RestaurantMenuItem;
+use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\FontWeight;
 use Illuminate\Support\Facades\Storage;
 
 class RestaurantMenuInfolist
@@ -28,32 +31,81 @@ class RestaurantMenuInfolist
                         ]),
                     ]),
 
-                Section::make('PDF or external menu')
+                Section::make('Menu preview')
+                    ->visible(fn (RestaurantMenu $record): bool => $record->isStructured())
+                    ->schema([
+                        RepeatableEntry::make('categories')
+                            ->hiddenLabel()
+                            ->placeholder('No categories yet.')
+                            ->columnSpanFull()
+                            ->schema([
+                                TextEntry::make('name')
+                                    ->label('Category')
+                                    ->weight(FontWeight::SemiBold)
+                                    ->columnSpanFull(),
+                                RepeatableEntry::make('items')
+                                    ->hiddenLabel()
+                                    ->placeholder('No items in this category.')
+                                    ->schema([
+                                        Grid::make(1)->schema([
+                                            TextEntry::make('name')->label('Item'),
+                                            TextEntry::make('price')
+                                                ->label('Price')
+                                                ->formatStateUsing(function ($state, TextEntry $component): string {
+                                                    $record = $component->getRecord();
+                                                    if (! $record instanceof RestaurantMenuItem) {
+                                                        return '—';
+                                                    }
+
+                                                    return $state === null || $state === ''
+                                                        ? '—'
+                                                        : number_format((float) $state, 2).' '.$record->currency;
+                                                }),
+                                            TextEntry::make('is_available')
+                                                ->label('Availability')
+                                                ->badge()
+                                                ->formatStateUsing(fn (?bool $state): string => $state ? 'Available' : 'Unavailable')
+                                                ->color(fn (?bool $state): string => $state ? 'success' : 'gray'),
+                                            TextEntry::make('description')
+                                                ->label('Description')
+                                                ->placeholder('—')
+                                                ->columnSpanFull()
+                                                ->visible(fn (TextEntry $component): bool => filled($component->getRecord()?->description)),
+                                        ]),
+                                    ]),
+                            ]),
+                    ]),
+
+                Section::make('PDF menu')
+                    ->visible(fn (RestaurantMenu $record): bool => $record->menu_mode === RestaurantMenu::MODE_PDF_UPLOAD)
                     ->schema([
                         TextEntry::make('menu_file_path')
-                            ->label('Menu PDF')
-                            ->placeholder('—')
-                            ->visible(fn (RestaurantMenu $record): bool => $record->menu_mode === RestaurantMenu::MODE_PDF_UPLOAD)
-                            ->formatStateUsing(fn (?string $state): ?string => filled($state) ? __('Open / download PDF') : null)
+                            ->label('PDF')
+                            ->placeholder('No PDF uploaded.')
+                            ->formatStateUsing(fn (?string $state): ?string => filled($state) ? 'Open PDF menu' : null)
                             ->url(fn (RestaurantMenu $record): ?string => filled($record->menu_file_path)
                                 ? Storage::disk('public')->url($record->menu_file_path)
                                 : null)
                             ->openUrlInNewTab(),
+                    ]),
+
+                Section::make('External menu')
+                    ->visible(fn (RestaurantMenu $record): bool => $record->menu_mode === RestaurantMenu::MODE_EXTERNAL_LINK)
+                    ->schema([
                         TextEntry::make('menu_url')
-                            ->label('Menu URL')
+                            ->label('Link')
                             ->placeholder('—')
-                            ->visible(fn (RestaurantMenu $record): bool => $record->menu_mode === RestaurantMenu::MODE_EXTERNAL_LINK)
+                            ->formatStateUsing(fn (?string $state): ?string => filled($state) ? 'Open external menu' : null)
                             ->url(fn (RestaurantMenu $record): ?string => filled($record->menu_url) ? $record->menu_url : null)
                             ->openUrlInNewTab(),
-                    ])
-                    ->collapsed(),
+                    ]),
 
                 Section::make('Content')
+                    ->collapsed()
                     ->schema([
                         TextEntry::make('description')->markdown()->columnSpanFull()->placeholder('—'),
                         TextEntry::make('notes')->markdown()->columnSpanFull()->placeholder('—'),
-                    ])
-                    ->collapsed(),
+                    ]),
 
                 Section::make('System')
                     ->collapsed()

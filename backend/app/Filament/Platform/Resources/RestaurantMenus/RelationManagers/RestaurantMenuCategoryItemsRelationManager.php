@@ -82,10 +82,12 @@ class RestaurantMenuCategoryItemsRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
+                    ->label('Add item')
                     ->visible(fn (): bool => RestaurantMenuResource::canEdit($this->getOwnerRecord()->menu)),
             ])
             ->recordActions([
                 EditAction::make()
+                    ->label('Edit item')
                     ->visible(fn (): bool => RestaurantMenuResource::canEdit($this->getOwnerRecord()->menu)),
                 DeleteAction::make()
                     ->visible(fn (): bool => RestaurantMenuResource::canEdit($this->getOwnerRecord()->menu)),

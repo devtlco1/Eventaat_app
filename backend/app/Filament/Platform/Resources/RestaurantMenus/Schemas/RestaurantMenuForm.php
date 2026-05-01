@@ -118,7 +118,8 @@ class RestaurantMenuForm
                         ->minValue(0),
                 ]),
 
-            Section::make('PDF or external menu')
+            Section::make('PDF menu')
+                ->visible(fn (Get $get): bool => $get('menu_mode') === RestaurantMenu::MODE_PDF_UPLOAD)
                 ->schema([
                     FileUpload::make('menu_file_path')
                         ->label('Menu PDF')
@@ -129,18 +130,19 @@ class RestaurantMenuForm
                         ->maxFiles(1)
                         ->downloadable()
                         ->openable()
-                        ->visible(fn (Get $get): bool => $get('menu_mode') === RestaurantMenu::MODE_PDF_UPLOAD)
                         ->required(fn (Get $get): bool => $get('menu_mode') === RestaurantMenu::MODE_PDF_UPLOAD),
+                ]),
 
+            Section::make('External menu')
+                ->visible(fn (Get $get): bool => $get('menu_mode') === RestaurantMenu::MODE_EXTERNAL_LINK)
+                ->schema([
                     TextInput::make('menu_url')
                         ->label('Menu URL')
                         ->url()
                         ->maxLength(2048)
                         ->nullable()
-                        ->visible(fn (Get $get): bool => $get('menu_mode') === RestaurantMenu::MODE_EXTERNAL_LINK)
                         ->required(fn (Get $get): bool => $get('menu_mode') === RestaurantMenu::MODE_EXTERNAL_LINK),
-                ])
-                ->collapsed(),
+                ]),
 
             Section::make('Description')
                 ->collapsed()

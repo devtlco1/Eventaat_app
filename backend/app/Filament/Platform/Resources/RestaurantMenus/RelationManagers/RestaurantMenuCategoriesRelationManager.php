@@ -2,6 +2,7 @@
 
 namespace App\Filament\Platform\Resources\RestaurantMenus\RelationManagers;
 
+use App\Filament\Platform\Resources\RestaurantMenus\Pages\EditRestaurantMenu;
 use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuCategoryResource;
 use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuResource;
 use App\Models\RestaurantMenu;
@@ -55,6 +56,9 @@ class RestaurantMenuCategoriesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->description(fn (): ?string => $this->getPageClass() === EditRestaurantMenu::class
+                ? 'Create a category, then open it to manage menu items.'
+                : null)
             ->columns([
                 TextColumn::make('display_order')->label('Order')->sortable(),
                 TextColumn::make('name')->searchable()->sortable(),
@@ -63,10 +67,13 @@ class RestaurantMenuCategoriesRelationManager extends RelationManager
             ])
             ->headerActions([
                 CreateAction::make()
+                    ->label('Add category')
                     ->visible(fn (): bool => RestaurantMenuResource::canEdit($this->getOwnerRecord())),
             ])
             ->recordActions([
                 EditAction::make()
+                    ->label('Open category')
+                    ->tooltip('Manage items inside')
                     ->url(fn (RestaurantMenuCategory $record): string => RestaurantMenuCategoryResource::getUrl('edit', [
                         'record' => $record,
                         'menu' => $this->getOwnerRecord(),
