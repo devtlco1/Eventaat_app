@@ -107,6 +107,20 @@ class RestaurantOffersDashboardTest extends TestCase
         $index->assertSee($data['aRestaurantWide']->title);
         $index->assertSee($data['aBranchOffer']->title);
         $index->assertSee($data['bBranchOffer']->title);
+
+        // Create button/link should be present for platform roles.
+        $index->assertSee('/platform/restaurant-offers/create');
+    }
+
+    public function test_platform_super_admin_can_access_offer_create_page(): void
+    {
+        $this->seedRestaurantsAndOffers();
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        $this->get('/platform/restaurant-offers/create')->assertOk();
     }
 
     public function test_platform_can_create_percentage_offer_with_valid_discount(): void
@@ -157,9 +171,29 @@ class RestaurantOffersDashboardTest extends TestCase
         $index->assertSee($data['aRestaurantWide']->title);
         $index->assertSee($data['aBranchOffer']->title);
         $index->assertDontSee($data['bBranchOffer']->title);
+        $index->assertSee('/restaurant/restaurant-offers/create');
 
         $this->get("/restaurant/restaurant-offers/{$data['bBranchOffer']->id}")
             ->tap(fn ($resp) => $this->assertDeniedOrNotFound($resp->getStatusCode()));
+    }
+
+    public function test_restaurant_owner_can_access_offer_create_page(): void
+    {
+        $data = $this->seedRestaurantsAndOffers();
+
+        $owner = User::where('email', 'restaurant_owner@eventaat.test')->firstOrFail();
+        RestaurantStaffAssignment::create([
+            'user_id' => $owner->id,
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => null,
+            'role' => RestaurantStaffRole::RestaurantOwner,
+            'status' => 'active',
+        ]);
+
+        Filament::setCurrentPanel('restaurant');
+        $this->actingAs($owner);
+
+        $this->get('/restaurant/restaurant-offers/create')->assertOk();
     }
 
     public function test_branch_manager_sees_only_branch_scoped_offers_and_cannot_access_restaurant_wide_offer(): void
@@ -209,6 +243,15 @@ class RestaurantOffersDashboardTest extends TestCase
 
         $this->get("/restaurant/restaurant-offers/{$data['aRestaurantWide']->id}")
             ->tap(fn ($resp) => $this->assertDeniedOrNotFound($resp->getStatusCode()));
+    }
+
+    public function test_customer_cannot_access_offer_create_pages(): void
+    {
+        $customer = User::where('email', 'customer@eventaat.test')->firstOrFail();
+        $this->actingAs($customer);
+
+        $this->get('/platform/restaurant-offers/create')->assertForbidden();
+        $this->get('/restaurant/restaurant-offers/create')->assertForbidden();
     }
 
     public function test_branch_must_belong_to_selected_restaurant_validation(): void
