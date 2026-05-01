@@ -1,6 +1,6 @@
-## Product blueprint (Phase 0–10A)
+## Product blueprint (Phase 0–14A)
 
-Phase 0–10A focuses on foundation + role-based access + restaurant operational foundation + mobile customer API + mobile app auth UI foundation + core booking flow foundation + day-of booking operations + **branch-level booking availability rules** + **internal booking notification rows** + **configurable notification templates + preview** + **internal dispatch actions** + **provider-ready dry-run dispatch with attempts** (no outbound delivery). This file exists to match the repository structure required by `docs/eventaat_blueprint_v1.md`.
+Phase 0–14A focuses on foundation + role-based access + restaurant operational foundation + mobile customer API + mobile app auth UI foundation + core booking flow foundation + day-of booking operations + **branch-level booking availability rules** + **internal booking notification rows** + **configurable notification templates + preview** + **internal dispatch actions** + **provider-ready dry-run dispatch with attempts** (no outbound delivery) + **dashboard-only customer reviews** (capture + moderation in Filament only; no mobile API or public display in this phase). This file exists to match the repository structure required by `docs/eventaat_blueprint_v1.md`.
 
 Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
@@ -117,4 +117,14 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - Adds lifetime presets on the story container (`12h|24h|48h|manual`) plus optional manual shortcut hours when `ends_at` isn’t explicitly set.
 - Approval/publishing derives `starts_at`/`ends_at` predictably for non-manual modes when `ends_at` is empty (manual keeps end-time user-controlled).
 - Customer/mobile story viewing + analytics remain explicitly **out of scope** until later phases introduce mobile APIs/UI.
+
+### Customer reviews dashboard foundation (Phase 14A)
+
+- Adds `RestaurantReview` (`restaurant_reviews`) as a **dashboard-only** module (operators capture reviews in Filament; no customer submission UI/API and no public listing in this phase).
+- Reviews belong to a restaurant; optional branch and optional booking link must align with restaurant (and booking branch must match when both branch and booking are set).
+- Rating is required (1–5). Status workflow for moderation: `pending_review|published|rejected|hidden`. Source tracks provenance (`dashboard|mobile|import`; Phase 14A seeds/dashboard usage defaults to `dashboard`).
+- Platform roles (`super_admin`, `operations_admin`) manage reviews fully (CRUD) with native row actions: approve / reject / hide.
+- Restaurant panel is **read-only**:
+  - `restaurant_owner`: sees assigned restaurant-wide + branch reviews
+  - `branch_manager` / `restaurant_host`: sees branch-scoped reviews only (restaurant-wide reviews are not visible/accessible)
 

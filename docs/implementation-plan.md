@@ -489,6 +489,41 @@ Builds on Phase 13A story scoping/workflow without changing restaurant/staff vis
 - No story analytics/impressions
 - No transcoding/thumbnails/CDN pipeline
 
+### Phase 14A: customer reviews dashboard foundation (dashboard-only)
+
+Adds customer reviews management in Platform and Restaurant Filament panels using native Filament resources only:
+
+- Model/table: `RestaurantReview` → `restaurant_reviews`
+- Fields: `restaurant_id`, `branch_id?`, `booking_id?`, `user_id?`, `customer_name?`, `customer_phone?`, `rating`, `comment?`, `status`, `source`, `admin_notes?`, timestamps
+- Validation (model-layer):
+  - `rating` is required and must be an integer 1–5
+  - `status` must be one of `pending_review|published|rejected|hidden` (default `pending_review`)
+  - `source` must be one of `dashboard|mobile|import` (default `dashboard`)
+  - Optional `branch_id` must belong to the selected restaurant
+  - Optional `booking_id` must belong to the selected restaurant; if a branch is selected, the booking branch must match
+  - When a booking is linked and review `user_id` is blank, infer `user_id` from `bookings.customer_id`
+- Platform panel:
+  - Full CRUD over all reviews
+  - Native moderation actions: **Approve**, **Reject**, **Hide** (per-row, no bulk moderation)
+  - Filters: status, source, rating, restaurant, branch
+- Restaurant panel (scoped, read-only):
+  - `restaurant_owner`: assigned restaurant reviews including restaurant-wide and branch-scoped
+  - `branch_manager` / `restaurant_host`: branch-scoped reviews only (restaurant-wide reviews are hidden/denied)
+  - No create/edit/delete and no moderation actions (View action only)
+  - Out-of-scope direct URLs return 403/404
+- Scoping helper: `RestaurantPanelScope::reviews(User $user)`
+- Demo data: two small idempotent demo reviews seeded (one published restaurant-wide for Restaurant A, one pending branch-scoped for Restaurant B)
+
+### Explicit non-goals (Phase 14A)
+
+- No mobile UI / no mobile review API endpoints
+- No public review display or customer submission flow
+- No analytics/stats/widgets
+- No AI moderation
+- No review notifications
+- No bulk moderation
+- No CSV import
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)

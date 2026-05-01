@@ -2,12 +2,13 @@
 
 namespace App\Support;
 
-use App\Models\Branch;
 use App\Models\Booking;
+use App\Models\Branch;
 use App\Models\Restaurant;
 use App\Models\RestaurantOffer;
-use App\Models\RestaurantStory;
+use App\Models\RestaurantReview;
 use App\Models\RestaurantStaffAssignment;
+use App\Models\RestaurantStory;
 use App\Models\RestaurantTable;
 use App\Models\SeatingArea;
 use App\Models\User;
@@ -95,5 +96,15 @@ class RestaurantPanelScope
 
         return RestaurantStory::query()->whereIn('restaurant_id', $user->scopedRestaurantIds());
     }
-}
 
+    public static function reviews(User $user): Builder
+    {
+        $branchIds = $user->scopedBranchIds();
+
+        if (count($branchIds)) {
+            return RestaurantReview::query()->whereIn('branch_id', $branchIds);
+        }
+
+        return RestaurantReview::query()->whereIn('restaurant_id', $user->scopedRestaurantIds());
+    }
+}

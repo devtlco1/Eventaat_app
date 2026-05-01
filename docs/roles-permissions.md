@@ -206,6 +206,29 @@ Story items:
 Analytics note:
 - Story impressions/views/analytics remain **out of scope** until mobile/customer story viewing exists.
 
+## Customer reviews (Phase 14A)
+
+Phase 14A adds **Reviews** (`RestaurantReview`) resources to both panels (dashboard-only; no mobile review APIs or customer submission UI in this phase).
+
+### `/platform`
+
+Allowed:
+- `super_admin`
+- `operations_admin`
+
+Capabilities:
+- Full CRUD over all reviews
+- Native moderation actions (per row): approve / reject / hide
+
+### `/restaurant`
+
+- `restaurant_owner`: **read-only** access to assigned restaurant-wide (`branch_id=null`) and branch-scoped reviews within their assigned restaurant(s)
+- `branch_manager` / `restaurant_host`: **read-only** access to branch-scoped reviews only (`branch_id` required and within assigned branch scope); restaurant-wide reviews must not be visible or accessible (direct URLs denied as 403/404)
+- Restaurant roles must **not** create, edit, delete, or moderate reviews (no approve/reject/hide actions)
+
+Out-of-scope URLs:
+- Restaurant panel direct links to reviews outside `RestaurantPanelScope::reviews()` must fail as **403** or **404** (consistent with other scoped resources).
+
 ## Event bookings link (Phase 11B)
 
 Phase 11B allows linking bookings to events from dashboards:

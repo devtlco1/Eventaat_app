@@ -10,10 +10,11 @@ use App\Enums\TableStatus;
 use App\Models\Branch;
 use App\Models\BranchAvailabilityRule;
 use App\Models\Restaurant;
-use App\Models\RestaurantStaffAssignment;
-use App\Models\RestaurantTable;
 use App\Models\RestaurantOffer;
+use App\Models\RestaurantReview;
+use App\Models\RestaurantStaffAssignment;
 use App\Models\RestaurantStory;
+use App\Models\RestaurantTable;
 use App\Models\SeatingArea;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -204,6 +205,42 @@ class RestaurantDemoSeeder extends Seeder
                 'ends_at' => $end,
                 'display_order' => 0,
                 'notes' => null,
+            ],
+        );
+
+        RestaurantReview::updateOrCreate(
+            [
+                'restaurant_id' => $restaurantA->id,
+                'branch_id' => null,
+                'customer_phone' => '+10000000001',
+            ],
+            [
+                'booking_id' => null,
+                'user_id' => null,
+                'customer_name' => 'Demo Customer A',
+                'rating' => 5,
+                'comment' => 'Great atmosphere and service.',
+                'status' => RestaurantReview::STATUS_PUBLISHED,
+                'source' => RestaurantReview::SOURCE_DASHBOARD,
+                'admin_notes' => null,
+            ],
+        );
+
+        RestaurantReview::updateOrCreate(
+            [
+                'restaurant_id' => $restaurantB->id,
+                'branch_id' => $branchB1->id,
+                'customer_phone' => '+10000000002',
+            ],
+            [
+                'booking_id' => null,
+                'user_id' => null,
+                'customer_name' => 'Demo Customer B',
+                'rating' => 3,
+                'comment' => 'Food was okay, service can improve.',
+                'status' => RestaurantReview::STATUS_PENDING_REVIEW,
+                'source' => RestaurantReview::SOURCE_DASHBOARD,
+                'admin_notes' => null,
             ],
         );
     }
