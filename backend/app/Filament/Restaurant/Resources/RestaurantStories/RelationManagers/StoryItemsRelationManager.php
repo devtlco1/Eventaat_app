@@ -3,7 +3,6 @@
 namespace App\Filament\Restaurant\Resources\RestaurantStories\RelationManagers;
 
 use App\Filament\Restaurant\Resources\RestaurantStories\RestaurantStoryResource;
-use App\Filament\Support\StoryItemSlidePreview;
 use App\Models\RestaurantStoryItem;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -17,8 +16,8 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ViewColumn;
 use Filament\Tables\Table;
-use Illuminate\Support\HtmlString;
 
 class StoryItemsRelationManager extends RelationManager
 {
@@ -104,17 +103,9 @@ class StoryItemsRelationManager extends RelationManager
                     ->label('Slide type')
                     ->badge()
                     ->sortable(),
-                TextColumn::make('id')
+                ViewColumn::make('preview')
                     ->label('Preview')
-                    ->html()
-                    ->formatStateUsing(function (TextColumn $column): HtmlString {
-                        $record = $column->getRecord();
-                        if (! $record instanceof RestaurantStoryItem) {
-                            return new HtmlString('');
-                        }
-
-                        return StoryItemSlidePreview::toHtml($record, compact: true);
-                    }),
+                    ->view('filament.story-slide-thumb'),
                 TextColumn::make('item_duration_seconds')
                     ->label('Display seconds')
                     ->placeholder('—'),

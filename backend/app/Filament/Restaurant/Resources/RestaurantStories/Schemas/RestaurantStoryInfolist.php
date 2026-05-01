@@ -2,16 +2,15 @@
 
 namespace App\Filament\Restaurant\Resources\RestaurantStories\Schemas;
 
-use App\Filament\Support\StoryItemSlidePreview;
 use App\Models\RestaurantStory;
 use App\Models\RestaurantStoryItem;
 use Carbon\CarbonInterface;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Components\ViewEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Illuminate\Support\HtmlString;
 
 class RestaurantStoryInfolist
 {
@@ -24,15 +23,6 @@ class RestaurantStoryInfolist
                         TextEntry::make('title'),
                         TextEntry::make('restaurant.name')->label('Restaurant'),
                         TextEntry::make('branch.name')->label('Branch')->placeholder('—'),
-                    ]),
-                ]),
-
-            Section::make('Publishing')
-                ->collapsed()
-                ->schema([
-                    Grid::make(2)->schema([
-                        TextEntry::make('slug'),
-                        TextEntry::make('display_order')->label('Display order'),
                     ]),
                 ]),
 
@@ -70,28 +60,20 @@ class RestaurantStoryInfolist
                 ->schema([
                     RepeatableEntry::make('items')
                         ->schema([
-                            Grid::make(6)->schema([
+                            Grid::make(4)->schema([
                                 TextEntry::make('sort_order')->label('#'),
                                 TextEntry::make('item_type')->label('Slide type')->badge(),
                                 TextEntry::make('item_duration_seconds')->label('Display seconds')->placeholder('—'),
                                 TextEntry::make('created_at')->dateTime()->sinceTooltip(),
                             ]),
-                            TextEntry::make('id')
-                                ->label('Preview')
-                                ->columnSpanFull()
-                                ->html()
-                                ->formatStateUsing(function (TextEntry $component, $state): HtmlString {
-                                    $record = $component->getRecord();
-                                    if (! $record instanceof RestaurantStoryItem) {
-                                        return new HtmlString('');
-                                    }
-
-                                    return StoryItemSlidePreview::toHtml($record);
-                                }),
-                            Grid::make(2)->schema([
-                                TextEntry::make('cta_label')->label('Slide button label')->placeholder('—'),
-                                TextEntry::make('cta_url')->label('Slide link URL')->placeholder('—')->columnSpanFull(),
-                            ])
+                            ViewEntry::make('preview')
+                                ->view('filament.story-slide-preview')
+                                ->columnSpanFull(),
+                            Grid::make(2)
+                                ->schema([
+                                    TextEntry::make('cta_label')->label('Slide button label')->placeholder('—'),
+                                    TextEntry::make('cta_url')->label('Slide link URL')->placeholder('—')->columnSpanFull(),
+                                ])
                                 ->visible(fn (?RestaurantStoryItem $record): bool => $record !== null
                                     && (filled($record->cta_label) || filled($record->cta_url))),
                         ])
@@ -103,6 +85,15 @@ class RestaurantStoryInfolist
                 ->schema([
                     TextEntry::make('cta_label')->label('CTA label')->placeholder('—'),
                     TextEntry::make('cta_url')->label('CTA URL')->columnSpanFull()->placeholder('—'),
+                ]),
+
+            Section::make('Publishing')
+                ->collapsed()
+                ->schema([
+                    Grid::make(2)->schema([
+                        TextEntry::make('slug'),
+                        TextEntry::make('display_order')->label('Display order'),
+                    ]),
                 ]),
 
             Section::make('Legacy container content')

@@ -15,6 +15,8 @@ class CreateRestaurantStory extends CreateRecord
 
     protected static string $resource = RestaurantStoryResource::class;
 
+    protected static bool $canCreateAnother = false;
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $status = $data['status'] ?? RestaurantStory::STATUS_DRAFT;
