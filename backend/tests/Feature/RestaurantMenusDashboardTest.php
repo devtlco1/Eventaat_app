@@ -6,6 +6,7 @@ use App\Enums\BranchStatus;
 use App\Enums\RestaurantStaffRole;
 use App\Enums\RestaurantStatus;
 use App\Filament\Platform\Resources\RestaurantMenus\Pages\CreateRestaurantMenu as PlatformCreateRestaurantMenu;
+use App\Filament\Platform\Resources\RestaurantMenus\Pages\EditRestaurantMenu as PlatformEditRestaurantMenu;
 use App\Models\Branch;
 use App\Models\Restaurant;
 use App\Models\RestaurantMenu;
@@ -125,6 +126,33 @@ class RestaurantMenusDashboardTest extends TestCase
         $index->assertSee('Add menu');
 
         $this->get(route('filament.platform.resources.restaurant-menus.create'))->assertOk();
+    }
+
+    public function test_platform_create_structured_menu_shows_save_first_helper(): void
+    {
+        $this->seed(RolesAndTestUsersSeeder::class);
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        $this->get(route('filament.platform.resources.restaurant-menus.create'))
+            ->assertOk()
+            ->assertSee('Save the menu first')
+            ->assertDontSee('Menu builder');
+    }
+
+    public function test_platform_edit_structured_menu_shows_menu_builder(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        Livewire::test(PlatformEditRestaurantMenu::class, ['record' => $data['aWide']->getKey()])
+            ->assertSuccessful()
+            ->assertSee('Menu builder');
     }
 
     public function test_platform_can_create_structured_menu_via_livewire(): void

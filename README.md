@@ -107,7 +107,7 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Restaurant menu foundation (Phase 16A)** (dashboard-only):
   - Models `RestaurantMenu`, `RestaurantMenuCategory`, `RestaurantMenuItem` with modes **`structured`** (categories/items), **`pdf_upload`** (PDF on `public` disk under `menus/`), **`external_link`** (validated URL); **`slug` is globally unique**; structured items may store optional **`image_path`** on the **`public`** disk under **`menus/items/`**
   - Platform + Restaurant Filament resources; restaurant scoping via `RestaurantPanelScope::menus()` (same branch-only vs restaurant-wide pattern as offers/stories); list tables expose an **Add menu** header action
-  - Structured mode: nested **categories → items** Filament repeaters on the menu create/edit form (mode-specific sections only); categories relation manager is **disabled by default** and can be re-enabled via `RestaurantMenuStructuredUi::SHOW_CATEGORIES_RELATION_MANAGER_FALLBACK`
+  - Structured mode: create flow shows a short **save-first** helper; **Edit menu** opens the **Menu builder** (per-category cards + item tables, add/edit via Filament modals). PDF and external modes stay separate with mode-specific fields only. Categories relation manager is **disabled by default** and can be re-enabled via `RestaurantMenuStructuredUi::SHOW_CATEGORIES_RELATION_MANAGER_FALLBACK`
   - Demo seed adds a structured menu for Demo Restaurant A and an external-link menu for Demo Restaurant B; local previews need **`php artisan storage:link`** when serving uploads (PDFs and menu item images)
   - No mobile menu APIs, guest-facing pages, carts, OCR, or analytics in this phase
 - **Filament view-page consistency polish**:

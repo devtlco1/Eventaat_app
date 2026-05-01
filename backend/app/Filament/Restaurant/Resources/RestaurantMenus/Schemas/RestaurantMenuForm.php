@@ -2,7 +2,8 @@
 
 namespace App\Filament\Restaurant\Resources\RestaurantMenus\Schemas;
 
-use App\Filament\Support\RestaurantMenuContentRepeater;
+use App\Filament\Restaurant\Resources\RestaurantMenus\RestaurantMenuResource;
+use App\Livewire\Filament\RestaurantMenuBuilder;
 use App\Models\Branch;
 use App\Models\RestaurantMenu;
 use App\Models\User;
@@ -11,7 +12,10 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Resources\Pages\CreateRecord;
+use Filament\Resources\Pages\EditRecord;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
@@ -136,7 +140,23 @@ class RestaurantMenuForm
                         ->minValue(0),
                 ]),
 
-            RestaurantMenuContentRepeater::menuContentSection(),
+            Section::make('Structured menu')
+                ->description('Save the menu first, then add categories and items from the edit screen.')
+                ->visible(fn (Get $get, $livewire): bool => $get('menu_mode') === RestaurantMenu::MODE_STRUCTURED
+                    && $livewire instanceof CreateRecord)
+                ->columnSpanFull(),
+
+            Section::make('Menu builder')
+                ->visible(fn (Get $get, $livewire): bool => $get('menu_mode') === RestaurantMenu::MODE_STRUCTURED
+                    && $livewire instanceof EditRecord
+                    && RestaurantMenuResource::canView($livewire->getRecord()))
+                ->schema([
+                    Livewire::make(RestaurantMenuBuilder::class)
+                        ->key(fn ($livewire): string => $livewire instanceof EditRecord
+                            ? 'restaurant-menu-builder-'.$livewire->getRecord()->getKey()
+                            : 'restaurant-menu-builder'),
+                ])
+                ->columnSpanFull(),
 
             Section::make('PDF menu')
                 ->visible(fn (Get $get): bool => $get('menu_mode') === RestaurantMenu::MODE_PDF_UPLOAD)
