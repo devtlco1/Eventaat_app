@@ -2,9 +2,11 @@
 
 namespace App\Filament\Restaurant\Resources\RestaurantMenus\Schemas;
 
+use App\Filament\Support\RestaurantMenuContentRepeater;
 use App\Models\Branch;
 use App\Models\RestaurantMenu;
 use App\Models\User;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -133,6 +135,8 @@ class RestaurantMenuForm
                         ->default(0)
                         ->minValue(0),
                 ]),
+
+            RestaurantMenuContentRepeater::menuContentSection(),
 
             Section::make('PDF menu')
                 ->visible(fn (Get $get): bool => $get('menu_mode') === RestaurantMenu::MODE_PDF_UPLOAD)

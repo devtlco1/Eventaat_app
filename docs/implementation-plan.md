@@ -584,8 +584,9 @@ Adds `SupportTicketActivity` → `support_ticket_activities` with Filament-nativ
 Adds **`RestaurantMenu`** → **`restaurant_menus`**, **`RestaurantMenuCategory`** → **`restaurant_menu_categories`**, **`RestaurantMenuItem`** → **`restaurant_menu_items`**:
 
 - Menu modes: **`structured`** (categories + items), **`pdf_upload`** (stored path on **`public`** disk under **`menus/`**), **`external_link`** (validated URL); switching away from PDF/link clears stale fields/files on save
+- Structured items support optional **`image_path`** (**`public`** disk, **`menus/items/`**); old files are removed when the path changes or clears on save
 - **`slug`** is globally unique on **`restaurant_menus`** (supports future **`/menus/{slug}`** style URLs without restaurant prefix)
-- Platform + Restaurant Filament **`RestaurantMenuResource`** with filters; structured-only relation UX: categories under the menu + nested category edit with items relation manager
+- Platform + Restaurant Filament **`RestaurantMenuResource`** with filters and **Add menu** table header action; structured authoring uses nested relationship repeaters on the menu form; categories/items relation managers remain available behind **`RestaurantMenuStructuredUi::SHOW_CATEGORIES_RELATION_MANAGER_FALLBACK`** (default **false**) for emergency fallback without duplicate tabs by default
 - **`RestaurantPanelScope::menus()`** mirrors offers/stories: branch roles see **`branch_id`** rows only; owners see restaurant-wide (**`branch_id` null**) plus all branches for assigned restaurants
 - Model-layer validation on save (branch belongs to restaurant; mode-specific PDF/URL rules)
 - Idempotent **`RestaurantDemoSeeder`** rows: Demo A structured menu + categories/items; Demo B external-link placeholder (**no binary PDF committed**)

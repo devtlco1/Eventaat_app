@@ -9,6 +9,7 @@ use App\Models\RestaurantMenuItem;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -16,6 +17,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -50,6 +52,15 @@ class RestaurantMenuCategoryItemsRelationManager extends RelationManager
                 Section::make()->schema([
                     TextInput::make('name')->required()->maxLength(255),
                     Textarea::make('description')->rows(3)->nullable(),
+                    FileUpload::make('image_path')
+                        ->label('Image')
+                        ->disk('public')
+                        ->directory('menus/items')
+                        ->visibility('public')
+                        ->acceptedFileTypes(['image/*'])
+                        ->maxFiles(1)
+                        ->nullable()
+                        ->downloadable(false),
                     TextInput::make('price')->numeric()->minValue(0)->nullable(),
                     TextInput::make('currency')->default('IQD')->maxLength(8)->required(),
                     Toggle::make('is_available')->label('Available')->default(true),
@@ -68,6 +79,12 @@ class RestaurantMenuCategoryItemsRelationManager extends RelationManager
     {
         return $table
             ->columns([
+                ImageColumn::make('image_path')
+                    ->label('')
+                    ->disk('public')
+                    ->square()
+                    ->imageHeight(40)
+                    ->placeholder('—'),
                 TextColumn::make('display_order')->label('Order')->sortable(),
                 TextColumn::make('name')->searchable()->sortable(),
                 TextColumn::make('price')

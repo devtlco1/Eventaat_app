@@ -5,6 +5,7 @@ namespace App\Filament\Platform\Resources\RestaurantMenus\RelationManagers;
 use App\Filament\Platform\Resources\RestaurantMenus\Pages\EditRestaurantMenu;
 use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuCategoryResource;
 use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuResource;
+use App\Filament\Support\RestaurantMenuStructuredUi;
 use App\Models\RestaurantMenu;
 use App\Models\RestaurantMenuCategory;
 use Filament\Actions\CreateAction;
@@ -29,6 +30,10 @@ class RestaurantMenuCategoriesRelationManager extends RelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
+        if (! RestaurantMenuStructuredUi::SHOW_CATEGORIES_RELATION_MANAGER_FALLBACK) {
+            return false;
+        }
+
         if (! $ownerRecord instanceof RestaurantMenu || ! $ownerRecord->isStructured()) {
             return false;
         }

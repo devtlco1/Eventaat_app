@@ -4,6 +4,7 @@ namespace App\Filament\Platform\Resources\RestaurantMenus\Schemas;
 
 use App\Models\RestaurantMenu;
 use App\Models\RestaurantMenuItem;
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\RepeatableEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
@@ -47,10 +48,23 @@ class RestaurantMenuInfolist
                                     ->hiddenLabel()
                                     ->placeholder('No items in this category.')
                                     ->schema([
-                                        Grid::make(1)->schema([
-                                            TextEntry::make('name')->label('Item'),
+                                        Grid::make(12)->schema([
+                                            ImageEntry::make('image_path')
+                                                ->hiddenLabel()
+                                                ->disk('public')
+                                                ->imageHeight(48)
+                                                ->columnSpan(2)
+                                                ->visible(fn (ImageEntry $component): bool => filled($component->getRecord()?->image_path)),
+                                            TextEntry::make('name')
+                                                ->label('Item')
+                                                ->columnSpan(3),
+                                            TextEntry::make('description')
+                                                ->label('Description')
+                                                ->placeholder('—')
+                                                ->columnSpan(3),
                                             TextEntry::make('price')
                                                 ->label('Price')
+                                                ->columnSpan(2)
                                                 ->formatStateUsing(function ($state, TextEntry $component): string {
                                                     $record = $component->getRecord();
                                                     if (! $record instanceof RestaurantMenuItem) {
@@ -62,15 +76,17 @@ class RestaurantMenuInfolist
                                                         : number_format((float) $state, 2).' '.$record->currency;
                                                 }),
                                             TextEntry::make('is_available')
-                                                ->label('Availability')
+                                                ->label('Avail.')
                                                 ->badge()
-                                                ->formatStateUsing(fn (?bool $state): string => $state ? 'Available' : 'Unavailable')
+                                                ->columnSpan(1)
+                                                ->formatStateUsing(fn (?bool $state): string => $state ? 'Yes' : 'No')
                                                 ->color(fn (?bool $state): string => $state ? 'success' : 'gray'),
-                                            TextEntry::make('description')
-                                                ->label('Description')
-                                                ->placeholder('—')
-                                                ->columnSpanFull()
-                                                ->visible(fn (TextEntry $component): bool => filled($component->getRecord()?->description)),
+                                            TextEntry::make('is_featured')
+                                                ->label('Feat.')
+                                                ->badge()
+                                                ->columnSpan(1)
+                                                ->formatStateUsing(fn (?bool $state): string => $state ? 'Yes' : '—')
+                                                ->color(fn (?bool $state): string => $state ? 'warning' : 'gray'),
                                         ]),
                                     ]),
                             ]),

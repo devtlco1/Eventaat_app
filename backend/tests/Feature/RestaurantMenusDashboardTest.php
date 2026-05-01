@@ -122,6 +122,7 @@ class RestaurantMenusDashboardTest extends TestCase
         $index = $this->get(route('filament.platform.resources.restaurant-menus.index'));
         $index->assertOk();
         $index->assertSee($data['aWide']->title);
+        $index->assertSee('Add menu');
 
         $this->get(route('filament.platform.resources.restaurant-menus.create'))->assertOk();
     }
@@ -173,6 +174,7 @@ class RestaurantMenusDashboardTest extends TestCase
         $index->assertOk();
         $index->assertSee($data['aWide']->title);
         $index->assertSee($data['aBranchMenu']->title);
+        $index->assertSee('Add menu');
         $index->assertDontSee($data['bBranchMenu']->title);
     }
 
@@ -359,5 +361,45 @@ class RestaurantMenusDashboardTest extends TestCase
         ]);
 
         $this->assertSame($item->currency, 'IQD');
+    }
+
+    public function test_restaurant_menu_item_persists_image_path(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        $category = RestaurantMenuCategory::create([
+            'restaurant_menu_id' => $data['aWide']->id,
+            'name' => 'With photos',
+            'description' => null,
+            'display_order' => 0,
+            'is_active' => true,
+        ]);
+
+        $path = 'menus/items/test-photo.png';
+
+        $item = RestaurantMenuItem::create([
+            'restaurant_menu_category_id' => $category->id,
+            'name' => 'Photo dish',
+            'description' => null,
+            'image_path' => $path,
+            'price' => 10,
+            'currency' => 'IQD',
+            'is_available' => true,
+            'is_featured' => false,
+            'display_order' => 0,
+            'notes' => null,
+        ]);
+
+        $this->assertDatabaseHas('restaurant_menu_items', [
+            'id' => $item->id,
+            'image_path' => $path,
+        ]);
+
+        $item->update(['image_path' => null]);
+
+        $this->assertDatabaseHas('restaurant_menu_items', [
+            'id' => $item->id,
+            'image_path' => null,
+        ]);
     }
 }

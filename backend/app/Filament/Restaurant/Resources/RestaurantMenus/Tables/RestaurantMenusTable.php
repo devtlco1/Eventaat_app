@@ -2,13 +2,16 @@
 
 namespace App\Filament\Restaurant\Resources\RestaurantMenus\Tables;
 
+use App\Filament\Restaurant\Resources\RestaurantMenus\RestaurantMenuResource;
 use App\Models\Restaurant;
 use App\Models\RestaurantMenu;
 use App\Models\User;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Facades\Filament;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -25,6 +28,13 @@ class RestaurantMenusTable
 
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['restaurant', 'branch']))
+            ->headerActions([
+                Action::make('create')
+                    ->label('Add menu')
+                    ->icon(Heroicon::OutlinedPlus)
+                    ->url(fn (): string => RestaurantMenuResource::getUrl('create'))
+                    ->visible(fn (): bool => RestaurantMenuResource::canCreate()),
+            ])
             ->columns([
                 TextColumn::make('title')->searchable()->sortable(),
                 TextColumn::make('restaurant.name')->label('Restaurant')->searchable()->sortable(),
