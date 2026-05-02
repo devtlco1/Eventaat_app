@@ -17,21 +17,22 @@ class NotificationTemplateForm
     {
         return $schema->components([
             Section::make('Template')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         Select::make('event')
                             ->required()
                             ->options(array_combine(BookingNotification::EVENTS, BookingNotification::EVENTS))
                             ->searchable(),
                         Toggle::make('is_active')
                             ->default(true),
-                    ]),
-                    Grid::make(2)->schema([
                         TextInput::make('channel')
                             ->required()
                             ->default('internal')
                             ->disabled()
                             ->dehydrated(),
+                    ]),
+                    Grid::make(3)->schema([
                         TextInput::make('locale')
                             ->required()
                             ->default('en')
@@ -40,18 +41,22 @@ class NotificationTemplateForm
                     ]),
                     TextInput::make('title_template')
                         ->required()
-                        ->maxLength(255),
+                        ->maxLength(255)
+                        ->columnSpanFull(),
                     Textarea::make('body_template')
                         ->required()
-                        ->rows(6),
+                        ->rows(6)
+                        ->columnSpanFull(),
                 ]),
 
             Section::make('Notes')
+                ->compact()
                 ->collapsed()
                 ->schema([
                     Textarea::make('notes')
                         ->nullable()
-                        ->rows(3),
+                        ->rows(3)
+                        ->columnSpanFull(),
                 ]),
         ]);
     }

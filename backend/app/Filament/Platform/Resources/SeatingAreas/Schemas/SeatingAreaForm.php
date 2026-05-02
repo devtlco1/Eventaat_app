@@ -19,8 +19,9 @@ class SeatingAreaForm
     {
         return $schema->components([
             Section::make('Details')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         Select::make('restaurant_id')
                             ->label('Restaurant')
                             ->options(fn () => Restaurant::query()->orderBy('name')->pluck('name', 'id')->all())
@@ -55,16 +56,14 @@ class SeatingAreaForm
                             ->required()
                             ->reactive()
                             ->searchable(),
-                    ]),
-                    Grid::make(2)->schema([
                         TextInput::make('name')
                             ->required()
                             ->maxLength(255),
+                    ]),
+                    Grid::make(3)->schema([
                         TextInput::make('code')
                             ->required()
                             ->maxLength(64),
-                    ]),
-                    Grid::make(2)->schema([
                         Select::make('type')
                             ->required()
                             ->options(array_combine(

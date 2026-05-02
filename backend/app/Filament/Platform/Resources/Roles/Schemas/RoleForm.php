@@ -6,6 +6,7 @@ use App\Support\Platform\CoreRoles;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -15,18 +16,22 @@ class RoleForm
     {
         return $schema->components([
             Section::make('Role')
+                ->compact()
                 ->schema([
-                    TextInput::make('name')
-                        ->required()
-                        ->maxLength(255)
-                        ->disabled(fn ($livewire): bool => $livewire instanceof EditRecord && CoreRoles::isCore($livewire->getRecord()->name)),
-                    TextInput::make('guard_name')
-                        ->required()
-                        ->default('web')
-                        ->maxLength(255)
-                        ->disabled(fn ($livewire): bool => $livewire instanceof EditRecord && CoreRoles::isCore($livewire->getRecord()->name)),
+                    Grid::make(3)->schema([
+                        TextInput::make('name')
+                            ->required()
+                            ->maxLength(255)
+                            ->disabled(fn ($livewire): bool => $livewire instanceof EditRecord && CoreRoles::isCore($livewire->getRecord()->name)),
+                        TextInput::make('guard_name')
+                            ->required()
+                            ->default('web')
+                            ->maxLength(255)
+                            ->disabled(fn ($livewire): bool => $livewire instanceof EditRecord && CoreRoles::isCore($livewire->getRecord()->name)),
+                    ]),
                 ]),
             Section::make('Permissions')
+                ->compact()
                 ->schema([
                     Select::make('permissions')
                         ->label('Permissions')
@@ -37,7 +42,8 @@ class RoleForm
                         )
                         ->multiple()
                         ->searchable()
-                        ->preload(),
+                        ->preload()
+                        ->columnSpanFull(),
                 ]),
         ]);
     }

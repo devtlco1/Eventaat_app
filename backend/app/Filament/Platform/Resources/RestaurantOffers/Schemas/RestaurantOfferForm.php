@@ -23,6 +23,7 @@ class RestaurantOfferForm
     {
         return $schema->components([
             Section::make('Basics')
+                ->compact()
                 ->schema([
                     Grid::make(2)->schema([
                         Select::make('restaurant_id')
@@ -98,6 +99,7 @@ class RestaurantOfferForm
                 ]),
 
             Section::make('Offer setup')
+                ->compact()
                 ->schema([
                     Grid::make(2)->schema([
                         Select::make('status')
@@ -157,6 +159,7 @@ class RestaurantOfferForm
                 ]),
 
             Section::make('Schedule')
+                ->compact()
                 ->schema([
                     Grid::make(2)->schema([
                         DateTimePicker::make('starts_at')
@@ -190,6 +193,7 @@ class RestaurantOfferForm
                 ]),
 
             Section::make('Description & notes')
+                ->compact()
                 ->collapsed()
                 ->schema([
                     Textarea::make('description')

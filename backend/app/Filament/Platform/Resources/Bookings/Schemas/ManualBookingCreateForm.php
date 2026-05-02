@@ -53,6 +53,7 @@ class ManualBookingCreateForm
                 ->hidden(),
 
             Section::make('Customer')
+                ->compact()
                 ->schema([
                     Grid::make(2)->schema([
                         TextInput::make('customer_phone')
@@ -97,6 +98,7 @@ class ManualBookingCreateForm
                 ]),
 
             Section::make('Where & when')
+                ->compact()
                 ->schema([
                     Grid::make(2)->schema([
                         Select::make('restaurant_id')
@@ -280,6 +282,7 @@ class ManualBookingCreateForm
                 ]),
 
             Section::make('Notes')
+                ->compact()
                 ->collapsed()
                 ->schema([
                     Textarea::make('customer_note')

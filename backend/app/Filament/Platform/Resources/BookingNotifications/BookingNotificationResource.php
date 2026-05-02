@@ -69,8 +69,9 @@ class BookingNotificationResource extends Resource
     {
         return $schema->components([
             Section::make('Details')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         TextEntry::make('id'),
                         TextEntry::make('booking_id')->label('Booking'),
                         TextEntry::make('event')->badge(),
@@ -83,19 +84,22 @@ class BookingNotificationResource extends Resource
                     ]),
                 ]),
             Section::make('Content')
+                ->compact()
                 ->schema([
                     TextEntry::make('title')->columnSpanFull(),
                     TextEntry::make('message')->markdown()->columnSpanFull(),
                 ]),
             Section::make('Failure')
+                ->compact()
                 ->collapsed()
                 ->schema([
                     TextEntry::make('failure_reason')->markdown()->columnSpanFull()->placeholder('—'),
                 ]),
             Section::make('System')
+                ->compact()
                 ->collapsed()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         TextEntry::make('created_at')->dateTime(),
                         TextEntry::make('updated_at')->dateTime(),
                     ]),

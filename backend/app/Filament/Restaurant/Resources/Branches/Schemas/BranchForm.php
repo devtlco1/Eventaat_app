@@ -22,18 +22,19 @@ class BranchForm
 
         return $schema->components([
             Section::make('Details')
+                ->compact()
                 ->schema([
-                    Select::make('restaurant_id')
-                        ->relationship(
-                            name: 'restaurant',
-                            titleAttribute: 'name',
-                            modifyQueryUsing: fn ($query) => $query->whereIn('id', $restaurantIds),
-                        )
-                        ->required()
-                        ->searchable()
-                        ->disabled(count($restaurantIds) === 1)
-                        ->dehydrated(true),
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
+                        Select::make('restaurant_id')
+                            ->relationship(
+                                name: 'restaurant',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn ($query) => $query->whereIn('id', $restaurantIds),
+                            )
+                            ->required()
+                            ->searchable()
+                            ->disabled(count($restaurantIds) === 1)
+                            ->dehydrated(true),
                         TextInput::make('name')
                             ->required()
                             ->maxLength(255),
@@ -41,13 +42,15 @@ class BranchForm
                             ->required()
                             ->maxLength(64),
                     ]),
-                    Select::make('status')
-                        ->required()
-                        ->options(array_combine(
-                            array_map(fn (BranchStatus $s) => $s->value, BranchStatus::cases()),
-                            array_map(fn (BranchStatus $s) => $s->value, BranchStatus::cases()),
-                        ))
-                        ->default(BranchStatus::Active->value),
+                    Grid::make(3)->schema([
+                        Select::make('status')
+                            ->required()
+                            ->options(array_combine(
+                                array_map(fn (BranchStatus $s) => $s->value, BranchStatus::cases()),
+                                array_map(fn (BranchStatus $s) => $s->value, BranchStatus::cases()),
+                            ))
+                            ->default(BranchStatus::Active->value),
+                    ]),
                 ]),
         ]);
     }

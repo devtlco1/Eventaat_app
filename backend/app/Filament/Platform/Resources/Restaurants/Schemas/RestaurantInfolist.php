@@ -14,8 +14,9 @@ class RestaurantInfolist
         return $schema
             ->components([
                 Section::make('Details')
+                    ->compact()
                     ->schema([
-                        Grid::make(2)->schema([
+                        Grid::make(3)->schema([
                             TextEntry::make('name'),
                             TextEntry::make('slug'),
                             TextEntry::make('status')->badge(),

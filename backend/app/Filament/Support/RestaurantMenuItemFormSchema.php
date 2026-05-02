@@ -39,7 +39,7 @@ final class RestaurantMenuItemFormSchema
                         ->downloadable(false)
                         ->openable()
                         ->columnSpanFull(),
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         TextInput::make('name')
                             ->label('Item name')
                             ->required()
@@ -49,13 +49,13 @@ final class RestaurantMenuItemFormSchema
                             ->numeric()
                             ->minValue(0)
                             ->nullable(),
-                    ]),
-                    Grid::make(2)->schema([
                         TextInput::make('currency')
                             ->label('Currency')
                             ->default('IQD')
                             ->maxLength(8)
                             ->required(),
+                    ]),
+                    Grid::make(3)->schema([
                         TextInput::make('display_order')
                             ->label('Display order')
                             ->numeric()
@@ -63,8 +63,6 @@ final class RestaurantMenuItemFormSchema
                                 ->where('restaurant_menu_category_id', $categoryId)
                                 ->max('display_order')) ?? -1) + 1)
                             ->minValue(0),
-                    ]),
-                    Grid::make(2)->schema([
                         Toggle::make('is_available')
                             ->label('Available')
                             ->default(true),
@@ -105,7 +103,8 @@ final class RestaurantMenuItemFormSchema
                             ->where('restaurant_menu_id', $menuId)
                             ->orderBy('display_order')
                             ->pluck('name', 'id')
-                            ->all()),
+                            ->all())
+                        ->columnSpanFull(),
                     FileUpload::make('image_path')
                         ->label('Image')
                         ->image()
@@ -119,7 +118,7 @@ final class RestaurantMenuItemFormSchema
                         ->downloadable(false)
                         ->openable()
                         ->columnSpanFull(),
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         TextInput::make('name')
                             ->label('Item name')
                             ->required()
@@ -129,13 +128,13 @@ final class RestaurantMenuItemFormSchema
                             ->numeric()
                             ->minValue(0)
                             ->nullable(),
-                    ]),
-                    Grid::make(2)->schema([
                         TextInput::make('currency')
                             ->label('Currency')
                             ->default('IQD')
                             ->maxLength(8)
                             ->required(),
+                    ]),
+                    Grid::make(3)->schema([
                         TextInput::make('display_order')
                             ->label('Display order')
                             ->numeric()
@@ -150,8 +149,6 @@ final class RestaurantMenuItemFormSchema
                                     ->max('display_order')) ?? -1) + 1;
                             })
                             ->minValue(0),
-                    ]),
-                    Grid::make(2)->schema([
                         Toggle::make('is_available')
                             ->label('Available')
                             ->default(true),

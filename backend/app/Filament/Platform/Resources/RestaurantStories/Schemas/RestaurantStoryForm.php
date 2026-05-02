@@ -24,8 +24,9 @@ class RestaurantStoryForm
     {
         return $schema->components([
             Section::make('Basics')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         Select::make('restaurant_id')
                             ->label('Restaurant')
                             ->options(fn () => Restaurant::query()->orderBy('name')->pluck('name', 'id')->all())
@@ -73,29 +74,29 @@ class RestaurantStoryForm
                                     }
                                 },
                             ]),
+                        TextInput::make('title')
+                            ->required()
+                            ->maxLength(255)
+                            ->reactive()
+                            ->afterStateUpdated(function (Get $get, Set $set, ?string $state): void {
+                                $slug = $get('slug');
+                                if (filled($slug)) {
+                                    return;
+                                }
+
+                                if (blank($state)) {
+                                    return;
+                                }
+
+                                $set('slug', Str::slug($state));
+                            }),
                     ]),
-
-                    TextInput::make('title')
-                        ->required()
-                        ->maxLength(255)
-                        ->reactive()
-                        ->afterStateUpdated(function (Get $get, Set $set, ?string $state): void {
-                            $slug = $get('slug');
-                            if (filled($slug)) {
-                                return;
-                            }
-
-                            if (blank($state)) {
-                                return;
-                            }
-
-                            $set('slug', Str::slug($state));
-                        }),
                 ]),
 
             Section::make('Schedule')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         Select::make('lifetime_mode')
                             ->label('Lifetime mode')
                             ->required()
@@ -114,7 +115,7 @@ class RestaurantStoryForm
                             ->default(RestaurantStory::STATUS_DRAFT),
                     ]),
 
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         DateTimePicker::make('starts_at')
                             ->label('Starts at')
                             ->nullable()
@@ -141,8 +142,7 @@ class RestaurantStoryForm
                                         $fail('Ends at must be after starts at.');
                                     }
                                 },
-                            ])
-                            ->helperText('Manual mode: provide ends_at (and optionally starts_at). Other modes derive ends_at automatically when publishing.'),
+                            ]),
                     ]),
 
                     TextInput::make('lifetime_hours')
@@ -152,12 +152,13 @@ class RestaurantStoryForm
                         ->maxValue(24 * 30)
                         ->nullable()
                         ->visible(fn (Get $get): bool => $get('lifetime_mode') === RestaurantStory::LIFETIME_MANUAL)
-                        ->helperText('Optional: if Ends at is empty, we’ll use Starts at + these hours (defaults starts_at to now when publishing).'),
+                        ->helperText('Optional shortcut when Ends at is empty.'),
                 ]),
 
             RestaurantStoryContentRepeater::section(),
 
             Section::make('Story link button')
+                ->compact()
                 ->description('Optional link shown with the whole story (not per slide).')
                 ->collapsed()
                 ->schema([
@@ -174,10 +175,11 @@ class RestaurantStoryForm
                 ]),
 
             Section::make('Publishing')
+                ->compact()
                 ->description('Slug and ordering are rarely changed once live.')
                 ->collapsed()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         TextInput::make('slug')
                             ->required()
                             ->maxLength(255)
@@ -191,6 +193,7 @@ class RestaurantStoryForm
                 ]),
 
             Section::make('Notes')
+                ->compact()
                 ->collapsed()
                 ->schema([
                     Textarea::make('notes')

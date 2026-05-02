@@ -21,12 +21,13 @@ class SupportTicketForm
     {
         return $schema->components([
             Section::make('Ticket')
+                ->compact()
                 ->schema([
                     TextInput::make('subject')
                         ->required()
                         ->maxLength(255)
                         ->columnSpanFull(),
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         Select::make('category')
                             ->required()
                             ->options(array_combine(SupportTicket::CATEGORIES, SupportTicket::CATEGORIES))
@@ -35,12 +36,12 @@ class SupportTicketForm
                             ->required()
                             ->options(array_combine(SupportTicket::PRIORITIES, SupportTicket::PRIORITIES))
                             ->default(SupportTicket::PRIORITY_NORMAL),
-                    ]),
-                    Grid::make(2)->schema([
                         Select::make('status')
                             ->required()
                             ->options(array_combine(SupportTicket::STATUSES, SupportTicket::STATUSES))
                             ->default(SupportTicket::STATUS_OPEN),
+                    ]),
+                    Grid::make(3)->schema([
                         Select::make('source')
                             ->required()
                             ->options(array_combine(SupportTicket::SOURCES, SupportTicket::SOURCES))
@@ -49,8 +50,9 @@ class SupportTicketForm
                 ]),
 
             Section::make('Restaurant & booking')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         Select::make('restaurant_id')
                             ->label('Restaurant')
                             ->options(fn () => Restaurant::query()->orderBy('name')->pluck('name', 'id')->all())
@@ -104,7 +106,6 @@ class SupportTicketForm
                                 },
                             ]),
                     ]),
-
                     Select::make('booking_id')
                         ->label('Booking')
                         ->options(function (Get $get) {
@@ -157,19 +158,21 @@ class SupportTicketForm
                                     $fail('The selected booking does not belong to the selected branch.');
                                 }
                             },
-                        ]),
+                        ])
+                        ->columnSpanFull(),
                 ]),
 
             Section::make('Customer')
+                ->compact()
                 ->collapsed()
                 ->schema([
-                    Select::make('user_id')
-                        ->label('Linked user')
-                        ->relationship(name: 'user', titleAttribute: 'name')
-                        ->searchable()
-                        ->nullable()
-                        ->preload(),
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
+                        Select::make('user_id')
+                            ->label('Linked user')
+                            ->relationship(name: 'user', titleAttribute: 'name')
+                            ->searchable()
+                            ->nullable()
+                            ->preload(),
                         TextInput::make('customer_name')
                             ->label('Customer name')
                             ->maxLength(255)
@@ -182,6 +185,7 @@ class SupportTicketForm
                 ]),
 
             Section::make('Content')
+                ->compact()
                 ->schema([
                     Textarea::make('message')
                         ->rows(5)

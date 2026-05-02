@@ -16,8 +16,9 @@ class RestaurantSubscriptionForm
     {
         return $schema->components([
             Section::make('Subscription')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         Select::make('restaurant_id')
                             ->label('Restaurant')
                             ->relationship('restaurant', 'name')
@@ -34,10 +35,10 @@ class RestaurantSubscriptionForm
                             ->searchable()
                             ->preload()
                             ->nullable(),
+                        Select::make('status')
+                            ->required()
+                            ->options(collect(RestaurantSubscriptionStatus::cases())->mapWithKeys(fn ($c) => [$c->value => $c->label()])->all()),
                     ]),
-                    Select::make('status')
-                        ->required()
-                        ->options(collect(RestaurantSubscriptionStatus::cases())->mapWithKeys(fn ($c) => [$c->value => $c->label()])->all()),
                     Grid::make(3)->schema([
                         DateTimePicker::make('starts_at')->nullable()->seconds(false),
                         DateTimePicker::make('ends_at')->nullable()->seconds(false),

@@ -48,6 +48,11 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Operations**: Document **`php artisan storage:link`** for **`public`** disk URLs and **cron + `schedule:run`** for reminders; **`docs/api-reference.md`** ties mobile docs to **`route:list --path=api/mobile`**.
 - **Scope**: Documentation and verification only unless a regression is found — **no** new customer API routes or Filament modules in Phase 8H.
 
+### Filament layout consistency (Phase 8I)
+
+- **Panels**: Platform and Restaurant Filament panels default to **full content width** for resource pages; forms/infolists use **compact sections** and **multi-column grids** so create/edit/view screens stay horizontal and professional without custom dashboard kits.
+- **Coverage**: Aligns layouts across operators’ modules (access management, restaurant setup, bookings, menus, stories/offers/events, reviews, tickets, subscriptions/invoices/call logs, notification templates, booking notification detail) while preserving existing scopes and **`can*`** rules.
+
 ### Authorization alignment (Phase 8G)
 
 - **`User`** exposes small role helpers (**platform operator**, **restaurant staff**, **structure managers**, **restaurant owners**) so Filament **`can*`** methods stop repeating literal **`hasAnyRole`** arrays; **`/platform`** resources share **`AuthorizesPlatformOperations`** / **`GrantsPlatformOperationsCrud`** traits instead of copying private **`isPlatformUser`** closures.

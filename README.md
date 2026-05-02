@@ -60,6 +60,10 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - **Scheduler**: **`eventaat:booking-reminders`** is registered **hourly** in **`bootstrap/app.php`**; production needs system cron **`php artisan schedule:run`** every minute (see **`php artisan schedule:list`**).
   - **API docs**: **`docs/api-reference.md`** intro points at **`route:list --path=api/mobile`**; mobile API behavior unchanged in this audit.
   - **Filament**: platform/restaurant indexes covered by existing feature tests where applicable; Access Management / Operations resources use empty or non-destructive **`bulkActions`** (no bulk delete introduced for users/roles).
+- **Filament UI layout standardization (Phase 8I)**:
+  - **`PlatformPanelProvider`** + **`RestaurantPanelProvider`** set **`->maxContentWidth(Width::Full)`** so Filament pages use full content width by default (aligned with **`/platform/restaurant-menus/create`** style).
+  - **Forms / infolists**: **`Section::compact()`**, multi-column **`Grid`** layouts (typically three columns on desktop), **`columnSpanFull()`** for long text/PDF/uploads — applied across Operations + Restaurant Setup resources (users/roles/permissions, restaurants/branches/seating/tables/staff, bookings/manual booking create, menus/categories/items helpers, events/offers/stories, reviews, support tickets, notification templates, booking notifications view, subscriptions/invoices/call logs) plus shared **`BranchAvailabilityRuleFormComponents`**, **`RestaurantMenuCategoryFormSchema`**, **`RestaurantMenuItemFormSchema`**, story **`RelationManagers`**, **`RestaurantStoryContentRepeater`** section.
+  - **Scope**: presentation/layout only — **no** API/mobile changes, **no** migrations, **no** new bulk deletes, permissions/scopes/validation unchanged.
 - **Booking notification foundation (Phase 9A)**:
   - Internal `booking_notifications` rows (`pending`, no outbound sending): lifecycle events recorded after successful booking creation and valid transitions
   - `BookingNotificationService` builds title/message/payload; insert failures are reported without failing the booking flow

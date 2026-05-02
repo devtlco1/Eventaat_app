@@ -19,8 +19,9 @@ class SubscriptionPlanForm
     {
         return $schema->components([
             Section::make('Plan')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         TextInput::make('name')
                             ->required()
                             ->maxLength(255)
@@ -31,10 +32,9 @@ class SubscriptionPlanForm
                             ->maxLength(255)
                             ->unique(SubscriptionPlan::class, ignoreRecord: true)
                             ->alphaDash(),
+                        Toggle::make('is_active')
+                            ->default(true),
                     ]),
-                    Textarea::make('description')
-                        ->rows(3)
-                        ->columnSpanFull(),
                     Grid::make(3)->schema([
                         TextInput::make('price_amount')
                             ->required()
@@ -50,14 +50,16 @@ class SubscriptionPlanForm
                             ->required()
                             ->options(collect(SubscriptionBillingInterval::cases())->mapWithKeys(fn ($c) => [$c->value => $c->label()])->all()),
                     ]),
-                    Grid::make(2)->schema([
-                        Toggle::make('is_active')
-                            ->default(true),
+                    Grid::make(3)->schema([
                         TextInput::make('display_order')
                             ->numeric()
                             ->default(0)
                             ->minValue(0),
                     ]),
+                    Textarea::make('description')
+                        ->rows(3)
+                        ->nullable()
+                        ->columnSpanFull(),
                 ]),
         ]);
     }

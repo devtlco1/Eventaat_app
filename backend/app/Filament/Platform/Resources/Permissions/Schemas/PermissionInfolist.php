@@ -13,8 +13,9 @@ class PermissionInfolist
     {
         return $schema->components([
             Section::make('Permission')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         TextEntry::make('name')->columnSpanFull(),
                         TextEntry::make('guard_name'),
                         TextEntry::make('roles_count')
@@ -28,9 +29,10 @@ class PermissionInfolist
                         ->columnSpanFull(),
                 ]),
             Section::make('System')
+                ->compact()
                 ->collapsed()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         TextEntry::make('created_at')->dateTime(),
                         TextEntry::make('updated_at')->dateTime(),
                     ]),

@@ -14,6 +14,7 @@ class SupportTicketInfolist
         return $schema
             ->components([
                 Section::make('Ticket')
+                    ->compact()
                     ->schema([
                         TextEntry::make('subject')->columnSpanFull(),
                         Grid::make(4)->schema([
@@ -25,6 +26,7 @@ class SupportTicketInfolist
                     ]),
 
                 Section::make('Restaurant & booking')
+                    ->compact()
                     ->schema([
                         Grid::make(3)->schema([
                             TextEntry::make('restaurant.name')->label('Restaurant')->placeholder('—'),
@@ -34,6 +36,7 @@ class SupportTicketInfolist
                     ]),
 
                 Section::make('Customer')
+                    ->compact()
                     ->schema([
                         Grid::make(3)->schema([
                             TextEntry::make('customer_name')->label('Customer name')->placeholder('—'),
@@ -43,23 +46,26 @@ class SupportTicketInfolist
                     ]),
 
                 Section::make('Content')
+                    ->compact()
                     ->schema([
                         TextEntry::make('message')->columnSpanFull()->placeholder('—'),
                         TextEntry::make('internal_notes')->label('Internal notes')->columnSpanFull()->placeholder('—'),
                     ]),
 
                 Section::make('Resolution')
+                    ->compact()
                     ->schema([
-                        Grid::make(2)->schema([
+                        Grid::make(3)->schema([
                             TextEntry::make('resolved_at')->label('Resolved at')->dateTime()->placeholder('—'),
                             TextEntry::make('closed_at')->label('Closed at')->dateTime()->placeholder('—'),
                         ]),
                     ]),
 
                 Section::make('System')
+                    ->compact()
                     ->collapsed()
                     ->schema([
-                        Grid::make(2)->schema([
+                        Grid::make(3)->schema([
                             TextEntry::make('created_at')->dateTime(),
                             TextEntry::make('updated_at')->dateTime(),
                         ]),

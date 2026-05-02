@@ -5,17 +5,14 @@ namespace App\Filament\Platform\Resources\RestaurantMenus\RelationManagers;
 use App\Filament\Platform\Resources\RestaurantMenus\Pages\EditRestaurantMenu;
 use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuCategoryResource;
 use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuResource;
+use App\Filament\Support\RestaurantMenuCategoryFormSchema;
 use App\Filament\Support\RestaurantMenuStructuredUi;
 use App\Models\RestaurantMenu;
 use App\Models\RestaurantMenuCategory;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -43,19 +40,7 @@ class RestaurantMenuCategoriesRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema
-            ->components([
-                Section::make()->schema([
-                    TextInput::make('name')->required()->maxLength(255),
-                    Textarea::make('description')->rows(3)->nullable(),
-                    TextInput::make('display_order')
-                        ->label('Display order')
-                        ->numeric()
-                        ->default(0)
-                        ->minValue(0),
-                    Toggle::make('is_active')->label('Active')->default(true),
-                ]),
-            ]);
+        return $schema->components(RestaurantMenuCategoryFormSchema::sections());
     }
 
     public function table(Table $table): Table

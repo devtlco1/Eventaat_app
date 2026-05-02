@@ -18,13 +18,13 @@ class BookingForm
     {
         return $schema->components([
             Section::make('Booking')
+                ->compact()
                 ->schema([
                     Grid::make(3)->schema([
                         TextInput::make('status')->disabled(),
                         DateTimePicker::make('starts_at')->disabled(),
                         TextInput::make('party_size')->numeric()->disabled(),
                     ]),
-
                     Select::make('restaurant_event_id')
                         ->label('Event (optional)')
                         ->nullable()
@@ -33,7 +33,7 @@ class BookingForm
                         ->helperText(function (Get $get): ?string {
                             $eventId = $get('restaurant_event_id');
                             if (! $eventId) {
-                                return 'Optional: link this booking to a published event night.';
+                                return null;
                             }
 
                             /** @var RestaurantEvent|null $event */
@@ -46,8 +46,8 @@ class BookingForm
                             $ends = $event->ends_at?->format('Y-m-d H:i');
 
                             return $ends
-                                ? "Event time: {$starts} → {$ends}"
-                                : ($starts ? "Event time: {$starts}" : null);
+                                ? "{$starts} → {$ends}"
+                                : ($starts ?: null);
                         })
                         ->options(function ($record) {
                             if (! $record) {
@@ -73,13 +73,17 @@ class BookingForm
                                     return [$e->id => "{$e->title} — {$when}"];
                                 })
                                 ->all();
-                        }),
+                        })
+                        ->columnSpanFull(),
                 ]),
 
             Section::make('Notes')
+                ->compact()
                 ->schema([
-                    Textarea::make('customer_note')->disabled()->columnSpanFull(),
-                    Textarea::make('restaurant_note')->columnSpanFull(),
+                    Grid::make(2)->schema([
+                        Textarea::make('customer_note')->disabled()->rows(4),
+                        Textarea::make('restaurant_note')->rows(4),
+                    ]),
                 ]),
         ]);
     }

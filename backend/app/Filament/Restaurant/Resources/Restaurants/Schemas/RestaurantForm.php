@@ -15,22 +15,23 @@ class RestaurantForm
     {
         return $schema->components([
             Section::make('Details')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         TextInput::make('name')
                             ->disabled()
                             ->dehydrated(false),
                         TextInput::make('slug')
                             ->disabled()
                             ->dehydrated(false),
+                        Select::make('status')
+                            ->options(array_combine(
+                                array_map(fn (RestaurantStatus $s) => $s->value, RestaurantStatus::cases()),
+                                array_map(fn (RestaurantStatus $s) => $s->value, RestaurantStatus::cases()),
+                            ))
+                            ->disabled()
+                            ->dehydrated(false),
                     ]),
-                    Select::make('status')
-                        ->options(array_combine(
-                            array_map(fn (RestaurantStatus $s) => $s->value, RestaurantStatus::cases()),
-                            array_map(fn (RestaurantStatus $s) => $s->value, RestaurantStatus::cases()),
-                        ))
-                        ->disabled()
-                        ->dehydrated(false),
                 ]),
         ]);
     }

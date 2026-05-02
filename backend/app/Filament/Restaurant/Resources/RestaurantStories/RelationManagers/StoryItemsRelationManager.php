@@ -12,6 +12,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -31,63 +32,69 @@ class StoryItemsRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                Select::make('item_type')
-                    ->label('Slide type')
-                    ->required()
-                    ->options([
-                        RestaurantStoryItem::TYPE_IMAGE => 'Image',
-                        RestaurantStoryItem::TYPE_VIDEO => 'Video',
-                        RestaurantStoryItem::TYPE_TEXT => 'Text',
-                    ])
-                    ->default(RestaurantStoryItem::TYPE_IMAGE)
-                    ->reactive(),
-
-                FileUpload::make('media_path')
-                    ->label('Upload image/video')
-                    ->disk('public')
-                    ->directory('stories/items')
-                    ->visibility('public')
-                    ->maxFiles(1)
-                    ->nullable()
-                    ->downloadable(false)
-                    ->openable(false)
-                    ->visible(fn (Get $get): bool => in_array($get('item_type'), [
-                        RestaurantStoryItem::TYPE_IMAGE,
-                        RestaurantStoryItem::TYPE_VIDEO,
-                    ], true))
-                    ->acceptedFileTypes(fn (Get $get): array => match ($get('item_type')) {
-                        RestaurantStoryItem::TYPE_VIDEO => ['video/*'],
-                        default => ['image/*'],
-                    })
-                    ->required(fn (Get $get): bool => in_array($get('item_type'), [
-                        RestaurantStoryItem::TYPE_IMAGE,
-                        RestaurantStoryItem::TYPE_VIDEO,
-                    ], true)),
-
-                Textarea::make('body')
-                    ->label('Slide text')
-                    ->rows(6)
-                    ->nullable()
-                    ->visible(fn (Get $get): bool => $get('item_type') === RestaurantStoryItem::TYPE_TEXT)
-                    ->required(fn (Get $get): bool => $get('item_type') === RestaurantStoryItem::TYPE_TEXT),
-
-                TextInput::make('sort_order')
-                    ->label('Sort order')
-                    ->numeric()
-                    ->required()
-                    ->default(0),
-
-                TextInput::make('item_duration_seconds')
-                    ->label('Display seconds')
-                    ->numeric()
-                    ->minValue(1)
-                    ->nullable(),
-
-                Section::make('Link button (optional)')
-                    ->collapsed()
+                Section::make()
+                    ->compact()
                     ->schema([
-                        TextInput::make('cta_label')->label('Button label')->maxLength(255)->nullable(),
-                        TextInput::make('cta_url')->label('Link URL')->maxLength(2048)->nullable(),
+                        Grid::make(3)->schema([
+                            Select::make('item_type')
+                                ->label('Slide type')
+                                ->required()
+                                ->options([
+                                    RestaurantStoryItem::TYPE_IMAGE => 'Image',
+                                    RestaurantStoryItem::TYPE_VIDEO => 'Video',
+                                    RestaurantStoryItem::TYPE_TEXT => 'Text',
+                                ])
+                                ->default(RestaurantStoryItem::TYPE_IMAGE)
+                                ->reactive(),
+                            TextInput::make('sort_order')
+                                ->label('Sort order')
+                                ->numeric()
+                                ->required()
+                                ->default(0),
+                            TextInput::make('item_duration_seconds')
+                                ->label('Display seconds')
+                                ->numeric()
+                                ->minValue(1)
+                                ->nullable(),
+                        ]),
+                        FileUpload::make('media_path')
+                            ->label('Upload image/video')
+                            ->disk('public')
+                            ->directory('stories/items')
+                            ->visibility('public')
+                            ->maxFiles(1)
+                            ->nullable()
+                            ->downloadable(false)
+                            ->openable(false)
+                            ->visible(fn (Get $get): bool => in_array($get('item_type'), [
+                                RestaurantStoryItem::TYPE_IMAGE,
+                                RestaurantStoryItem::TYPE_VIDEO,
+                            ], true))
+                            ->acceptedFileTypes(fn (Get $get): array => match ($get('item_type')) {
+                                RestaurantStoryItem::TYPE_VIDEO => ['video/*'],
+                                default => ['image/*'],
+                            })
+                            ->required(fn (Get $get): bool => in_array($get('item_type'), [
+                                RestaurantStoryItem::TYPE_IMAGE,
+                                RestaurantStoryItem::TYPE_VIDEO,
+                            ], true))
+                            ->columnSpanFull(),
+                        Textarea::make('body')
+                            ->label('Slide text')
+                            ->rows(5)
+                            ->nullable()
+                            ->visible(fn (Get $get): bool => $get('item_type') === RestaurantStoryItem::TYPE_TEXT)
+                            ->required(fn (Get $get): bool => $get('item_type') === RestaurantStoryItem::TYPE_TEXT)
+                            ->columnSpanFull(),
+                        Section::make('Link button (optional)')
+                            ->compact()
+                            ->collapsed()
+                            ->schema([
+                                Grid::make(2)->schema([
+                                    TextInput::make('cta_label')->label('Button label')->maxLength(255)->nullable(),
+                                    TextInput::make('cta_url')->label('Link URL')->maxLength(2048)->nullable(),
+                                ]),
+                            ]),
                     ]),
             ]);
     }

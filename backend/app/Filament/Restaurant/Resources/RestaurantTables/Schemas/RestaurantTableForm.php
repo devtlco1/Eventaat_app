@@ -21,6 +21,7 @@ class RestaurantTableForm
 
         return $schema->components([
             Section::make('Details')
+                ->compact()
                 ->schema([
                     Select::make('seating_area_id')
                         ->options(fn () => $user

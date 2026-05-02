@@ -20,8 +20,9 @@ class RestaurantMenuInfolist
         return $schema
             ->components([
                 Section::make('Details')
+                    ->compact()
                     ->schema([
-                        Grid::make(2)->schema([
+                        Grid::make(3)->schema([
                             TextEntry::make('title'),
                             TextEntry::make('slug'),
                             TextEntry::make('restaurant.name')->label('Restaurant'),
@@ -33,6 +34,7 @@ class RestaurantMenuInfolist
                     ]),
 
                 Section::make('Menu preview')
+                    ->compact()
                     ->visible(fn (RestaurantMenu $record): bool => $record->isStructured())
                     ->schema([
                         RepeatableEntry::make('categories')
@@ -95,6 +97,7 @@ class RestaurantMenuInfolist
                     ]),
 
                 Section::make('PDF menu')
+                    ->compact()
                     ->visible(fn (RestaurantMenu $record): bool => $record->menu_mode === RestaurantMenu::MODE_PDF_UPLOAD)
                     ->schema([
                         TextEntry::make('menu_file_path')
@@ -108,6 +111,7 @@ class RestaurantMenuInfolist
                     ]),
 
                 Section::make('External menu')
+                    ->compact()
                     ->visible(fn (RestaurantMenu $record): bool => $record->menu_mode === RestaurantMenu::MODE_EXTERNAL_LINK)
                     ->schema([
                         TextEntry::make('menu_url')
@@ -119,6 +123,7 @@ class RestaurantMenuInfolist
                     ]),
 
                 Section::make('Content')
+                    ->compact()
                     ->collapsed()
                     ->schema([
                         TextEntry::make('description')->markdown()->columnSpanFull()->placeholder('—'),
@@ -126,9 +131,10 @@ class RestaurantMenuInfolist
                     ]),
 
                 Section::make('System')
+                    ->compact()
                     ->collapsed()
                     ->schema([
-                        Grid::make(2)->schema([
+                        Grid::make(3)->schema([
                             TextEntry::make('created_at')->dateTime(),
                             TextEntry::make('updated_at')->dateTime(),
                         ]),

@@ -16,6 +16,7 @@ final class RestaurantStoryContentRepeater
     public static function section(): Section
     {
         return Section::make('Story slides')
+            ->compact()
             ->description('Add one or more slides. Images/videos/text will appear in this order.')
             ->schema([
                 Repeater::make('items')

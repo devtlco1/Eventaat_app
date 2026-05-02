@@ -3,15 +3,17 @@
 namespace App\Filament\Platform\Resources\Restaurants\RelationManagers;
 
 use App\Enums\BranchStatus;
+use Filament\Actions\CreateAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Actions\CreateAction;
 
 class BranchesRelationManager extends RelationManager
 {
@@ -20,15 +22,21 @@ class BranchesRelationManager extends RelationManager
     public function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('name')->required()->maxLength(255),
-            TextInput::make('code')->required()->maxLength(64),
-            Select::make('status')
-                ->required()
-                ->options(array_combine(
-                    array_map(fn (BranchStatus $s) => $s->value, BranchStatus::cases()),
-                    array_map(fn (BranchStatus $s) => $s->value, BranchStatus::cases()),
-                ))
-                ->default(BranchStatus::Active->value),
+            Section::make()
+                ->compact()
+                ->schema([
+                    Grid::make(3)->schema([
+                        TextInput::make('name')->required()->maxLength(255),
+                        TextInput::make('code')->required()->maxLength(64),
+                        Select::make('status')
+                            ->required()
+                            ->options(array_combine(
+                                array_map(fn (BranchStatus $s) => $s->value, BranchStatus::cases()),
+                                array_map(fn (BranchStatus $s) => $s->value, BranchStatus::cases()),
+                            ))
+                            ->default(BranchStatus::Active->value),
+                    ]),
+                ]),
         ]);
     }
 
@@ -49,4 +57,3 @@ class BranchesRelationManager extends RelationManager
             ]);
     }
 }
-

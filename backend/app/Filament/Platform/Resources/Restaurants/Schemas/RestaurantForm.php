@@ -16,8 +16,9 @@ class RestaurantForm
     {
         return $schema->components([
             Section::make('Details')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         TextInput::make('name')
                             ->required()
                             ->maxLength(255),
@@ -26,14 +27,14 @@ class RestaurantForm
                             ->maxLength(255)
                             ->unique(ignoreRecord: true)
                             ->dehydrateStateUsing(fn (?string $state) => $state ? Str::slug($state) : null),
+                        Select::make('status')
+                            ->required()
+                            ->options(array_combine(
+                                array_map(fn (RestaurantStatus $s) => $s->value, RestaurantStatus::cases()),
+                                array_map(fn (RestaurantStatus $s) => $s->value, RestaurantStatus::cases()),
+                            ))
+                            ->default(RestaurantStatus::Active->value),
                     ]),
-                    Select::make('status')
-                        ->required()
-                        ->options(array_combine(
-                            array_map(fn (RestaurantStatus $s) => $s->value, RestaurantStatus::cases()),
-                            array_map(fn (RestaurantStatus $s) => $s->value, RestaurantStatus::cases()),
-                        ))
-                        ->default(RestaurantStatus::Active->value),
                 ]),
         ]);
     }

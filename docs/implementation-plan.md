@@ -752,6 +752,16 @@ Stabilization / documentation pass (no new business modules, no mobile API chang
 - **API documentation**: **`docs/api-reference.md`** header clarifies **`/api/mobile`** as the live contract and defers to **`route:list`** for drift detection.
 - **Filament**: No unsafe bulk-delete patterns added in audited resources; authorization matrix remains covered by existing tests (panel access, platform vs restaurant separation, Access Management rules).
 
+### Phase 8I: Filament UI layout standardization
+
+Presentation-only consistency pass for **`/platform`** and **`/restaurant`** Filament:
+
+- **Full-width chrome**: Both panel providers call **`maxContentWidth(Width::Full)`** so resource pages inherit wide layouts without per-page duplication (existing **`RestaurantMenu`** page overrides removed as redundant).
+- **Forms**: Prefer **`Section::compact()`** + responsive **`Grid`** layouts (**typically three columns** on desktop); long fields (notes, descriptions, uploads, modal-heavy selects) stay **`columnSpanFull()`** or dedicated collapsed sections — mirroring **`RestaurantMenuForm`** patterns.
+- **Infolists / view**: Matching **`compact()`** sections and denser **`Grid`** columns on menus, users, permissions, restaurants, support tickets, booking notifications, etc.
+- **Shared helpers**: **`BranchAvailabilityRuleFormComponents`** wraps weekday toggles and numeric/time picks in compact grids; menu category/item schemas centralized for category edit pages + relation-manager modals.
+- **Safety**: No schema/API/auth changes; **`php artisan test`** remains green.
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)

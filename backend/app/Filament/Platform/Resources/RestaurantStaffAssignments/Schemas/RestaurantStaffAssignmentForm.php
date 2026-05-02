@@ -17,12 +17,13 @@ class RestaurantStaffAssignmentForm
     {
         return $schema->components([
             Section::make('Details')
+                ->compact()
                 ->schema([
-                    Select::make('user_id')
-                        ->relationship('user', 'email')
-                        ->required()
-                        ->searchable(),
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
+                        Select::make('user_id')
+                            ->relationship('user', 'email')
+                            ->required()
+                            ->searchable(),
                         Select::make('restaurant_id')
                             ->relationship('restaurant', 'name')
                             ->required()
@@ -52,7 +53,7 @@ class RestaurantStaffAssignmentForm
                                     : Rule::prohibitedIf(true);
                             }),
                     ]),
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         Select::make('role')
                             ->required()
                             ->options(array_combine(

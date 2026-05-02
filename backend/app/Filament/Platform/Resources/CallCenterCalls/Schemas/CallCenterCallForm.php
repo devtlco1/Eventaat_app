@@ -23,8 +23,9 @@ class CallCenterCallForm
     {
         return $schema->components([
             Section::make('Call')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         Select::make('direction')
                             ->label('Direction')
                             ->options(collect(CallCenterCallDirection::cases())->mapWithKeys(
@@ -46,6 +47,8 @@ class CallCenterCallForm
                             )->all())
                             ->required()
                             ->native(false),
+                    ]),
+                    Grid::make(3)->schema([
                         Select::make('restaurant_id')
                             ->label('Restaurant')
                             ->relationship('restaurant', 'name')
@@ -98,6 +101,8 @@ class CallCenterCallForm
                             })
                             ->searchable()
                             ->nullable(),
+                    ]),
+                    Grid::make(3)->schema([
                         Select::make('customer_user_id')
                             ->label('Customer')
                             ->relationship(
@@ -115,6 +120,8 @@ class CallCenterCallForm
                         TextInput::make('caller_name')
                             ->maxLength(255)
                             ->nullable(),
+                    ]),
+                    Grid::make(3)->schema([
                         Select::make('handled_by_user_id')
                             ->label('Handled by')
                             ->relationship(

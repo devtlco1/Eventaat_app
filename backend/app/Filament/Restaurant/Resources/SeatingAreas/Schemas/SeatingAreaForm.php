@@ -21,14 +21,15 @@ class SeatingAreaForm
 
         return $schema->components([
             Section::make('Details')
+                ->compact()
                 ->schema([
-                    Select::make('branch_id')
-                        ->options(fn () => $user
-                            ? RestaurantPanelScope::branches($user)->orderBy('name')->pluck('name', 'id')->all()
-                            : [])
-                        ->required()
-                        ->searchable(),
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
+                        Select::make('branch_id')
+                            ->options(fn () => $user
+                                ? RestaurantPanelScope::branches($user)->orderBy('name')->pluck('name', 'id')->all()
+                                : [])
+                            ->required()
+                            ->searchable(),
                         TextInput::make('name')
                             ->required()
                             ->maxLength(255),
@@ -36,7 +37,7 @@ class SeatingAreaForm
                             ->required()
                             ->maxLength(64),
                     ]),
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         Select::make('type')
                             ->required()
                             ->options(array_combine(

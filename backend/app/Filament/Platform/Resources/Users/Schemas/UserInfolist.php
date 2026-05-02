@@ -15,31 +15,35 @@ class UserInfolist
         return $schema
             ->components([
                 Section::make('Mobile / customer visibility')
+                    ->compact()
                     ->schema([
-                        TextEntry::make('customer_segment')
-                            ->label('Customer / mobile account')
-                            ->badge()
-                            ->state(fn (User $record): string => $record->hasRole('customer')
-                                ? 'Yes — mobile customer role'
-                                : 'No — not a mobile customer role')
-                            ->color(fn (User $record): string => $record->hasRole('customer') ? 'warning' : 'gray'),
-                        TextEntry::make('staff_segment')
-                            ->label('Restaurant staff')
-                            ->badge()
-                            ->state(fn (User $record): string => $record->isRestaurantStaff()
-                                ? 'Restaurant staff'
-                                : 'Not restaurant staff')
-                            ->color(fn (User $record): string => $record->isRestaurantStaff() ? 'info' : 'gray'),
-                        TextEntry::make('platform_segment')
-                            ->label('Platform operator')
-                            ->badge()
-                            ->state(fn (User $record): string => $record->isPlatformOperator()
-                                ? 'Platform operator'
-                                : 'Not a platform operator')
-                            ->color(fn (User $record): string => $record->isPlatformOperator() ? 'success' : 'gray'),
+                        Grid::make(3)->schema([
+                            TextEntry::make('customer_segment')
+                                ->label('Customer / mobile account')
+                                ->badge()
+                                ->state(fn (User $record): string => $record->hasRole('customer')
+                                    ? 'Yes — mobile customer role'
+                                    : 'No — not a mobile customer role')
+                                ->color(fn (User $record): string => $record->hasRole('customer') ? 'warning' : 'gray'),
+                            TextEntry::make('staff_segment')
+                                ->label('Restaurant staff')
+                                ->badge()
+                                ->state(fn (User $record): string => $record->isRestaurantStaff()
+                                    ? 'Restaurant staff'
+                                    : 'Not restaurant staff')
+                                ->color(fn (User $record): string => $record->isRestaurantStaff() ? 'info' : 'gray'),
+                            TextEntry::make('platform_segment')
+                                ->label('Platform operator')
+                                ->badge()
+                                ->state(fn (User $record): string => $record->isPlatformOperator()
+                                    ? 'Platform operator'
+                                    : 'Not a platform operator')
+                                ->color(fn (User $record): string => $record->isPlatformOperator() ? 'success' : 'gray'),
+                        ]),
                     ]),
 
                 Section::make('Identity')
+                    ->compact()
                     ->schema([
                         Grid::make(3)->schema([
                             TextEntry::make('name'),
@@ -52,9 +56,10 @@ class UserInfolist
                     ]),
 
                 Section::make('Counts')
+                    ->compact()
                     ->collapsed()
                     ->schema([
-                        Grid::make(2)->schema([
+                        Grid::make(3)->schema([
                             TextEntry::make('customer_bookings_total')
                                 ->label('Bookings as customer')
                                 ->numeric()
@@ -67,9 +72,10 @@ class UserInfolist
                     ]),
 
                 Section::make('System')
+                    ->compact()
                     ->collapsed()
                     ->schema([
-                        Grid::make(2)->schema([
+                        Grid::make(3)->schema([
                             TextEntry::make('created_at')->dateTime(),
                             TextEntry::make('updated_at')->dateTime(),
                         ]),

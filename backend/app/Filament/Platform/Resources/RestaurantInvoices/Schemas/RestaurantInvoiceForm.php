@@ -22,8 +22,9 @@ class RestaurantInvoiceForm
     {
         return $schema->components([
             Section::make('Invoice')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         Select::make('restaurant_id')
                             ->label('Restaurant')
                             ->relationship('restaurant', 'name')
@@ -54,25 +55,28 @@ class RestaurantInvoiceForm
                             })
                             ->searchable()
                             ->nullable(),
+                        TextInput::make('invoice_number')
+                            ->label('Invoice number')
+                            ->maxLength(64)
+                            ->unique(RestaurantInvoice::class, ignoreRecord: true)
+                            ->helperText(__('Leave empty to auto-generate (INV-YEAR-000001).')),
                     ]),
-                    TextInput::make('invoice_number')
-                        ->label('Invoice number')
-                        ->maxLength(64)
-                        ->unique(RestaurantInvoice::class, ignoreRecord: true)
-                        ->helperText(__('Leave empty when creating to auto-generate (INV-YEAR-000001).')),
-                    Select::make('status')
-                        ->required()
-                        ->options(collect(RestaurantInvoiceStatus::cases())->mapWithKeys(fn ($c) => [$c->value => $c->label()])->all()),
                     Grid::make(3)->schema([
+                        Select::make('status')
+                            ->required()
+                            ->options(collect(RestaurantInvoiceStatus::cases())->mapWithKeys(fn ($c) => [$c->value => $c->label()])->all()),
                         DatePicker::make('issue_date')->native(false)->nullable(),
                         DatePicker::make('due_date')->native(false)->nullable(),
+                    ]),
+                    Grid::make(3)->schema([
                         DateTimePicker::make('paid_at')->nullable()->seconds(false),
                     ]),
                 ]),
             Section::make('Amounts')
+                ->compact()
                 ->description(__('Total is recalculated as subtotal − discount + tax when saving.'))
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         TextInput::make('subtotal_amount')
                             ->numeric()
                             ->default(0)
@@ -91,6 +95,8 @@ class RestaurantInvoiceForm
                             ->minValue(0)
                             ->step(0.01)
                             ->required(),
+                    ]),
+                    Grid::make(3)->schema([
                         TextInput::make('total_amount')
                             ->numeric()
                             ->disabled()
@@ -103,6 +109,7 @@ class RestaurantInvoiceForm
                     ]),
                 ]),
             Section::make('Notes')
+                ->compact()
                 ->collapsed()
                 ->schema([
                     Textarea::make('notes')

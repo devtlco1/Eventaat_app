@@ -23,8 +23,9 @@ class RestaurantEventForm
     {
         return $schema->components([
             Section::make('Basics')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         TextInput::make('title')
                             ->required()
                             ->maxLength(255),
@@ -33,14 +34,14 @@ class RestaurantEventForm
                             ->maxLength(255)
                             ->unique(ignoreRecord: true)
                             ->dehydrateStateUsing(fn (?string $state) => $state ? Str::slug($state) : null),
-                    ]),
-                    Grid::make(2)->schema([
                         Select::make('restaurant_id')
                             ->label('Restaurant')
                             ->options(fn () => Restaurant::query()->orderBy('name')->pluck('name', 'id')->all())
                             ->searchable()
                             ->required()
                             ->reactive(),
+                    ]),
+                    Grid::make(3)->schema([
                         Select::make('branch_id')
                             ->label('Branch (optional)')
                             ->options(function (Get $get) {
@@ -68,8 +69,9 @@ class RestaurantEventForm
                 ]),
 
             Section::make('Schedule & capacity')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         Select::make('status')
                             ->required()
                             ->options(array_combine(RestaurantEvent::STATUSES, RestaurantEvent::STATUSES))
@@ -78,6 +80,9 @@ class RestaurantEventForm
                             ->required()
                             ->options(array_combine(RestaurantEvent::BOOKING_MODES, RestaurantEvent::BOOKING_MODES))
                             ->default(RestaurantEvent::BOOKING_MODE_INFO_ONLY),
+                        TextInput::make('price_label')
+                            ->maxLength(255)
+                            ->nullable(),
                     ]),
                     Grid::make(2)->schema([
                         DateTimePicker::make('starts_at')
@@ -104,12 +109,10 @@ class RestaurantEventForm
                                 return $record->capacity === null ? 'Unlimited' : (string) $record->remainingSeats();
                             }),
                     ]),
-                    TextInput::make('price_label')
-                        ->maxLength(255)
-                        ->nullable(),
                 ]),
 
             Section::make('Description & notes')
+                ->compact()
                 ->collapsed()
                 ->schema([
                     Textarea::make('description')

@@ -20,8 +20,9 @@ class RestaurantTableForm
     {
         return $schema->components([
             Section::make('Details')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         Select::make('restaurant_id')
                             ->label('Restaurant')
                             ->options(fn () => Restaurant::query()->orderBy('name')->pluck('name', 'id')->all())
@@ -67,23 +68,23 @@ class RestaurantTableForm
                                     $component->state($branchId);
                                 }
                             }),
-                    ]),
-                    Select::make('seating_area_id')
-                        ->label('Seating Area')
-                        ->options(function (Get $get) {
-                            $branchId = $get('branch_id');
-                            if (! $branchId) {
-                                return [];
-                            }
+                        Select::make('seating_area_id')
+                            ->label('Seating Area')
+                            ->options(function (Get $get) {
+                                $branchId = $get('branch_id');
+                                if (! $branchId) {
+                                    return [];
+                                }
 
-                            return SeatingArea::query()
-                                ->where('branch_id', $branchId)
-                                ->orderBy('name')
-                                ->pluck('name', 'id')
-                                ->all();
-                        })
-                        ->required()
-                        ->searchable(),
+                                return SeatingArea::query()
+                                    ->where('branch_id', $branchId)
+                                    ->orderBy('name')
+                                    ->pluck('name', 'id')
+                                    ->all();
+                            })
+                            ->required()
+                            ->searchable(),
+                    ]),
                     Grid::make(3)->schema([
                         TextInput::make('label')
                             ->required()

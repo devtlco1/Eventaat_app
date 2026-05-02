@@ -22,8 +22,9 @@ class RestaurantReviewForm
     {
         return $schema->components([
             Section::make('Review')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         Select::make('restaurant_id')
                             ->label('Restaurant')
                             ->options(fn () => Restaurant::query()->orderBy('name')->pluck('name', 'id')->all())
@@ -76,9 +77,6 @@ class RestaurantReviewForm
                                     }
                                 },
                             ]),
-                    ]),
-
-                    Grid::make(2)->schema([
                         Select::make('rating')
                             ->label('Rating')
                             ->options([
@@ -89,21 +87,18 @@ class RestaurantReviewForm
                                 5 => '5 - Excellent',
                             ])
                             ->required(),
-
+                    ]),
+                    Grid::make(3)->schema([
                         Select::make('status')
                             ->label('Status')
                             ->options(array_combine(RestaurantReview::STATUSES, RestaurantReview::STATUSES))
                             ->default(RestaurantReview::STATUS_PENDING_REVIEW)
                             ->required(),
-                    ]),
-
-                    Grid::make(2)->schema([
                         Select::make('source')
                             ->label('Source')
                             ->options(array_combine(RestaurantReview::SOURCES, RestaurantReview::SOURCES))
                             ->default(RestaurantReview::SOURCE_DASHBOARD)
                             ->required(),
-
                         Select::make('booking_id')
                             ->label('Booking (optional)')
                             ->options(function (Get $get) {
@@ -157,7 +152,6 @@ class RestaurantReviewForm
                                 },
                             ]),
                     ]),
-
                     Textarea::make('comment')
                         ->label('Comment')
                         ->rows(4)
@@ -166,34 +160,34 @@ class RestaurantReviewForm
                 ]),
 
             Section::make('Customer details')
+                ->compact()
                 ->collapsed()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         TextInput::make('customer_name')
                             ->label('Customer name')
                             ->maxLength(255)
                             ->nullable(),
-
                         TextInput::make('customer_phone')
                             ->label('Customer phone')
                             ->maxLength(32)
                             ->nullable(),
+                        Select::make('user_id')
+                            ->label('Linked user (optional)')
+                            ->options(fn () => User::query()->orderBy('name')->limit(50)->pluck('name', 'id')->all())
+                            ->searchable()
+                            ->getSearchResultsUsing(fn (string $search) => User::query()
+                                ->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%")
+                                ->limit(50)
+                                ->pluck('name', 'id')
+                                ->all())
+                            ->nullable(),
                     ]),
-
-                    Select::make('user_id')
-                        ->label('Linked user (optional)')
-                        ->options(fn () => User::query()->orderBy('name')->limit(50)->pluck('name', 'id')->all())
-                        ->searchable()
-                        ->getSearchResultsUsing(fn (string $search) => User::query()
-                            ->where('name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%")
-                            ->limit(50)
-                            ->pluck('name', 'id')
-                            ->all())
-                        ->nullable(),
                 ]),
 
             Section::make('Admin notes')
+                ->compact()
                 ->collapsed()
                 ->schema([
                     Textarea::make('admin_notes')

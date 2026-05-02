@@ -6,6 +6,7 @@ use Filament\Facades\Filament;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -15,42 +16,47 @@ class UserForm
     {
         return $schema->components([
             Section::make('Profile')
+                ->compact()
                 ->schema([
-                    TextInput::make('name')
-                        ->required()
-                        ->maxLength(255),
-                    TextInput::make('email')
-                        ->email()
-                        ->required()
-                        ->maxLength(255)
-                        ->unique(ignoreRecord: true),
-                    TextInput::make('phone')
-                        ->tel()
-                        ->maxLength(255)
-                        ->nullable(),
-                    TextInput::make('password')
-                        ->password()
-                        ->revealable()
-                        ->nullable()
-                        ->minLength(8)
-                        ->visible(fn ($livewire): bool => $livewire instanceof CreateRecord || static::editorMaySetPassword())
-                        ->helperText(fn ($livewire): ?string => $livewire instanceof CreateRecord
-                            ? 'Leave blank to auto-generate a secure password. If you enter a value, use at least 8 characters.'
-                            : (Filament::auth()->user()?->hasRole('super_admin') ? 'Leave blank to keep the current password.' : null))
-                        ->dehydrated(fn (?string $state): bool => filled($state)),
-                    Select::make('roles')
-                        ->label('Roles')
-                        ->relationship(
-                            name: 'roles',
-                            titleAttribute: 'name',
-                            modifyQueryUsing: fn ($query) => $query->where('guard_name', 'web')->orderBy('name'),
-                        )
-                        ->multiple()
-                        ->preload()
-                        ->searchable()
-                        ->helperText('Optional. Pick one or more roles so Spatie assignments match how this account should access panels or mobile.')
-                        ->visible(fn (): bool => static::editorMayAssignRoles())
-                        ->dehydrated(fn (): bool => static::editorMayAssignRoles()),
+                    Grid::make(3)->schema([
+                        TextInput::make('name')
+                            ->required()
+                            ->maxLength(255),
+                        TextInput::make('email')
+                            ->email()
+                            ->required()
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true),
+                        TextInput::make('phone')
+                            ->tel()
+                            ->maxLength(255)
+                            ->nullable(),
+                    ]),
+                    Grid::make(3)->schema([
+                        TextInput::make('password')
+                            ->password()
+                            ->revealable()
+                            ->nullable()
+                            ->minLength(8)
+                            ->visible(fn ($livewire): bool => $livewire instanceof CreateRecord || static::editorMaySetPassword())
+                            ->helperText(fn ($livewire): ?string => $livewire instanceof CreateRecord
+                                ? 'Leave blank to auto-generate. Minimum 8 characters if set.'
+                                : (Filament::auth()->user()?->hasRole('super_admin') ? 'Leave blank to keep current.' : null))
+                            ->dehydrated(fn (?string $state): bool => filled($state))
+                            ->columnSpan(fn (): int => static::editorMayAssignRoles() ? 2 : 3),
+                        Select::make('roles')
+                            ->label('Roles')
+                            ->relationship(
+                                name: 'roles',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn ($query) => $query->where('guard_name', 'web')->orderBy('name'),
+                            )
+                            ->multiple()
+                            ->preload()
+                            ->searchable()
+                            ->visible(fn (): bool => static::editorMayAssignRoles())
+                            ->dehydrated(fn (): bool => static::editorMayAssignRoles()),
+                    ]),
                 ]),
         ]);
     }
