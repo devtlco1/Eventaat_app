@@ -267,6 +267,19 @@ Internal **finance ledger** for operators — builds on **`subscription_plans`**
 - No payment gateways, hosted checkout, card vaulting, payouts, webhooks, or automated cash application
 - No PDF generation, email/WhatsApp invoice delivery, tax jurisdiction engine, credit notes, or restaurant/mobile/API reads for invoices
 
+### Phase 8E: call center foundation (platform-only)
+
+Internal **call logs** for operators — manual rows only (no telephony integration, no outbound messaging).
+
+- Migration **`call_center_calls`**: nullable **`restaurant_id`**, **`booking_id`**, **`support_ticket_id`**, **`customer_user_id`**, **`handled_by_user_id`**; enums **`direction`** (`inbound|outbound`), **`reason`** (`booking_confirmation|booking_follow_up|complaint|restaurant_support|billing|general`), **`outcome`** (`pending|reached|no_answer|busy|wrong_number|resolved|escalated`); nullable **`phone`**, **`caller_name`**, **`notes`**; **`follow_up_at`**, **`completed_at`**; **`metadata`** JSON
+- **`CallCenterCallService`**: **`markResolved`** (sets **`completed_at`** when missing), **`markEscalated`**, **`markNoAnswer`**
+- Model **`saving`** hook: aligns **`booking`** / **`support_ticket`** with **`restaurant`** when linked; normalizes **`pending`** outcome when **`completed_at`** is set
+- Filament **`/platform`** **Call logs** resource: filters (direction/reason/outcome/restaurant, follow-up due vs scheduled toggles), native row actions above, booking/support selectors scoped by restaurant where practical
+
+### Explicit non-goals (Phase 8E)
+
+- No VoIP, PSTN, WhatsApp/SMS bridges, AI transcription, workforce dialers, recordings, compliance retention packs, or restaurant/mobile/API reads for call logs
+
 ### Phase 9A: booking notification foundation
 
 Adds internal lifecycle notification rows only (no outbound channels):

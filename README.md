@@ -40,6 +40,9 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Restaurant invoices — internal ledger (Phase 8D)**:
   - **`restaurant_invoices`** linked optionally to **`restaurant_subscriptions`**; statuses **`draft|issued|paid|void|overdue`**; **`RestaurantInvoiceService`** generates **`INV-{year}-{seq}`** numbers and drives simple status actions
   - Filament **`/platform`** **Restaurant invoices** only — **no** PSP, PDF/email invoices, collections automation, or blocking restaurants by invoice status
+- **Call center foundation — internal logs (Phase 8E)**:
+  - **`call_center_calls`** operational log rows (**inbound / outbound**, reason/outcome enums, optional links to restaurant, booking, support ticket, customer user, handled-by platform user); **`metadata`** JSON only for internal notes — **no** VoIP, WhatsApp, SMS, or restaurant-panel UI in this phase
+  - Filament **`/platform`** **Call logs** (`super_admin`, `operations_admin`) with filters and native actions (**Mark resolved**, **Mark escalated**, **Mark no answer**) backed by **`CallCenterCallService`** — platform-only internal tooling
 - **Booking notification foundation (Phase 9A)**:
   - Internal `booking_notifications` rows (`pending`, no outbound sending): lifecycle events recorded after successful booking creation and valid transitions
   - `BookingNotificationService` builds title/message/payload; insert failures are reported without failing the booking flow

@@ -42,4 +42,9 @@ class Restaurant extends Model
     {
         return $this->hasMany(RestaurantInvoice::class)->orderByDesc('issue_date')->orderByDesc('id');
     }
+
+    public function callCenterCalls(): HasMany
+    {
+        return $this->hasMany(CallCenterCall::class)->orderByDesc('created_at');
+    }
 }

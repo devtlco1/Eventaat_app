@@ -31,6 +31,11 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - **`restaurant_invoices`** captures operator-managed billing rows (**draft|issued|paid|void|overdue**) with optional link to **`restaurant_subscriptions`**, IQD-ready decimal amounts, and **`metadata`** JSON for future extensions.
 - Amounts reconcile on save (**total = subtotal − discount + tax**, discount capped at subtotal); **`RestaurantInvoiceService`** allocates **`INV-{YYYY}-{000001}`** numbers and powers Filament row actions (**Mark issued**, **Mark paid**, **Void**) — **no** PSP, PDF/email delivery, automated collections, customer-facing invoices, or blocking restaurants based on invoice status yet.
 
+### Call center foundation — internal logs (Phase 8E)
+
+- **`call_center_calls`** stores operator-entered **call logs** (**inbound / outbound**, categorised reasons/outcomes, optional links to restaurant / booking / support ticket / customer user / handled-by platform staff); **`metadata`** JSON for unstructured operator tags only.
+- **`CallCenterCallService`** backs Filament row shortcuts (**Mark resolved**, **Mark escalated**, **Mark no answer**). **`completed_at`** with **`pending`** outcome normalizes to **`resolved`** on save — **no** live calling stack, WhatsApp/SMS bridges, recordings, CSAT polling, restaurant-panel screens, or public/mobile APIs for this module yet.
+
 ### Booking audit trail (Phase 5C)
 
 - **`booking_audit_logs`** stores append-only lifecycle rows when **`BookingTransitionService`** successfully changes status (**`accepted`**, **`rejected`**, **`cancelled`**, **`arrived`**, **`seated`**, **`completed`**, **`no_show`**) with **`from_status`** / **`to_status`** and optional **`actor_id`** (dashboard **`web`** or mobile **`sanctum`** user).

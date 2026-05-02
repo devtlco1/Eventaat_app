@@ -139,6 +139,11 @@ class SupportTicket extends Model
         return $this->hasMany(SupportTicketActivity::class)->orderByDesc('created_at');
     }
 
+    public function callCenterCalls(): HasMany
+    {
+        return $this->hasMany(CallCenterCall::class)->orderByDesc('created_at');
+    }
+
     protected static function booted(): void
     {
         static::saving(function (SupportTicket $ticket): void {

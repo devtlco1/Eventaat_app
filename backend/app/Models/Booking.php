@@ -82,4 +82,9 @@ class Booking extends Model
     {
         return $this->hasMany(BookingAuditLog::class)->orderByDesc('created_at');
     }
+
+    public function callCenterCalls(): HasMany
+    {
+        return $this->hasMany(CallCenterCall::class)->orderByDesc('created_at');
+    }
 }

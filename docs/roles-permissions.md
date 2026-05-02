@@ -153,6 +153,15 @@ Phase 8D adds **Restaurant invoices** under **`/platform`**:
 
 No mobile/API routes expose invoice rows in Phase 8D.
 
+## Platform call logs (Phase 8E)
+
+Phase 8E adds **Call logs** under **`/platform`** (`call_center_calls`):
+
+- Allowed: `super_admin`, `operations_admin`
+- Denied for restaurant-panel roles and **`customer`** — internal operator logs only (no VoIP, WhatsApp/SMS integration, or restaurant-panel UI in this phase).
+
+No mobile/API routes expose call log rows in Phase 8E.
+
 ## Event nights (Phase 11A)
 
 Phase 11A adds **Event nights** (`RestaurantEvent`) resources to both panels:
