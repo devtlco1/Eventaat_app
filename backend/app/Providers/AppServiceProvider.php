@@ -7,8 +7,10 @@ use App\Http\Middleware\EnsureValidSanctumToken;
 use App\Http\Responses\FilamentLogoutResponse;
 use App\Models\SupportTicket;
 use App\Observers\SupportTicketObserver;
-use App\Services\Otp\LocalLogOtpSender;
+use App\Services\Notifications\Providers\NotificationProvider;
 use App\Services\Otp\OtpSender;
+use App\Support\EventaatNotifications\BookingNotificationProviderFactory;
+use App\Support\EventaatNotifications\OtpSenderFactory;
 use Filament\Auth\Http\Responses\Contracts\LogoutResponse as FilamentLogoutResponseContract;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -20,7 +22,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(OtpSender::class, LocalLogOtpSender::class);
+        $this->app->bind(OtpSender::class, fn (): OtpSender => OtpSenderFactory::make());
+
+        $this->app->bind(
+            NotificationProvider::class,
+            fn (): NotificationProvider => BookingNotificationProviderFactory::make(),
+        );
         $this->app->bind(FilamentLogoutResponseContract::class, FilamentLogoutResponse::class);
     }
 

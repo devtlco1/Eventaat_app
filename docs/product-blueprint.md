@@ -57,6 +57,11 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
   - Creates an attempt row
   - Marks notification `sent` on success or `failed` on failure
 
+### Notification provider configuration readiness (Phase 7A)
+
+- `config/eventaat-notifications.php` plus env **`OTP_DRIVER`** (default **`log`**) and **`NOTIFICATION_DRIVER`** (default **`dry_run`**) for production-safe defaults (no paid integrations yet).
+- Reserved drivers **`sms`** / **`whatsapp`** fail fast with clear errors until implemented.
+
 ### Event nights dashboard foundation (Phase 11A)
 
 - Adds `RestaurantEvent` (event nights) as a dashboard-only module (no mobile/event discovery in this phase).

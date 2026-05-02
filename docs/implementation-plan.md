@@ -309,6 +309,22 @@ Prepares the notification system for future providers without integrating any ex
 - No API endpoints
 - No mobile notification UI
 
+### Phase 7A: notification provider readiness (production-safe configuration)
+
+Aligns blueprint **Phase 7** with shipping configuration (no paid provider integration):
+
+- `config/eventaat-notifications.php` driven by **`OTP_DRIVER`** (default **`log`**) and **`NOTIFICATION_DRIVER`** (default **`dry_run`**)
+- **`OtpSenderFactory`** / **`BookingNotificationProviderFactory`** centralize driver selection; **`sms`** and **`whatsapp`** are explicit placeholders that fail fast with helpful exceptions until implemented
+- Container bindings in **`AppServiceProvider`**: `OtpSender`, `NotificationProvider`
+- **`NotificationDispatchService::dispatchInternalDryRun`** resolves **`NotificationProvider`** from the container (supports test doubles via `NotificationProvider::class`) and stores **`$provider->identifier()`** on dispatch attempts
+- Misconfigured drivers surface clearly at resolution time (unsupported OTP driver breaks OTP resolution; unsupported notification driver breaks provider resolution / dry-run dispatch)
+
+### Explicit non-goals (Phase 7A)
+
+- No real SMS/WhatsApp or other paid outbound integrations
+- No new credentials, env secrets for providers, or live message sending
+- No mobile/API changes
+
 ### Phase 11A: event nights dashboard foundation
 
 Adds dashboard-only event nights management using native Filament resources:

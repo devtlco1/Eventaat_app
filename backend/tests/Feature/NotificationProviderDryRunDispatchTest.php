@@ -13,6 +13,7 @@ use App\Models\Restaurant;
 use App\Models\User;
 use App\Services\Notifications\NotificationDispatchService;
 use App\Services\Notifications\Providers\InternalDryRunNotificationProvider;
+use App\Services\Notifications\Providers\NotificationProvider;
 use App\Services\Notifications\Providers\NotificationProviderResult;
 use Database\Seeders\RolesAndTestUsersSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -101,14 +102,15 @@ class NotificationProviderDryRunDispatchTest extends TestCase
     {
         $n = $this->makePendingInternalNotification();
 
-        $fake = new class extends InternalDryRunNotificationProvider {
+        $fake = new class extends InternalDryRunNotificationProvider
+        {
             public function send(BookingNotification $notification): NotificationProviderResult
             {
                 return NotificationProviderResult::failure('Dry-run forced failure');
             }
         };
 
-        app()->instance(InternalDryRunNotificationProvider::class, $fake);
+        app()->instance(NotificationProvider::class, $fake);
 
         $ok = app(NotificationDispatchService::class)->dispatchInternalDryRun($n);
         $this->assertTrue($ok);
@@ -135,4 +137,3 @@ class NotificationProviderDryRunDispatchTest extends TestCase
         $this->assertSame(0, NotificationDispatchAttempt::count());
     }
 }
-

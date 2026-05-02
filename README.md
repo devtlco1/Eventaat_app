@@ -46,6 +46,9 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - Provider abstraction (`NotificationProvider` + `NotificationProviderResult`) plus an `InternalDryRunNotificationProvider` (no external API calls)
   - Dispatch attempt tracking (`notification_dispatch_attempts`) for provider-ready auditing
   - Platform Filament adds **Dry-run dispatch** for pending/internal booking notifications and shows dispatch attempt history on the view page
+- **Notification provider configuration readiness (Phase 7A)**:
+  - `config/eventaat-notifications.php` with **`OTP_DRIVER`** (default **`log`**) and **`NOTIFICATION_DRIVER`** (default **`dry_run`**); see `backend/.env.example`
+  - Central factories resolve senders/providers; **`sms`** / **`whatsapp`** are reserved and throw clear exceptions until a real integration exists (no credentials, no outbound messages in this phase)
 - **Event nights dashboard foundation (Phase 11A)**:
   - Model `RestaurantEvent` (`restaurant_events`) to represent restaurant-hosted event nights (dashboard-only in this phase)
   - Platform panel can manage all event nights

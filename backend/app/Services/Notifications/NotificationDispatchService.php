@@ -2,9 +2,10 @@
 
 namespace App\Services\Notifications;
 
+use App\Exceptions\UnsupportedNotificationDriverException;
 use App\Models\BookingNotification;
 use App\Models\NotificationDispatchAttempt;
-use App\Services\Notifications\Providers\InternalDryRunNotificationProvider;
+use App\Services\Notifications\Providers\NotificationProvider;
 use Illuminate\Support\Carbon;
 use Throwable;
 
@@ -33,12 +34,12 @@ class NotificationDispatchService
         $attemptedAt = Carbon::now();
 
         try {
-            $provider = app(InternalDryRunNotificationProvider::class);
+            $provider = app(NotificationProvider::class);
             $result = $provider->send($notification);
 
             NotificationDispatchAttempt::create([
                 'booking_notification_id' => $notification->id,
-                'provider' => InternalDryRunNotificationProvider::PROVIDER_NAME,
+                'provider' => $provider->identifier(),
                 'channel' => $notification->channel,
                 'status' => $result->success ? 'success' : 'failed',
                 'request_payload' => [
@@ -62,6 +63,8 @@ class NotificationDispatchService
             }
 
             return $this->markFailed($notification, $result->failure_reason ?? 'Provider reported failure.');
+        } catch (UnsupportedNotificationDriverException $e) {
+            throw $e;
         } catch (Throwable $e) {
             report($e);
 
@@ -130,4 +133,3 @@ class NotificationDispatchService
         }
     }
 }
-
