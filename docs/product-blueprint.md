@@ -29,7 +29,7 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 ### Notification templates + preview (Phase 9B)
 
 - Each booking lifecycle event can have an active template in `notification_templates` to generate `title` + `message` for outbox rows.
-- Canonical lifecycle keys include **`booking_requested`** (new pending booking), **`booking_accepted`**, **`booking_rejected`**, **`booking_cancelled`**, plus operational events (`arrived`, `seated`, `completed`, `no_show`). **`booking_arrival_reminder`** is seeded as a **template-only** hook for future reminders (no automatic job in Phase 7B unless a scheduler is added later).
+- Canonical lifecycle keys include **`booking_requested`** (new pending booking), **`booking_accepted`**, **`booking_rejected`**, **`booking_cancelled`**, plus operational events (`arrived`, `seated`, `completed`, `no_show`). **`booking_arrival_reminder`** has a seeded template; Phase **7C** adds **`php artisan eventaat:booking-reminders`** (default window **`BOOKING_REMINDER_HOURS=2`**) plus an optional Laravel **hourly** schedule entry — still **internal rows only**, no SMS/WhatsApp send until a future integration dispatches them.
 - Supported placeholders:
   - `{{customer_name}}`, `{{customer_phone}}`, `{{restaurant_name}}`, `{{branch_name}}`
   - `{{booking_id}}`, `{{booking_status}}`, `{{starts_at}}`, `{{party_size}}`
@@ -69,6 +69,11 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - Default templates are seeded idempotently for all **`BookingNotification::EVENTS`** keys (nine rows including **`booking_arrival_reminder`**).
 - Outbox **`payload`** retains structured fields plus **`resolved_title`** / **`resolved_message`** for auditing rendered copy.
 - **Dry-run dispatch** records attempts with provider **`internal_dry_run`**; still no external WhatsApp/SMS integration.
+
+### Booking arrival reminder command (Phase 7C)
+
+- **`eventaat:booking-reminders`** creates at most one **`booking_arrival_reminder`** row per booking when status is **`accepted`** and **`starts_at`** falls within the configured upcoming window (see **`BOOKING_REMINDER_HOURS`** / **`config/eventaat-notifications.php`**).
+- Reminder rows respect the same internal notification pipeline as other events; operators may **Dry-run dispatch** from Filament as today. No automatic external delivery.
 
 ### Event nights dashboard foundation (Phase 11A)
 

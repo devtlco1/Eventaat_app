@@ -330,7 +330,7 @@ Aligns blueprint **Phase 7** with shipping configuration (no paid provider integ
 Completes backend readiness for templated booking notifications and audited dry-run dispatch (still **no** real SMS/WhatsApp):
 
 - **`booking_requested`** is the canonical event key for new booking requests (`EVENT_BOOKING_CREATED` remains an alias for backward-compatible call sites).
-- **`booking_arrival_reminder`** template key exists for future scheduler/reminder work; Phase 7B does **not** auto-schedule reminders.
+- **`booking_arrival_reminder`** template key (Phase **7C** wires **`php artisan eventaat:booking-reminders`** + optional Laravel hourly schedule).
 - **`NotificationTemplatesSeeder`**: nine default English/internal templates (`updateOrCreate` by `event`, idempotent).
 - **`BookingNotificationService`**: payload snapshot includes resolved title/message, schedule placeholders **`booking_date`** / **`booking_time`** (app timezone), and **`channel: internal`**.
 - **`NotificationDispatchService::dispatchInternalDryRun`** continues to record **`internal_dry_run`** as provider identifier on attempts when **`NOTIFICATION_DRIVER=dry_run`** (default).
@@ -340,7 +340,21 @@ Completes backend readiness for templated booking notifications and audited dry-
 
 - No real outbound messaging or provider credentials
 - No mobile or public API changes
-- No scheduler for arrival reminders (documentation + template seed only unless a scheduler already existed project-wide)
+
+### Phase 7C: booking arrival reminder scheduler readiness
+
+Adds backend-only reminder **generation** (internal outbox rows still — **no** SMS/WhatsApp):
+
+- Artisan command **`eventaat:booking-reminders`** selects **`accepted`** bookings where **`starts_at`** is in **`(now, now + BOOKING_REMINDER_HOURS]`** (float hours, default **2**, app timezone via Laravel `now()` / booking datetime casts).
+- **Idempotent**: skips bookings that already have a **`booking_arrival_reminder`** notification row (`whereDoesntHave` — no new migration).
+- Uses **`BookingNotificationService::record`** only — does **not** call **`dispatchInternalDryRun`** or any external provider.
+- **`bootstrap/app.php`** registers **`Schedule::command('eventaat:booking-reminders')->hourly()`**; production still needs OS cron **`schedule:run`** (documented — not enforced in code).
+
+### Explicit non-goals (Phase 7C)
+
+- No mobile/public API changes
+- No real outbound messaging or new provider drivers
+- No Filament dashboards or reminder tuning UI
 
 ### Phase 11A: event nights dashboard foundation
 
