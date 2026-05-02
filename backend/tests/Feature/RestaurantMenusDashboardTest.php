@@ -7,6 +7,7 @@ use App\Enums\RestaurantStaffRole;
 use App\Enums\RestaurantStatus;
 use App\Filament\Platform\Resources\RestaurantMenus\Pages\CreateRestaurantMenu as PlatformCreateRestaurantMenu;
 use App\Filament\Platform\Resources\RestaurantMenus\Pages\EditRestaurantMenu as PlatformEditRestaurantMenu;
+use App\Filament\Platform\Resources\RestaurantMenus\Pages\ViewRestaurantMenu as PlatformViewRestaurantMenu;
 use App\Livewire\Filament\RestaurantMenuStructuredContent;
 use App\Livewire\Filament\RestaurantMenuStructuredItemsTable;
 use App\Models\Branch;
@@ -20,6 +21,7 @@ use Database\Seeders\RolesAndTestUsersSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -156,6 +158,121 @@ class RestaurantMenusDashboardTest extends TestCase
         Livewire::test(PlatformEditRestaurantMenu::class, ['record' => $data['aWide']->getKey()])
             ->assertSuccessful()
             ->assertSee('Menu content');
+    }
+
+    public function test_platform_edit_pdf_menu_hides_menu_content(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        $pdfMenu = RestaurantMenu::create([
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => null,
+            'title' => 'PDF QA Menu',
+            'slug' => 'pdf-qa-menu',
+            'status' => RestaurantMenu::STATUS_DRAFT,
+            'menu_mode' => RestaurantMenu::MODE_PDF_UPLOAD,
+            'menu_file_path' => 'menus/fixture-menu.pdf',
+            'menu_url' => null,
+            'description' => null,
+            'notes' => null,
+            'display_order' => 0,
+        ]);
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        Livewire::test(PlatformEditRestaurantMenu::class, ['record' => $pdfMenu->getKey()])
+            ->assertSuccessful()
+            ->assertDontSee('Menu content')
+            ->assertSee('PDF menu');
+    }
+
+    public function test_platform_edit_external_menu_hides_menu_content(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        $linkMenu = RestaurantMenu::create([
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => null,
+            'title' => 'Link QA Menu',
+            'slug' => 'link-qa-menu',
+            'status' => RestaurantMenu::STATUS_DRAFT,
+            'menu_mode' => RestaurantMenu::MODE_EXTERNAL_LINK,
+            'menu_file_path' => null,
+            'menu_url' => 'https://example.com/menu.pdf',
+            'description' => null,
+            'notes' => null,
+            'display_order' => 0,
+        ]);
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        Livewire::test(PlatformEditRestaurantMenu::class, ['record' => $linkMenu->getKey()])
+            ->assertSuccessful()
+            ->assertDontSee('Menu content')
+            ->assertSee('External menu');
+    }
+
+    public function test_platform_view_menu_sections_match_menu_mode(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        $pdfMenu = RestaurantMenu::create([
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => null,
+            'title' => 'PDF View QA',
+            'slug' => 'pdf-view-qa',
+            'status' => RestaurantMenu::STATUS_DRAFT,
+            'menu_mode' => RestaurantMenu::MODE_PDF_UPLOAD,
+            'menu_file_path' => 'menus/fixture-view.pdf',
+            'menu_url' => null,
+            'description' => null,
+            'notes' => null,
+            'display_order' => 0,
+        ]);
+
+        $linkMenu = RestaurantMenu::create([
+            'restaurant_id' => $data['a']->id,
+            'branch_id' => null,
+            'title' => 'Link View QA',
+            'slug' => 'link-view-qa',
+            'status' => RestaurantMenu::STATUS_DRAFT,
+            'menu_mode' => RestaurantMenu::MODE_EXTERNAL_LINK,
+            'menu_file_path' => null,
+            'menu_url' => 'https://example.com/menu',
+            'description' => null,
+            'notes' => null,
+            'display_order' => 0,
+        ]);
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        Livewire::test(PlatformViewRestaurantMenu::class, ['record' => $data['aWide']->getKey()])
+            ->assertSuccessful()
+            ->assertSee('Menu preview')
+            ->assertDontSee('PDF menu');
+
+        Livewire::test(PlatformViewRestaurantMenu::class, ['record' => $pdfMenu->getKey()])
+            ->assertSuccessful()
+            ->assertDontSee('Menu preview')
+            ->assertSee('PDF menu');
+
+        Livewire::test(PlatformViewRestaurantMenu::class, ['record' => $linkMenu->getKey()])
+            ->assertSuccessful()
+            ->assertDontSee('Menu preview')
+            ->assertSee('External menu');
+    }
+
+    public function test_public_disk_url_can_be_root_relative(): void
+    {
+        Config::set('filesystems.disks.public.url', '/storage');
+
+        $this->assertSame('/storage/menus/sample.pdf', Storage::disk('public')->url('menus/sample.pdf'));
     }
 
     public function test_platform_structured_menu_content_lists_categories_and_items_table(): void

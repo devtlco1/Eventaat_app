@@ -54,7 +54,9 @@ class RestaurantMenuInfolist
                                                 ->disk('public')
                                                 ->imageHeight(48)
                                                 ->columnSpan(2)
-                                                ->visible(fn (ImageEntry $component): bool => filled($component->getRecord()?->image_path)),
+                                                ->defaultImageUrl(
+                                                    'data:image/svg+xml,'.rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><rect fill="#f3f4f6" width="48" height="48" rx="6"/><text x="24" y="30" text-anchor="middle" fill="#9ca3af" font-size="18" font-family="system-ui,sans-serif">—</text></svg>')
+                                                ),
                                             TextEntry::make('name')
                                                 ->label('Item')
                                                 ->columnSpan(3),

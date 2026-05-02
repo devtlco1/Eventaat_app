@@ -276,7 +276,7 @@ Allowed:
 
 Capabilities:
 - Full CRUD over all menus
-- Structured menus: edit categories and items from **Edit menu** via the **Menu builder** (dashboard Livewire; modal add/edit); legacy categories relation manager/tab is opt-in via **`RestaurantMenuStructuredUi::SHOW_CATEGORIES_RELATION_MANAGER_FALLBACK`**
+- Structured menus: edit categories and items from **Edit menu** via **Menu content** (native Filament tables + modals); legacy categories relation manager/tab is opt-in via **`RestaurantMenuStructuredUi::SHOW_CATEGORIES_RELATION_MANAGER_FALLBACK`**
 - PDF uploads stored on the **`public`** disk under **`menus/`**; optional structured item images under **`menus/items/`** (local browsing requires `php artisan storage:link`)
 
 ### `/restaurant`
@@ -286,7 +286,7 @@ Scoping uses `RestaurantPanelScope::menus()` (same split as offers/stories):
 - `restaurant_owner`: restaurant-wide menus (`branch_id=null`) plus branch menus for assigned restaurant(s); **delete** menus owner-only (matches offers pattern)
 - `branch_manager` / `restaurant_host`: branch-scoped menus only (`branch_id` must be in scope); restaurant-wide menus must not appear or be reachable (**403/404**)
 
-Structured categories/items inherit parent-menu authorization (Menu builder when visible; relation managers only if fallback flag is on).
+Structured categories/items inherit parent-menu authorization (Menu content when visible; relation managers only if fallback flag is on).
 
 Out-of-scope URLs:
 - Restaurant panel direct links outside `RestaurantPanelScope::menus()` fail as **403** or **404**.
