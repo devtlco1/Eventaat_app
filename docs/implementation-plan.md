@@ -325,6 +325,23 @@ Aligns blueprint **Phase 7** with shipping configuration (no paid provider integ
 - No new credentials, env secrets for providers, or live message sending
 - No mobile/API changes
 
+### Phase 7B: booking notification templates + dry-run lifecycle
+
+Completes backend readiness for templated booking notifications and audited dry-run dispatch (still **no** real SMS/WhatsApp):
+
+- **`booking_requested`** is the canonical event key for new booking requests (`EVENT_BOOKING_CREATED` remains an alias for backward-compatible call sites).
+- **`booking_arrival_reminder`** template key exists for future scheduler/reminder work; Phase 7B does **not** auto-schedule reminders.
+- **`NotificationTemplatesSeeder`**: nine default English/internal templates (`updateOrCreate` by `event`, idempotent).
+- **`BookingNotificationService`**: payload snapshot includes resolved title/message, schedule placeholders **`booking_date`** / **`booking_time`** (app timezone), and **`channel: internal`**.
+- **`NotificationDispatchService::dispatchInternalDryRun`** continues to record **`internal_dry_run`** as provider identifier on attempts when **`NOTIFICATION_DRIVER=dry_run`** (default).
+- Tests cover idempotent seeding, placeholder rendering, accept/reject/cancel hooks + dry-run dispatch metadata.
+
+### Explicit non-goals (Phase 7B)
+
+- No real outbound messaging or provider credentials
+- No mobile or public API changes
+- No scheduler for arrival reminders (documentation + template seed only unless a scheduler already existed project-wide)
+
 ### Phase 11A: event nights dashboard foundation
 
 Adds dashboard-only event nights management using native Filament resources:

@@ -36,7 +36,8 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - `BookingNotificationService` builds title/message/payload; insert failures are reported without failing the booking flow
   - Platform Filament **Booking notifications** list (read-only) for `super_admin` and `operations_admin` only
 - **Notification templates + preview (Phase 9B)**:
-  - Configurable `notification_templates` (internal channel, `en` locale) for the 8 booking lifecycle events
+  - Configurable `notification_templates` (internal channel, `en` locale) for nine booking lifecycle/reminder keys (`booking_requested`, accepted/rejected/cancelled, arrived/seated/completed/no-show, **`booking_arrival_reminder`** template-ready only — no auto scheduler in Phase 7B)
+  - Placeholders include `{{booking_date}}` / `{{booking_time}}` (from `starts_at`, app timezone) alongside customer/restaurant/branch/booking fields
   - `BookingNotificationService` uses an active template when available; otherwise falls back to the Phase 9A hardcoded copy (never breaks booking flow)
   - Platform Filament **Notification templates** resource (CRUD + preview modal) for `super_admin` and `operations_admin` only
 - **Notification dispatch foundation (Phase 9C)**:
@@ -49,6 +50,9 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Notification provider configuration readiness (Phase 7A)**:
   - `config/eventaat-notifications.php` with **`OTP_DRIVER`** (default **`log`**) and **`NOTIFICATION_DRIVER`** (default **`dry_run`**); see `backend/.env.example`
   - Central factories resolve senders/providers; **`sms`** / **`whatsapp`** are reserved and throw clear exceptions until a real integration exists (no credentials, no outbound messages in this phase)
+- **Booking notification templates + dry-run lifecycle (Phase 7B)**:
+  - Idempotent **`NotificationTemplatesSeeder`** for default English templates; dry-run **`dispatchInternalDryRun`** stores provider **`internal_dry_run`** on **`notification_dispatch_attempts`**
+  - Still **no** live SMS/WhatsApp — outbound integrations remain future work
 - **Event nights dashboard foundation (Phase 11A)**:
   - Model `RestaurantEvent` (`restaurant_events`) to represent restaurant-hosted event nights (dashboard-only in this phase)
   - Platform panel can manage all event nights

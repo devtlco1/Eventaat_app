@@ -29,9 +29,11 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 ### Notification templates + preview (Phase 9B)
 
 - Each booking lifecycle event can have an active template in `notification_templates` to generate `title` + `message` for outbox rows.
+- Canonical lifecycle keys include **`booking_requested`** (new pending booking), **`booking_accepted`**, **`booking_rejected`**, **`booking_cancelled`**, plus operational events (`arrived`, `seated`, `completed`, `no_show`). **`booking_arrival_reminder`** is seeded as a **template-only** hook for future reminders (no automatic job in Phase 7B unless a scheduler is added later).
 - Supported placeholders:
   - `{{customer_name}}`, `{{customer_phone}}`, `{{restaurant_name}}`, `{{branch_name}}`
   - `{{booking_id}}`, `{{booking_status}}`, `{{starts_at}}`, `{{party_size}}`
+  - `{{booking_date}}`, `{{booking_time}}` — derived from `starts_at` in the app timezone (for Arabic-friendly copy, keep templates neutral; deep i18n is out of scope)
 - Rendering is intentionally simple:
   - Unknown placeholders remain unchanged.
   - Failures fall back to the Phase 9A hardcoded copy and never break booking flows.
@@ -61,6 +63,12 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
 - `config/eventaat-notifications.php` plus env **`OTP_DRIVER`** (default **`log`**) and **`NOTIFICATION_DRIVER`** (default **`dry_run`**) for production-safe defaults (no paid integrations yet).
 - Reserved drivers **`sms`** / **`whatsapp`** fail fast with clear errors until implemented.
+
+### Booking notification template lifecycle + dry-run polish (Phase 7B)
+
+- Default templates are seeded idempotently for all **`BookingNotification::EVENTS`** keys (nine rows including **`booking_arrival_reminder`**).
+- Outbox **`payload`** retains structured fields plus **`resolved_title`** / **`resolved_message`** for auditing rendered copy.
+- **Dry-run dispatch** records attempts with provider **`internal_dry_run`**; still no external WhatsApp/SMS integration.
 
 ### Event nights dashboard foundation (Phase 11A)
 

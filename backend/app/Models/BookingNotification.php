@@ -8,7 +8,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BookingNotification extends Model
 {
-    public const EVENT_BOOKING_CREATED = 'booking_created';
+    /** Customer or staff created a booking request (pending). */
+    public const EVENT_BOOKING_REQUESTED = 'booking_requested';
+
+    /**
+     * @deprecated Use EVENT_BOOKING_REQUESTED — same event key, kept for call-site compatibility.
+     */
+    public const EVENT_BOOKING_CREATED = self::EVENT_BOOKING_REQUESTED;
 
     public const EVENT_BOOKING_ACCEPTED = 'booking_accepted';
 
@@ -24,9 +30,14 @@ class BookingNotification extends Model
 
     public const EVENT_BOOKING_NO_SHOW = 'booking_no_show';
 
+    /**
+     * Reserved for future scheduled reminders — no automatic enqueue in Phase 7B.
+     */
+    public const EVENT_BOOKING_ARRIVAL_REMINDER = 'booking_arrival_reminder';
+
     /** @var list<string> */
     public const EVENTS = [
-        self::EVENT_BOOKING_CREATED,
+        self::EVENT_BOOKING_REQUESTED,
         self::EVENT_BOOKING_ACCEPTED,
         self::EVENT_BOOKING_REJECTED,
         self::EVENT_BOOKING_CANCELLED,
@@ -34,6 +45,7 @@ class BookingNotification extends Model
         self::EVENT_BOOKING_SEATED,
         self::EVENT_BOOKING_COMPLETED,
         self::EVENT_BOOKING_NO_SHOW,
+        self::EVENT_BOOKING_ARRIVAL_REMINDER,
     ];
 
     protected $fillable = [

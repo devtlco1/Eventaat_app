@@ -14,10 +14,9 @@ class NotificationTemplatesSeederTest extends TestCase
     public function test_default_notification_templates_are_seeded_idempotently(): void
     {
         $this->seed(NotificationTemplatesSeeder::class);
-        $this->assertSame(8, NotificationTemplate::count());
+        $this->assertSame(9, NotificationTemplate::count());
 
         $this->seed(NotificationTemplatesSeeder::class);
-        $this->assertSame(8, NotificationTemplate::count());
+        $this->assertSame(9, NotificationTemplate::count());
     }
 }
-

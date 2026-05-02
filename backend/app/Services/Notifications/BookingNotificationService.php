@@ -42,7 +42,7 @@ class BookingNotificationService
                 'title' => $title,
                 'message' => $message,
                 'status' => 'pending',
-                'payload' => $this->payloadSnapshot($booking, $event),
+                'payload' => $this->payloadSnapshot($booking, $event, $title, $message),
             ]);
         } catch (Throwable $e) {
             report($e);
@@ -92,7 +92,7 @@ class BookingNotificationService
 
         $customerPhone = $booking->customer?->phone ? (string) $booking->customer->phone : null;
 
-        return [
+        return array_merge([
             'customer_name' => $customerName,
             'customer_phone' => $customerPhone,
             'restaurant_name' => $booking->restaurant?->name,
@@ -101,6 +101,25 @@ class BookingNotificationService
             'booking_status' => $booking->status?->value,
             'starts_at' => $booking->starts_at?->toIso8601String(),
             'party_size' => $booking->party_size,
+        ], $this->bookingSchedulePlaceholders($booking));
+    }
+
+    /**
+     * @return array{booking_date: ?string, booking_time: ?string}
+     */
+    private function bookingSchedulePlaceholders(Booking $booking): array
+    {
+        $starts = $booking->starts_at;
+        if (! $starts) {
+            return ['booking_date' => null, 'booking_time' => null];
+        }
+
+        $tz = (string) config('app.timezone', 'UTC');
+        $local = $starts->copy()->timezone($tz);
+
+        return [
+            'booking_date' => $local->format('Y-m-d'),
+            'booking_time' => $local->format('H:i'),
         ];
     }
 
@@ -113,7 +132,7 @@ class BookingNotificationService
         $when = $booking->starts_at?->toIso8601String() ?? '';
 
         return match ($event) {
-            BookingNotification::EVENT_BOOKING_CREATED => [
+            BookingNotification::EVENT_BOOKING_REQUESTED => [
                 'Booking requested',
                 "A new booking was created at {$restaurant}. Starts at {$when}. Booking #{$booking->id}.",
             ],
@@ -145,6 +164,10 @@ class BookingNotificationService
                 'No-show recorded',
                 "Booking #{$booking->id} at {$restaurant} was marked no-show.",
             ],
+            BookingNotification::EVENT_BOOKING_ARRIVAL_REMINDER => [
+                'Upcoming booking reminder',
+                "Reminder: booking #{$booking->id} at {$restaurant}. Starts at {$when}.",
+            ],
             default => [
                 'Booking update',
                 "Booking #{$booking->id} event: {$event}.",
@@ -155,15 +178,18 @@ class BookingNotificationService
     /**
      * @return array<string, mixed>
      */
-    private function payloadSnapshot(Booking $booking, string $event): array
+    private function payloadSnapshot(Booking $booking, string $event, string $resolvedTitle, string $resolvedMessage): array
     {
-        return [
+        return array_merge([
             'event' => $event,
             'booking_status' => $booking->status?->value,
             'restaurant_id' => $booking->restaurant_id,
             'branch_id' => $booking->branch_id,
             'starts_at' => $booking->starts_at?->toIso8601String(),
             'party_size' => $booking->party_size,
-        ];
+            'resolved_title' => $resolvedTitle,
+            'resolved_message' => $resolvedMessage,
+            'channel' => 'internal',
+        ], $this->bookingSchedulePlaceholders($booking));
     }
 }
