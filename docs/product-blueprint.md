@@ -20,6 +20,12 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - Restaurant detail API exposes the same rule fields per branch as **`booking_availability`** (or **`null`**).
 - The mobile app shows summaries on restaurant details and create booking, and runs **best-effort** checks before submit; the API still returns **422** when the server rejects a time.
 
+### Restaurant subscriptions — platform foundation (Phase 8C)
+
+- **`subscription_plans`** defines catalog tiers (**Basic**, **Pro**, **Enterprise** seeded idempotently as placeholders); **`restaurant_subscriptions`** links restaurants to optional plans with statuses **`trial|active|past_due|cancelled|expired`** and optional schedule/note fields.
+- **Platform Filament only** (`super_admin`, `operations_admin`): manage plans and subscriptions — **no** payment processor, invoices, finance reports, entitlement middleware, or restaurant-panel subscription screens in this phase.
+- Restaurants may keep **multiple historical** subscriptions; only **one** `trial` **or** `active` row per restaurant is allowed at save time.
+
 ### Booking audit trail (Phase 5C)
 
 - **`booking_audit_logs`** stores append-only lifecycle rows when **`BookingTransitionService`** successfully changes status (**`accepted`**, **`rejected`**, **`cancelled`**, **`arrived`**, **`seated`**, **`completed`**, **`no_show`**) with **`from_status`** / **`to_status`** and optional **`actor_id`** (dashboard **`web`** or mobile **`sanctum`** user).

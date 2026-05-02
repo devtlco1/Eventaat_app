@@ -239,6 +239,20 @@ Adds practical branch-level booking constraints shared across mobile booking cre
 - Mobile: restaurant details + create booking show branch rule summaries; **client-side checks** mirror `BookingCreationValidator` where practical (disabled branch, min/max advance, weekday, open/close); **422 from `POST /api/mobile/bookings`** remains authoritative
 - No new booking endpoint; **no change** to `BookingCreationValidator` logic
 
+### Phase 8C: restaurant subscription foundation (platform-only)
+
+Blueprint operational gap (subscriptions/finance): adds **catalog + assignments** only — **no** payments, invoices, payment gateways, automatic restaurant suspension, or restaurant-panel subscription UI.
+
+- Tables: **`subscription_plans`** (`name`, unique **`slug`**, **`price_amount`** decimal, **`currency`** default IQD, **`billing_interval`** `monthly|yearly`, **`is_active`**, **`display_order`**) and **`restaurant_subscriptions`** (`restaurant_id`, nullable **`subscription_plan_id`**, **`status`** `trial|active|past_due|cancelled|expired`, **`starts_at|ends_at|cancelled_at`**, **`notes`**)
+- Restaurants may have **many** subscription rows over time; **at most one** `trial` **or** `active` row per restaurant enforced on save (validation — no blocking middleware on restaurants yet)
+- Filament **`/platform`** only: **Subscription plans** + **Restaurant subscriptions** resources (`super_admin`, `operations_admin`) — native CRUD tables/forms/badges
+- **`SubscriptionPlansSeeder`**: idempotent **Basic / Pro / Enterprise** demo catalog (`DatabaseSeeder` — **no** fake paid subscription rows tied to demo restaurants unless extended later)
+
+### Explicit non-goals (Phase 8C)
+
+- No mobile/API exposure of subscriptions in this phase
+- No Stripe/billing adapters, webhooks, invoices, tax, proration, or entitlements engine
+
 ### Phase 9A: booking notification foundation
 
 Adds internal lifecycle notification rows only (no outbound channels):

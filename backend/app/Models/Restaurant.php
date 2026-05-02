@@ -32,4 +32,9 @@ class Restaurant extends Model
     {
         return $this->hasMany(RestaurantMenu::class);
     }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(RestaurantSubscription::class)->orderByDesc('starts_at');
+    }
 }

@@ -135,6 +135,15 @@ Phase 10A adds a **Dry-run dispatch** action and a read-only dispatch attempt hi
 
 This is provider-ready foundation only (no real WhatsApp/SMS/push/email sending, no external API calls, no retries).
 
+## Platform restaurant subscriptions (Phase 8C)
+
+Phase 8C adds **Subscription plans** and **Restaurant subscriptions** resources under **`/platform`**:
+
+- Allowed: `super_admin`, `operations_admin`
+- Denied for all restaurant-panel roles (`restaurant_owner`, `branch_manager`, `restaurant_host`) and **`customer`** — restaurant staff manage bookings/operations only; subscription billing remains platform-managed until a future phase exposes read-only restaurant UI.
+
+No mobile/API routes expose subscription rows in Phase 8C.
+
 ## Event nights (Phase 11A)
 
 Phase 11A adds **Event nights** (`RestaurantEvent`) resources to both panels:

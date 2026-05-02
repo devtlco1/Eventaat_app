@@ -33,6 +33,10 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Mobile availability UX (Phase 8B)**:
   - `GET /api/mobile/restaurants/{slug}` includes per-branch **`booking_availability`** (customer-safe fields) or **`null`** when no rule exists
   - Restaurant details and create-booking screens show summaries and best-effort pre-submit checks; **server validation unchanged**
+- **Restaurant subscriptions — platform foundation (Phase 8C)** *(distinct phase id from booking Phase 8A–8B)*:
+  - **`subscription_plans`** catalog + **`restaurant_subscriptions`** assignments (`trial|active|past_due|cancelled|expired`); **no** payments/invoices/restaurant-panel UI yet
+  - Filament **`/platform`** resources **Subscription plans** + **Restaurant subscriptions** for `super_admin` / `operations_admin` only
+  - Idempotent **`SubscriptionPlansSeeder`** (Basic / Pro / Enterprise placeholders)
 - **Booking notification foundation (Phase 9A)**:
   - Internal `booking_notifications` rows (`pending`, no outbound sending): lifecycle events recorded after successful booking creation and valid transitions
   - `BookingNotificationService` builds title/message/payload; insert failures are reported without failing the booking flow
@@ -234,6 +238,10 @@ Phase 6 extends restaurant day-of operations:
 - Statuses: `arrived|seated|completed|no_show` (in addition to Phase 5 statuses)
 - Timestamps: `arrived_at|seated_at|completed_at|no_show_at`
 - Native Filament actions for day-of transitions (scoped in Restaurant panel)
+
+### Phase 8C: restaurant subscription foundation — platform only (dev only)
+
+Adds **`subscription_plans`** (priced catalog: IQD placeholders, monthly/yearly intervals) and **`restaurant_subscriptions`** (historical rows per restaurant; at most one **trial** or **active** slot enforced by validation). Filament Platform CRUD under **Operations** — **no** Stripe/invoices, **no** automatic blocking of restaurants by subscription status, **no** restaurant-panel screens or mobile/API exposure in this phase.
 
 ### Phase 9A: booking notification foundation (dev only)
 
