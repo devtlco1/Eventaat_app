@@ -7,6 +7,7 @@ use App\Enums\RestaurantStaffRole;
 use App\Enums\RestaurantStatus;
 use App\Filament\Platform\Resources\RestaurantMenus\Pages\CreateRestaurantMenu as PlatformCreateRestaurantMenu;
 use App\Filament\Platform\Resources\RestaurantMenus\Pages\EditRestaurantMenu as PlatformEditRestaurantMenu;
+use App\Livewire\Filament\RestaurantMenuCategoryItemsTable;
 use App\Models\Branch;
 use App\Models\Restaurant;
 use App\Models\RestaurantMenu;
@@ -153,6 +154,28 @@ class RestaurantMenusDashboardTest extends TestCase
         Livewire::test(PlatformEditRestaurantMenu::class, ['record' => $data['aWide']->getKey()])
             ->assertSuccessful()
             ->assertSee('Menu builder');
+    }
+
+    public function test_platform_menu_category_items_table_shows_native_table_actions(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        $category = RestaurantMenuCategory::create([
+            'restaurant_menu_id' => $data['aWide']->id,
+            'name' => 'Starters',
+            'description' => null,
+            'display_order' => 0,
+            'is_active' => true,
+        ]);
+
+        $admin = User::where('email', 'super_admin@eventaat.test')->firstOrFail();
+        Filament::setCurrentPanel('platform');
+        $this->actingAs($admin);
+
+        Livewire::test(RestaurantMenuCategoryItemsTable::class, ['categoryId' => $category->id])
+            ->assertSuccessful()
+            ->assertSee('Add item')
+            ->assertSee('No items yet');
     }
 
     public function test_platform_can_create_structured_menu_via_livewire(): void

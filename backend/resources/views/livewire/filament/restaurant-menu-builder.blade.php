@@ -1,5 +1,5 @@
 @php
-    use Illuminate\Support\Facades\Storage;
+    use Illuminate\Support\Js;
 @endphp
 
 <div class="space-y-6" wire:key="restaurant-menu-builder-{{ $record->getKey() }}">
@@ -61,7 +61,7 @@
                             color="gray"
                             outlined
                             type="button"
-                            wire:click="mountAction('editCategory', @js(['category' => $category->id]))"
+                            wire:click="mountAction('editCategory', {{ Js::from(['category' => $category->id]) }})"
                         >
                             Edit category
                         </x-filament::button>
@@ -70,135 +70,20 @@
                             color="danger"
                             outlined
                             type="button"
-                            wire:click="mountAction('deleteCategory', @js(['category' => $category->id]))"
+                            wire:click="mountAction('deleteCategory', {{ Js::from(['category' => $category->id]) }})"
                         >
                             Delete category
-                        </x-filament::button>
-                        <x-filament::button
-                            size="xs"
-                            color="primary"
-                            type="button"
-                            wire:click="mountAction('createItem', @js(['category' => $category->id]))"
-                        >
-                            Add item
                         </x-filament::button>
                     </div>
                 @endif
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full min-w-[56rem] divide-y divide-gray-200 text-sm dark:divide-white/10">
-                    <thead class="bg-gray-50 dark:bg-white/5">
-                        <tr>
-                            <th class="px-3 py-2 text-start text-xs font-medium text-gray-600 dark:text-gray-400">
-                                Image
-                            </th>
-                            <th class="px-3 py-2 text-start text-xs font-medium text-gray-600 dark:text-gray-400">
-                                Item
-                            </th>
-                            <th class="px-3 py-2 text-start text-xs font-medium text-gray-600 dark:text-gray-400">
-                                Description
-                            </th>
-                            <th class="px-3 py-2 text-start text-xs font-medium text-gray-600 dark:text-gray-400">
-                                Price
-                            </th>
-                            <th class="px-3 py-2 text-start text-xs font-medium text-gray-600 dark:text-gray-400">
-                                Available
-                            </th>
-                            <th class="px-3 py-2 text-start text-xs font-medium text-gray-600 dark:text-gray-400">
-                                Featured
-                            </th>
-                            <th class="px-3 py-2 text-start text-xs font-medium text-gray-600 dark:text-gray-400">
-                                Order
-                            </th>
-                            @if ($this->canManage())
-                                <th class="px-3 py-2 text-end text-xs font-medium text-gray-600 dark:text-gray-400">
-                                    Actions
-                                </th>
-                            @endif
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-white/10">
-                        @forelse ($category->items as $item)
-                            <tr class="bg-white dark:bg-gray-900">
-                                <td class="px-3 py-2 align-middle">
-                                    @if (filled($item->image_path))
-                                        <img
-                                            src="{{ Storage::disk('public')->url($item->image_path) }}"
-                                            alt=""
-                                            class="h-10 w-10 rounded-md object-cover ring-1 ring-gray-950/10 dark:ring-white/10"
-                                        />
-                                    @else
-                                        <span class="text-xs text-gray-400">—</span>
-                                    @endif
-                                </td>
-                                <td class="px-3 py-2 align-middle font-medium text-gray-950 dark:text-white">
-                                    {{ $item->name }}
-                                </td>
-                                <td class="max-w-xs px-3 py-2 align-middle text-gray-600 dark:text-gray-400">
-                                    {{ $item->description ?: '—' }}
-                                </td>
-                                <td class="whitespace-nowrap px-3 py-2 align-middle text-gray-950 dark:text-white">
-                                    @if ($item->price === null)
-                                        —
-                                    @else
-                                        {{ number_format((float) $item->price, 2) }} {{ $item->currency }}
-                                    @endif
-                                </td>
-                                <td class="px-3 py-2 align-middle">
-                                    @if ($item->is_available)
-                                        <span class="text-xs font-medium text-success-600 dark:text-success-400">Yes</span>
-                                    @else
-                                        <span class="text-xs text-gray-500">No</span>
-                                    @endif
-                                </td>
-                                <td class="px-3 py-2 align-middle">
-                                    @if ($item->is_featured)
-                                        <span class="text-xs font-medium text-warning-600 dark:text-warning-400">Yes</span>
-                                    @else
-                                        <span class="text-xs text-gray-500">—</span>
-                                    @endif
-                                </td>
-                                <td class="px-3 py-2 align-middle text-gray-600 dark:text-gray-400">
-                                    {{ $item->display_order }}
-                                </td>
-                                @if ($this->canManage())
-                                    <td class="px-3 py-2 text-end align-middle">
-                                        <div class="inline-flex flex-wrap justify-end gap-2">
-                                            <x-filament::button
-                                                size="xs"
-                                                color="gray"
-                                                outlined
-                                                type="button"
-                                                wire:click="mountAction('editItem', @js(['item' => $item->id]))"
-                                            >
-                                                Edit
-                                            </x-filament::button>
-                                            <x-filament::button
-                                                size="xs"
-                                                color="danger"
-                                                outlined
-                                                type="button"
-                                                wire:click="mountAction('deleteItem', @js(['item' => $item->id]))"
-                                            >
-                                                Delete
-                                            </x-filament::button>
-                                        </div>
-                                    </td>
-                                @endif
-                            </tr>
-                        @empty
-                            <tr>
-                                <td
-                                    colspan="{{ $this->canManage() ? 8 : 7 }}"
-                                    class="px-3 py-6 text-center text-sm text-gray-500 dark:text-gray-400"
-                                >
-                                    No items in this category yet.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+            <div class="p-0">
+                @livewire(
+                    \App\Livewire\Filament\RestaurantMenuCategoryItemsTable::class,
+                    ['categoryId' => $category->id],
+                    key('restaurant-menu-category-items-' . $record->getKey() . '-' . $category->id)
+                )
             </div>
         </div>
     @empty
