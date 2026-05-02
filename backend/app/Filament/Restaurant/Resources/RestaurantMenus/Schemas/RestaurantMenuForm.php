@@ -37,8 +37,9 @@ class RestaurantMenuForm
 
         return $schema->components([
             Section::make('Basics')
+                ->compact()
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         Select::make('restaurant_id')
                             ->label('Restaurant')
                             ->relationship(
@@ -93,8 +94,7 @@ class RestaurantMenuForm
 
                                 return $rule;
                             }),
-                    ]),
-                    Grid::make(2)->schema([
+
                         TextInput::make('title')
                             ->required()
                             ->maxLength(255)
@@ -111,13 +111,13 @@ class RestaurantMenuForm
 
                                 $set('slug', Str::slug($state));
                             }),
+                    ]),
+                    Grid::make(3)->schema([
                         TextInput::make('slug')
                             ->required()
                             ->maxLength(255)
                             ->regex('/^[a-z0-9]+(?:-[a-z0-9]+)*$/')
                             ->unique(table: RestaurantMenu::class, ignoreRecord: true),
-                    ]),
-                    Grid::make(2)->schema([
                         Select::make('status')
                             ->required()
                             ->options(array_combine(RestaurantMenu::STATUSES, RestaurantMenu::STATUSES))
@@ -133,14 +133,18 @@ class RestaurantMenuForm
                             ->default(RestaurantMenu::MODE_STRUCTURED)
                             ->live(),
                     ]),
-                    TextInput::make('display_order')
-                        ->label('Display order')
-                        ->numeric()
-                        ->default(0)
-                        ->minValue(0),
-                ]),
+                    Grid::make(3)->schema([
+                        TextInput::make('display_order')
+                            ->label('Display order')
+                            ->numeric()
+                            ->default(0)
+                            ->minValue(0),
+                    ]),
+                ])
+                ->columnSpanFull(),
 
             Section::make('Structured menu')
+                ->compact()
                 ->description('Save the menu first, then add categories and items from the edit screen.')
                 ->visible(fn (Get $get, $livewire): bool => $get('menu_mode') === RestaurantMenu::MODE_STRUCTURED
                     && $livewire instanceof CreateRecord)
@@ -159,6 +163,7 @@ class RestaurantMenuForm
                 ->columnSpanFull(),
 
             Section::make('PDF menu')
+                ->compact()
                 ->visible(fn (Get $get): bool => $get('menu_mode') === RestaurantMenu::MODE_PDF_UPLOAD)
                 ->schema([
                     FileUpload::make('menu_file_path')
@@ -174,6 +179,7 @@ class RestaurantMenuForm
                 ]),
 
             Section::make('External menu')
+                ->compact()
                 ->visible(fn (Get $get): bool => $get('menu_mode') === RestaurantMenu::MODE_EXTERNAL_LINK)
                 ->schema([
                     TextInput::make('menu_url')

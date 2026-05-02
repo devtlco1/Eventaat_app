@@ -19,10 +19,13 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -31,6 +34,7 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Arr;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
@@ -60,52 +64,65 @@ class RestaurantMenuCategoryItemsTable extends Component implements HasActions, 
     {
         return $schema
             ->components([
-                Section::make()->schema([
-                    FileUpload::make('image_path')
-                        ->label('Image')
-                        ->disk('public')
-                        ->directory('menus/items')
-                        ->visibility('public')
-                        ->acceptedFileTypes(['image/*'])
-                        ->maxFiles(1)
-                        ->nullable()
-                        ->downloadable(false),
-                    TextInput::make('name')
-                        ->label('Item name')
-                        ->required()
-                        ->maxLength(255),
-                    Textarea::make('description')
-                        ->label('Description')
-                        ->rows(3)
-                        ->nullable(),
-                    TextInput::make('price')
-                        ->label('Price')
-                        ->numeric()
-                        ->minValue(0)
-                        ->nullable(),
-                    TextInput::make('currency')
-                        ->label('Currency')
-                        ->default('IQD')
-                        ->maxLength(8)
-                        ->required(),
-                    Toggle::make('is_available')
-                        ->label('Available')
-                        ->default(true),
-                    Toggle::make('is_featured')
-                        ->label('Featured')
-                        ->default(false),
-                    TextInput::make('display_order')
-                        ->label('Display order')
-                        ->numeric()
-                        ->default(fn (): int => (int) ((RestaurantMenuItem::query()
-                            ->where('restaurant_menu_category_id', $this->categoryId)
-                            ->max('display_order')) ?? -1) + 1)
-                        ->minValue(0),
-                    Textarea::make('notes')
-                        ->label('Internal notes')
-                        ->rows(2)
-                        ->nullable(),
-                ]),
+                Section::make()
+                    ->compact()
+                    ->schema([
+                        FileUpload::make('image_path')
+                            ->label('Image')
+                            ->image()
+                            ->imagePreviewHeight('10rem')
+                            ->disk('public')
+                            ->directory('menus/items')
+                            ->visibility('public')
+                            ->maxFiles(1)
+                            ->nullable()
+                            ->downloadable(false)
+                            ->openable()
+                            ->columnSpanFull(),
+                        Grid::make(2)->schema([
+                            TextInput::make('name')
+                                ->label('Item name')
+                                ->required()
+                                ->maxLength(255),
+                            TextInput::make('price')
+                                ->label('Price')
+                                ->numeric()
+                                ->minValue(0)
+                                ->nullable(),
+                        ]),
+                        Grid::make(2)->schema([
+                            TextInput::make('currency')
+                                ->label('Currency')
+                                ->default('IQD')
+                                ->maxLength(8)
+                                ->required(),
+                            TextInput::make('display_order')
+                                ->label('Display order')
+                                ->numeric()
+                                ->default(fn (): int => (int) ((RestaurantMenuItem::query()
+                                    ->where('restaurant_menu_category_id', $this->categoryId)
+                                    ->max('display_order')) ?? -1) + 1)
+                                ->minValue(0),
+                        ]),
+                        Grid::make(2)->schema([
+                            Toggle::make('is_available')
+                                ->label('Available')
+                                ->default(true),
+                            Toggle::make('is_featured')
+                                ->label('Featured')
+                                ->default(false),
+                        ]),
+                        Textarea::make('description')
+                            ->label('Description')
+                            ->rows(3)
+                            ->nullable()
+                            ->columnSpanFull(),
+                        Textarea::make('notes')
+                            ->label('Internal notes')
+                            ->rows(2)
+                            ->nullable()
+                            ->columnSpanFull(),
+                    ]),
             ]);
     }
 
@@ -115,14 +132,22 @@ class RestaurantMenuCategoryItemsTable extends Component implements HasActions, 
             ->query($this->getTableQuery())
             ->paginated(false)
             ->defaultSort('display_order')
+            ->striped()
             ->emptyStateHeading('No items yet')
             ->emptyStateDescription('Add the first item for this category.')
+            ->emptyStateIcon(Heroicon::OutlinedPhoto)
             ->columns([
                 ImageColumn::make('image_path')
-                    ->label('')
+                    ->label('Image')
                     ->disk('public')
                     ->square()
-                    ->imageHeight(40)
+                    ->imageHeight(44)
+                    ->imageWidth(44)
+                    ->getStateUsing(function (RestaurantMenuItem $record): mixed {
+                        $path = $record->image_path;
+
+                        return is_array($path) ? Arr::first($path) : $path;
+                    })
                     ->placeholder('—'),
                 TextColumn::make('name')
                     ->label('Name')
@@ -159,10 +184,19 @@ class RestaurantMenuCategoryItemsTable extends Component implements HasActions, 
             ->headerActions([
                 CreateAction::make()
                     ->label('Add item')
+                    ->modalHeading('Add item')
+                    ->modalWidth(Width::FiveExtraLarge)
                     ->model(RestaurantMenuItem::class)
                     ->visible(fn (): bool => $this->canEditMenu())
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['restaurant_menu_category_id'] = $this->categoryId;
+                        if (isset($data['image_path']) && is_array($data['image_path'])) {
+                            $paths = array_values(array_filter(
+                                $data['image_path'],
+                                fn ($p): bool => is_string($p) && filled($p),
+                            ));
+                            $data['image_path'] = $paths[0] ?? null;
+                        }
 
                         return $data;
                     }),
@@ -170,9 +204,23 @@ class RestaurantMenuCategoryItemsTable extends Component implements HasActions, 
             ->recordActions([
                 EditAction::make()
                     ->label('Edit')
-                    ->visible(fn (): bool => $this->canEditMenu()),
+                    ->modalHeading('Edit item')
+                    ->modalWidth(Width::FiveExtraLarge)
+                    ->visible(fn (): bool => $this->canEditMenu())
+                    ->mutateDataUsing(function (array $data): array {
+                        if (isset($data['image_path']) && is_array($data['image_path'])) {
+                            $paths = array_values(array_filter(
+                                $data['image_path'],
+                                fn ($p): bool => is_string($p) && filled($p),
+                            ));
+                            $data['image_path'] = $paths[0] ?? null;
+                        }
+
+                        return $data;
+                    }),
                 DeleteAction::make()
                     ->label('Delete')
+                    ->modalWidth(Width::Medium)
                     ->visible(fn (): bool => $this->canEditMenu()),
             ])
             ->bulkActions([]);

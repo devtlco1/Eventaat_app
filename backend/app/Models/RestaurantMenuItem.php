@@ -47,6 +47,12 @@ class RestaurantMenuItem extends Model
                 $item->currency = 'IQD';
             }
 
+            $path = $item->image_path;
+            if (is_array($path)) {
+                $paths = array_values(array_filter($path, fn ($p): bool => is_string($p) && filled($p)));
+                $item->image_path = $paths[0] ?? null;
+            }
+
             $originalImagePath = $item->exists ? $item->getOriginal('image_path') : null;
 
             if (

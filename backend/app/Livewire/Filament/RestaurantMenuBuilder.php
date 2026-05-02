@@ -12,8 +12,10 @@ use Filament\Facades\Filament;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\Attributes\Locked;
@@ -51,27 +53,31 @@ class RestaurantMenuBuilder extends Component implements HasActions, HasSchemas
     }
 
     /**
-     * @return array<int, \Filament\Forms\Components\Component>
+     * @return array<int, Section>
      */
-    protected function categoryFormComponents(): array
+    protected function categoryFormSchema(): array
     {
         return [
-            TextInput::make('name')
-                ->label('Category name')
-                ->required()
-                ->maxLength(255),
-            Textarea::make('description')
-                ->label('Description')
-                ->rows(3)
-                ->nullable(),
-            TextInput::make('display_order')
-                ->label('Display order')
-                ->numeric()
-                ->default(0)
-                ->minValue(0),
-            Toggle::make('is_active')
-                ->label('Active')
-                ->default(true),
+            Section::make()
+                ->compact()
+                ->schema([
+                    TextInput::make('name')
+                        ->label('Name')
+                        ->required()
+                        ->maxLength(255),
+                    Textarea::make('description')
+                        ->label('Description')
+                        ->rows(3)
+                        ->nullable(),
+                    TextInput::make('display_order')
+                        ->label('Display order')
+                        ->numeric()
+                        ->default(0)
+                        ->minValue(0),
+                    Toggle::make('is_active')
+                        ->label('Active')
+                        ->default(true),
+                ]),
         ];
     }
 
@@ -82,8 +88,9 @@ class RestaurantMenuBuilder extends Component implements HasActions, HasSchemas
             ->icon(Heroicon::OutlinedPlus)
             ->modalHeading('Add category')
             ->modalSubmitActionLabel('Create')
+            ->modalWidth(Width::Large)
             ->visible(fn (): bool => $this->canManage())
-            ->schema($this->categoryFormComponents())
+            ->schema($this->categoryFormSchema())
             ->fillForm([
                 'name' => '',
                 'description' => null,
@@ -105,12 +112,13 @@ class RestaurantMenuBuilder extends Component implements HasActions, HasSchemas
     public function editCategoryAction(): Action
     {
         return Action::make('editCategory')
-            ->label('Edit')
+            ->label('Edit category')
             ->icon(Heroicon::OutlinedPencilSquare)
             ->modalHeading('Edit category')
             ->modalSubmitActionLabel('Save')
+            ->modalWidth(Width::Large)
             ->visible(fn (): bool => $this->canManage())
-            ->schema($this->categoryFormComponents())
+            ->schema($this->categoryFormSchema())
             ->fillForm(function (array $arguments): array {
                 $category = RestaurantMenuCategory::query()->findOrFail($arguments['category']);
 
@@ -138,12 +146,13 @@ class RestaurantMenuBuilder extends Component implements HasActions, HasSchemas
     public function deleteCategoryAction(): Action
     {
         return Action::make('deleteCategory')
-            ->label('Delete')
+            ->label('Delete category')
             ->icon(Heroicon::OutlinedTrash)
             ->color('danger')
             ->visible(fn (): bool => $this->canManage())
             ->requiresConfirmation()
             ->modalHeading('Delete category')
+            ->modalWidth(Width::Medium)
             ->modalDescription('This will permanently delete the category and all of its menu items.')
             ->action(function (array $arguments): void {
                 $category = RestaurantMenuCategory::query()->findOrFail($arguments['category']);
