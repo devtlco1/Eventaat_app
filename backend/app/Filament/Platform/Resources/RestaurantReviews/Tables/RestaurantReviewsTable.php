@@ -23,9 +23,36 @@ class RestaurantReviewsTable
                 TextColumn::make('id')->label('ID')->sortable(),
                 TextColumn::make('restaurant.name')->label('Restaurant')->searchable()->sortable(),
                 TextColumn::make('branch.name')->label('Branch')->placeholder('Restaurant-wide')->searchable()->sortable(),
-                TextColumn::make('rating')->label('Rating')->badge()->sortable(),
-                TextColumn::make('status')->badge()->sortable(),
-                TextColumn::make('source')->badge()->sortable(),
+                TextColumn::make('rating')
+                    ->label('Rating')
+                    ->badge()
+                    ->color(fn (RestaurantReview $record): string => match ((int) $record->rating) {
+                        1, 2 => 'danger',
+                        3 => 'warning',
+                        4 => 'info',
+                        5 => 'success',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+                TextColumn::make('status')
+                    ->badge()
+                    ->color(fn (RestaurantReview $record): string => match ($record->status) {
+                        RestaurantReview::STATUS_PENDING_REVIEW => 'warning',
+                        RestaurantReview::STATUS_PUBLISHED => 'success',
+                        RestaurantReview::STATUS_REJECTED => 'danger',
+                        RestaurantReview::STATUS_HIDDEN => 'gray',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+                TextColumn::make('source')
+                    ->badge()
+                    ->color(fn (RestaurantReview $record): string => match ($record->source) {
+                        RestaurantReview::SOURCE_MOBILE => 'info',
+                        RestaurantReview::SOURCE_IMPORT => 'warning',
+                        RestaurantReview::SOURCE_DASHBOARD => 'gray',
+                        default => 'gray',
+                    })
+                    ->sortable(),
                 TextColumn::make('customer_name')->label('Customer')->placeholder('—')->searchable(),
                 TextColumn::make('booking_id')->label('Booking')->placeholder('—')->sortable(),
                 TextColumn::make('created_at')->label('Submitted')->dateTime()->sortable(),

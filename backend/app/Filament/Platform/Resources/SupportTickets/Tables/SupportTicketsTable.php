@@ -37,9 +37,37 @@ class SupportTicketsTable
                         return filled($record->user?->name) ? (string) $record->user->name : '—';
                     })
                     ->searchable(),
-                TextColumn::make('category')->badge()->sortable(),
-                TextColumn::make('priority')->badge()->sortable(),
-                TextColumn::make('status')->badge()->sortable(),
+                TextColumn::make('category')
+                    ->badge()
+                    ->color(fn (SupportTicket $record): string => match ($record->category) {
+                        SupportTicket::CATEGORY_PAYMENT => 'danger',
+                        SupportTicket::CATEGORY_RESTAURANT => 'warning',
+                        SupportTicket::CATEGORY_BOOKING => 'info',
+                        SupportTicket::CATEGORY_APP => 'info',
+                        SupportTicket::CATEGORY_OTHER => 'gray',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+                TextColumn::make('priority')
+                    ->badge()
+                    ->color(fn (SupportTicket $record): string => match ($record->priority) {
+                        SupportTicket::PRIORITY_LOW => 'gray',
+                        SupportTicket::PRIORITY_NORMAL => 'info',
+                        SupportTicket::PRIORITY_HIGH => 'warning',
+                        SupportTicket::PRIORITY_URGENT => 'danger',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+                TextColumn::make('status')
+                    ->badge()
+                    ->color(fn (SupportTicket $record): string => match ($record->status) {
+                        SupportTicket::STATUS_OPEN => 'warning',
+                        SupportTicket::STATUS_IN_PROGRESS => 'info',
+                        SupportTicket::STATUS_RESOLVED => 'success',
+                        SupportTicket::STATUS_CLOSED => 'gray',
+                        default => 'gray',
+                    })
+                    ->sortable(),
                 TextColumn::make('created_at')->dateTime()->sortable(),
             ])
             ->defaultSort('created_at', 'desc')

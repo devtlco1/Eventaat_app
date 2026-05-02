@@ -37,8 +37,25 @@ class RestaurantMenusTable
                 TextColumn::make('title')->searchable()->sortable(),
                 TextColumn::make('restaurant.name')->label('Restaurant')->searchable()->sortable(),
                 TextColumn::make('branch.name')->label('Branch')->placeholder('—')->searchable()->sortable(),
-                TextColumn::make('menu_mode')->label('Mode')->badge()->sortable(),
-                TextColumn::make('status')->badge()->sortable(),
+                TextColumn::make('menu_mode')
+                    ->label('Mode')
+                    ->badge()
+                    ->color(fn (RestaurantMenu $record): string => match ($record->menu_mode) {
+                        RestaurantMenu::MODE_STRUCTURED => 'info',
+                        RestaurantMenu::MODE_PDF_UPLOAD => 'warning',
+                        RestaurantMenu::MODE_EXTERNAL_LINK => 'gray',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+                TextColumn::make('status')
+                    ->badge()
+                    ->color(fn (RestaurantMenu $record): string => match ($record->status) {
+                        RestaurantMenu::STATUS_DRAFT => 'gray',
+                        RestaurantMenu::STATUS_PUBLISHED => 'success',
+                        RestaurantMenu::STATUS_ARCHIVED => 'gray',
+                        default => 'gray',
+                    })
+                    ->sortable(),
                 TextColumn::make('display_order')->label('Order')->sortable(),
                 TextColumn::make('updated_at')->dateTime()->sortable()->sinceTooltip(),
             ])

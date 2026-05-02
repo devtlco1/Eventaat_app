@@ -43,6 +43,8 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Call center foundation — internal logs (Phase 8E)**:
   - **`call_center_calls`** operational log rows (**inbound / outbound**, reason/outcome enums, optional links to restaurant, booking, support ticket, customer user, handled-by platform user); **`metadata`** JSON only for internal notes — **no** VoIP, WhatsApp, SMS, or restaurant-panel UI in this phase
   - Filament **`/platform`** **Call logs** (`super_admin`, `operations_admin`) with filters and native actions (**Mark resolved**, **Mark escalated**, **Mark no answer**) backed by **`CallCenterCallService`** — platform-only internal tooling
+- **Platform operations polish (Phase 8F)**:
+  - **Operations** sidebar order deduped (unique `navigationSort`), **Bookings** + **Event nights** gated explicitly like other ops modules (`super_admin` / `operations_admin`), semantic **badge colors** on core Operations tables (tickets, events, menus, offers, stories, reviews), **no** bulk-delete tooling added — stabilization only (**no** new features / APIs / migrations)
 - **Booking notification foundation (Phase 9A)**:
   - Internal `booking_notifications` rows (`pending`, no outbound sending): lifecycle events recorded after successful booking creation and valid transitions
   - `BookingNotificationService` builds title/message/payload; insert failures are reported without failing the booking flow

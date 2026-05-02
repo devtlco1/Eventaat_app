@@ -36,6 +36,11 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - **`call_center_calls`** stores operator-entered **call logs** (**inbound / outbound**, categorised reasons/outcomes, optional links to restaurant / booking / support ticket / customer user / handled-by platform staff); **`metadata`** JSON for unstructured operator tags only.
 - **`CallCenterCallService`** backs Filament row shortcuts (**Mark resolved**, **Mark escalated**, **Mark no answer**). **`completed_at`** with **`pending`** outcome normalizes to **`resolved`** on save — **no** live calling stack, WhatsApp/SMS bridges, recordings, CSAT polling, restaurant-panel screens, or public/mobile APIs for this module yet.
 
+### Platform operations polish (Phase 8F)
+
+- **Filament `/platform` Operations** sidebar ordering is deterministic (no overlapping sort integers); **Bookings** and **Event nights** resources enforce the same **`super_admin` / `operations_admin`** gates as invoices/subscriptions/tickets/call logs.
+- Operations **table badges** use consistent semantic Filament colors for statuses/priorities/modes where rows were previously monochrome — presentation-only tightening (**no** API or schema churn).
+
 ### Booking audit trail (Phase 5C)
 
 - **`booking_audit_logs`** stores append-only lifecycle rows when **`BookingTransitionService`** successfully changes status (**`accepted`**, **`rejected`**, **`cancelled`**, **`arrived`**, **`seated`**, **`completed`**, **`no_show`**) with **`from_status`** / **`to_status`** and optional **`actor_id`** (dashboard **`web`** or mobile **`sanctum`** user).

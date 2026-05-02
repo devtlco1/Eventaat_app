@@ -26,7 +26,7 @@ class RestaurantOfferResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Operations';
 
-    protected static ?int $navigationSort = 18;
+    protected static ?int $navigationSort = 19;
 
     protected static ?string $navigationLabel = 'Offers';
 
@@ -102,4 +102,3 @@ class RestaurantOfferResource extends Resource
         ];
     }
 }
-

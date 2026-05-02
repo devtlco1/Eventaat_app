@@ -25,8 +25,28 @@ class RestaurantOffersTable
                 TextColumn::make('title')->searchable()->sortable(),
                 TextColumn::make('restaurant.name')->label('Restaurant')->searchable()->sortable(),
                 TextColumn::make('branch.name')->label('Branch')->searchable()->sortable(),
-                TextColumn::make('status')->badge()->sortable(),
-                TextColumn::make('offer_type')->label('Offer type')->badge()->sortable(),
+                TextColumn::make('status')
+                    ->badge()
+                    ->color(fn (RestaurantOffer $record): string => match ($record->status) {
+                        RestaurantOffer::STATUS_DRAFT => 'gray',
+                        RestaurantOffer::STATUS_PENDING_REVIEW => 'warning',
+                        RestaurantOffer::STATUS_PUBLISHED => 'success',
+                        RestaurantOffer::STATUS_REJECTED => 'danger',
+                        RestaurantOffer::STATUS_EXPIRED => 'gray',
+                        RestaurantOffer::STATUS_CANCELLED => 'gray',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+                TextColumn::make('offer_type')
+                    ->label('Offer type')
+                    ->badge()
+                    ->color(fn (RestaurantOffer $record): string => match ($record->offer_type) {
+                        RestaurantOffer::TYPE_PERCENTAGE => 'warning',
+                        RestaurantOffer::TYPE_FIXED_AMOUNT => 'info',
+                        RestaurantOffer::TYPE_TEXT_ONLY => 'gray',
+                        default => 'gray',
+                    })
+                    ->sortable(),
                 TextColumn::make('discount_value')->label('Discount value')->sortable(),
                 TextColumn::make('starts_at')->label('Starts at')->dateTime()->sortable(),
                 TextColumn::make('ends_at')->label('Ends at')->dateTime()->sortable(),
@@ -103,4 +123,3 @@ class RestaurantOffersTable
             ]);
     }
 }
-

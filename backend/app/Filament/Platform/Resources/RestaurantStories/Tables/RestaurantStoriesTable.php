@@ -26,8 +26,28 @@ class RestaurantStoriesTable
                 TextColumn::make('title')->searchable()->sortable(),
                 TextColumn::make('restaurant.name')->label('Restaurant')->searchable()->sortable(),
                 TextColumn::make('branch.name')->label('Branch')->searchable()->sortable(),
-                TextColumn::make('story_type')->label('Story type')->badge()->sortable(),
-                TextColumn::make('status')->badge()->sortable(),
+                TextColumn::make('story_type')
+                    ->label('Story type')
+                    ->badge()
+                    ->color(fn (RestaurantStory $record): string => match ($record->story_type) {
+                        RestaurantStory::TYPE_IMAGE => 'info',
+                        RestaurantStory::TYPE_VIDEO => 'warning',
+                        RestaurantStory::TYPE_TEXT => 'gray',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+                TextColumn::make('status')
+                    ->badge()
+                    ->color(fn (RestaurantStory $record): string => match ($record->status) {
+                        RestaurantStory::STATUS_DRAFT => 'gray',
+                        RestaurantStory::STATUS_PENDING_REVIEW => 'warning',
+                        RestaurantStory::STATUS_PUBLISHED => 'success',
+                        RestaurantStory::STATUS_REJECTED => 'danger',
+                        RestaurantStory::STATUS_EXPIRED => 'gray',
+                        RestaurantStory::STATUS_CANCELLED => 'gray',
+                        default => 'gray',
+                    })
+                    ->sortable(),
                 TextColumn::make('starts_at')->label('Starts at')->dateTime()->sortable(),
                 TextColumn::make('ends_at')->label('Ends at')->dateTime()->sortable(),
                 TextColumn::make('display_order')->label('Display order')->sortable(),

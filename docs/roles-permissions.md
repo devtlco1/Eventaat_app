@@ -162,6 +162,12 @@ Phase 8E adds **Call logs** under **`/platform`** (`call_center_calls`):
 
 No mobile/API routes expose call log rows in Phase 8E.
 
+## Platform operations polish (Phase 8F)
+
+Phase **8F** does not introduce new roles or weaken gates — it aligns **`BookingResource`** and **`RestaurantEventResource`** with the explicit **`super_admin` / `operations_admin`** checks already used by subscriptions, invoices, support tickets, call logs, menus, offers, stories, reviews, booking notifications, and notification templates.
+
+Automated coverage includes **`PlatformOperationsConsistencyTest`** (HTTP **`GET`** smoke across those Operations index routes for platform roles vs **`restaurant_owner`**).
+
 ## Event nights (Phase 11A)
 
 Phase 11A adds **Event nights** (`RestaurantEvent`) resources to both panels:

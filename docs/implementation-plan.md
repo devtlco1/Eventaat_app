@@ -280,6 +280,18 @@ Internal **call logs** for operators — manual rows only (no telephony integrat
 
 - No VoIP, PSTN, WhatsApp/SMS bridges, AI transcription, workforce dialers, recordings, compliance retention packs, or restaurant/mobile/API reads for call logs
 
+### Phase 8F: platform operations polish (filament-only)
+
+Stabilization pass for **`/platform`** **Operations** navigation and tables — align discoverability with existing modules (**support**, **subscriptions**, **invoices**, **call logs**, **offers**, **events**, **stories**, **reviews**, **menus**, **bookings**, **notifications**, **templates**) without adding routes or business logic.
+
+- **Navigation**: resolve duplicate **`navigationSort`** collisions; keep labels/icons purposeful (**Bookings** uses a distinct ticket-style icon vs generic setup glyphs).
+- **Authorization**: **`BookingResource`** and **`RestaurantEventResource`** mirror other Operations resources (**`super_admin`**, **`operations_admin`** only via explicit `can*` + **`shouldRegisterNavigation`**).
+- **Tables**: semantic **`badge()` `color()`** hints for lifecycle-ish string columns where Filament defaults were ambiguous; money/date patterns unchanged except where readability was already standardized (**restaurant invoices**).
+
+### Explicit non-goals (Phase 8F)
+
+- No mobile/API/schema changes, no custom dashboards/widgets, no new bulk editors or destructive bulk actions
+
 ### Phase 9A: booking notification foundation
 
 Adds internal lifecycle notification rows only (no outbound channels):
