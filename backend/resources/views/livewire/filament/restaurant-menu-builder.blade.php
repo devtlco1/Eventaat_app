@@ -3,17 +3,17 @@
 @endphp
 
 <div class="fi-section-content space-y-6" wire:key="restaurant-menu-builder-{{ $record->getKey() }}">
-    <div class="flex flex-wrap items-start justify-between gap-4">
-        <div class="min-w-0 flex-1">
-            <h3 class="fi-section-header-heading text-base font-semibold leading-6 text-gray-950 dark:text-white">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div class="min-w-0 flex-1 space-y-1">
+            <h3 class="text-base font-semibold leading-6 text-gray-950 dark:text-white">
                 Menu builder
             </h3>
-            <p class="fi-section-header-description mt-1 max-w-3xl text-sm text-gray-600 dark:text-gray-400">
-                Manage categories and items. Changes save immediately.
+            <p class="max-w-3xl text-sm text-gray-600 dark:text-gray-400">
+                Manage categories and items for this structured menu.
             </p>
         </div>
         @if ($this->canManage())
-            <div class="flex shrink-0 items-center gap-2">
+            <div class="flex shrink-0 justify-end">
                 {{ $this->createCategoryAction }}
             </div>
         @endif
@@ -24,11 +24,11 @@
             class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-950 dark:ring-white/10"
         >
             <header
-                class="border-b border-gray-200 bg-gray-50 px-6 py-5 dark:border-white/10 dark:bg-white/[0.03]"
+                class="border-b border-gray-200 bg-gray-50 px-4 py-4 dark:border-white/10 dark:bg-white/[0.03] sm:px-6 sm:py-4"
             >
-                <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
                     <div class="min-w-0 flex-1 space-y-3">
-                        <h4 class="text-lg font-semibold leading-snug tracking-tight text-gray-950 dark:text-white">
+                        <h4 class="text-base font-semibold leading-snug text-gray-950 dark:text-white">
                             {{ $category->name }}
                         </h4>
                         @if (filled($category->description))
@@ -59,7 +59,9 @@
                     </div>
 
                     @if ($this->canManage())
-                        <div class="flex shrink-0 flex-wrap items-center gap-2 lg:pt-1">
+                        <div
+                            class="flex shrink-0 flex-wrap items-center gap-2 lg:flex-nowrap lg:justify-end lg:pt-0.5"
+                        >
                             <x-filament::button
                                 size="sm"
                                 color="gray"
@@ -78,12 +80,20 @@
                             >
                                 Delete category
                             </x-filament::button>
+                            <x-filament::button
+                                size="sm"
+                                color="primary"
+                                type="button"
+                                wire:click="mountAction('createItem', {{ Js::from(['category' => $category->id]) }})"
+                            >
+                                Add item
+                            </x-filament::button>
                         </div>
                     @endif
                 </div>
             </header>
 
-            <div class="bg-white px-4 py-4 dark:bg-gray-950 sm:px-6 sm:py-5">
+            <div class="fi-section-content-ctn bg-white dark:bg-gray-950">
                 @livewire(
                     \App\Livewire\Filament\RestaurantMenuCategoryItemsTable::class,
                     ['categoryId' => $category->id],
@@ -93,7 +103,7 @@
         </section>
     @empty
         <div
-            class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-6 py-12 text-center dark:border-white/10 dark:bg-white/5"
+            class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-6 py-10 text-center dark:border-white/10 dark:bg-white/5"
         >
             <p class="text-sm font-medium text-gray-950 dark:text-white">No categories yet</p>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">

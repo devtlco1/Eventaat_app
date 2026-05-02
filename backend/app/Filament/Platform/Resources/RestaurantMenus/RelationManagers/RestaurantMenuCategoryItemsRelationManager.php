@@ -4,24 +4,18 @@ namespace App\Filament\Platform\Resources\RestaurantMenus\RelationManagers;
 
 use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuCategoryResource;
 use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuResource;
+use App\Filament\Support\RestaurantMenuItemFormSchema;
 use App\Models\RestaurantMenuCategory;
 use App\Models\RestaurantMenuItem;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ViewColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 
@@ -50,65 +44,24 @@ class RestaurantMenuCategoryItemsRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema
-            ->components([
-                Section::make()
-                    ->compact()
-                    ->schema([
-                        FileUpload::make('image_path')
-                            ->label('Image')
-                            ->image()
-                            ->imagePreviewHeight('10rem')
-                            ->disk('public')
-                            ->directory('menus/items')
-                            ->visibility('public')
-                            ->maxFiles(1)
-                            ->fetchFileInformation(false)
-                            ->nullable()
-                            ->downloadable(false)
-                            ->openable()
-                            ->columnSpanFull(),
-                        Grid::make(2)->schema([
-                            TextInput::make('name')->required()->maxLength(255),
-                            TextInput::make('price')->numeric()->minValue(0)->nullable(),
-                        ]),
-                        Grid::make(2)->schema([
-                            TextInput::make('currency')->default('IQD')->maxLength(8)->required(),
-                            TextInput::make('display_order')
-                                ->label('Display order')
-                                ->numeric()
-                                ->default(0)
-                                ->minValue(0),
-                        ]),
-                        Grid::make(2)->schema([
-                            Toggle::make('is_available')->label('Available')->default(true),
-                            Toggle::make('is_featured')->label('Featured')->default(false),
-                        ]),
-                        Textarea::make('description')->rows(3)->nullable()->columnSpanFull(),
-                        Textarea::make('notes')->label('Internal notes')->rows(2)->nullable()->columnSpanFull(),
-                    ]),
-            ]);
+        return $schema->components(
+            RestaurantMenuItemFormSchema::sections($this->getOwnerRecord()->getKey()),
+        );
     }
 
     public function table(Table $table): Table
     {
         return $table
             ->striped()
+            ->searchable(false)
             ->emptyStateHeading('No items yet')
-            ->emptyStateDescription('Add the first item for this category.')
-            ->emptyStateIcon(Heroicon::OutlinedPhoto)
+            ->emptyStateDescription('Use Add item to create the first item.')
+            ->emptyStateIcon(null)
             ->columns([
-                ImageColumn::make('image_path')
+                ViewColumn::make('image_thumb')
                     ->label('Image')
-                    ->disk('public')
-                    ->square()
-                    ->imageHeight(44)
-                    ->imageWidth(44)
-                    ->checkFileExistence(false)
-                    ->visibility('public')
-                    ->getStateUsing(fn (RestaurantMenuItem $record): ?string => RestaurantMenuItem::normalizeStoredImagePath($record->image_path))
-                    ->placeholder('—'),
-                TextColumn::make('name')->label('Name')->searchable()->sortable()->wrap(),
+                    ->view('filament.tables.columns.restaurant-menu-item-thumb'),
+                TextColumn::make('name')->label('Name')->sortable()->wrap(),
                 TextColumn::make('description')
                     ->label('Description')
                     ->placeholder('—')

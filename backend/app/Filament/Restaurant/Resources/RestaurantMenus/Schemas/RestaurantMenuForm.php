@@ -150,7 +150,8 @@ class RestaurantMenuForm
                     && $livewire instanceof CreateRecord)
                 ->columnSpanFull(),
 
-            Section::make('Menu builder')
+            Section::make()
+                ->compact()
                 ->visible(fn (Get $get, $livewire): bool => $get('menu_mode') === RestaurantMenu::MODE_STRUCTURED
                     && $livewire instanceof EditRecord
                     && RestaurantMenuResource::canView($livewire->getRecord()))

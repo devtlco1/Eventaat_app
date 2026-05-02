@@ -4,7 +4,9 @@ namespace App\Livewire\Filament;
 
 use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuResource as PlatformRestaurantMenuResource;
 use App\Filament\Restaurant\Resources\RestaurantMenus\RestaurantMenuResource as RestaurantRestaurantMenuResource;
+use App\Filament\Support\RestaurantMenuItemFormSchema;
 use App\Models\RestaurantMenuCategory;
+use App\Models\RestaurantMenuItem;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -161,5 +163,63 @@ class RestaurantMenuBuilder extends Component implements HasActions, HasSchemas
                 $this->record->refresh();
             })
             ->successNotificationTitle('Category deleted');
+    }
+
+    public function createItemAction(): Action
+    {
+        return Action::make('createItem')
+            ->label('Add item')
+            ->icon(Heroicon::OutlinedPlus)
+            ->modalHeading('Add item')
+            ->modalSubmitActionLabel('Create')
+            ->modalWidth(Width::FiveExtraLarge)
+            ->visible(fn (): bool => $this->canManage())
+            ->schema(function (array $arguments): array {
+                $categoryId = (int) ($arguments['category'] ?? 0);
+                $category = RestaurantMenuCategory::query()->findOrFail($categoryId);
+                abort_unless((int) $category->restaurant_menu_id === (int) $this->record->id, 403);
+
+                return RestaurantMenuItemFormSchema::sections($categoryId);
+            })
+            ->fillForm(function (array $arguments): array {
+                $categoryId = (int) ($arguments['category'] ?? 0);
+                $category = RestaurantMenuCategory::query()->findOrFail($categoryId);
+                abort_unless((int) $category->restaurant_menu_id === (int) $this->record->id, 403);
+
+                return [
+                    'name' => '',
+                    'description' => null,
+                    'image_path' => null,
+                    'price' => null,
+                    'currency' => 'IQD',
+                    'is_available' => true,
+                    'is_featured' => false,
+                    'display_order' => (int) ((RestaurantMenuItem::query()
+                        ->where('restaurant_menu_category_id', $categoryId)
+                        ->max('display_order')) ?? -1) + 1,
+                    'notes' => null,
+                ];
+            })
+            ->action(function (array $data, array $arguments): void {
+                $categoryId = (int) ($arguments['category'] ?? 0);
+                $category = RestaurantMenuCategory::query()->findOrFail($categoryId);
+                abort_unless((int) $category->restaurant_menu_id === (int) $this->record->id, 403);
+
+                RestaurantMenuItem::create([
+                    'restaurant_menu_category_id' => $categoryId,
+                    'name' => $data['name'],
+                    'description' => $data['description'] ?? null,
+                    'image_path' => $data['image_path'] ?? null,
+                    'price' => $data['price'] ?? null,
+                    'currency' => $data['currency'] ?? 'IQD',
+                    'is_available' => (bool) ($data['is_available'] ?? true),
+                    'is_featured' => (bool) ($data['is_featured'] ?? false),
+                    'display_order' => (int) ($data['display_order'] ?? 0),
+                    'notes' => $data['notes'] ?? null,
+                ]);
+
+                $this->record->refresh();
+            })
+            ->successNotificationTitle('Item created');
     }
 }
