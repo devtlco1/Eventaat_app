@@ -18,6 +18,7 @@ use App\Models\User;
 use Database\Seeders\RolesAndTestUsersSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -452,5 +453,62 @@ class RestaurantMenusDashboardTest extends TestCase
             'id' => $item->id,
             'image_path' => null,
         ]);
+    }
+
+    public function test_normalize_menu_item_image_path_strips_urls_and_storage_prefix(): void
+    {
+        Config::set('filesystems.disks.public.url', 'http://fixture.test/storage');
+        Config::set('app.url', 'http://fixture.test');
+
+        $this->assertSame(
+            'menus/items/a.png',
+            RestaurantMenuItem::normalizeStoredImagePath('http://fixture.test/storage/menus/items/a.png'),
+        );
+
+        $this->assertSame(
+            'menus/items/b.png',
+            RestaurantMenuItem::normalizeStoredImagePath('/storage/menus/items/b.png'),
+        );
+
+        $this->assertSame(
+            'menus/items/c.png',
+            RestaurantMenuItem::normalizeStoredImagePath(['menus/items/c.png']),
+        );
+
+        $this->assertSame(
+            'menus/items/d.png',
+            RestaurantMenuItem::normalizeStoredImagePath('["menus/items/d.png"]'),
+        );
+    }
+
+    public function test_menu_item_save_normalizes_full_url_image_path_to_relative(): void
+    {
+        $data = $this->seedRestaurantsAndMenus();
+
+        Config::set('filesystems.disks.public.url', 'http://fixture.test/storage');
+        Config::set('app.url', 'http://fixture.test');
+
+        $category = RestaurantMenuCategory::create([
+            'restaurant_menu_id' => $data['aWide']->id,
+            'name' => 'Photos',
+            'description' => null,
+            'display_order' => 0,
+            'is_active' => true,
+        ]);
+
+        $item = RestaurantMenuItem::create([
+            'restaurant_menu_category_id' => $category->id,
+            'name' => 'Dish',
+            'description' => null,
+            'image_path' => 'http://fixture.test/storage/menus/items/saved.png',
+            'price' => 1,
+            'currency' => 'IQD',
+            'is_available' => true,
+            'is_featured' => false,
+            'display_order' => 0,
+            'notes' => null,
+        ]);
+
+        $this->assertSame('menus/items/saved.png', $item->fresh()->image_path);
     }
 }

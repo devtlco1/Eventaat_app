@@ -24,7 +24,6 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
 
 class RestaurantMenuCategoryItemsRelationManager extends RelationManager
 {
@@ -64,6 +63,7 @@ class RestaurantMenuCategoryItemsRelationManager extends RelationManager
                             ->directory('menus/items')
                             ->visibility('public')
                             ->maxFiles(1)
+                            ->fetchFileInformation(false)
                             ->nullable()
                             ->downloadable(false)
                             ->openable()
@@ -104,11 +104,9 @@ class RestaurantMenuCategoryItemsRelationManager extends RelationManager
                     ->square()
                     ->imageHeight(44)
                     ->imageWidth(44)
-                    ->getStateUsing(function (RestaurantMenuItem $record): mixed {
-                        $path = $record->image_path;
-
-                        return is_array($path) ? Arr::first($path) : $path;
-                    })
+                    ->checkFileExistence(false)
+                    ->visibility('public')
+                    ->getStateUsing(fn (RestaurantMenuItem $record): ?string => RestaurantMenuItem::normalizeStoredImagePath($record->image_path))
                     ->placeholder('—'),
                 TextColumn::make('name')->label('Name')->searchable()->sortable()->wrap(),
                 TextColumn::make('description')
@@ -135,17 +133,6 @@ class RestaurantMenuCategoryItemsRelationManager extends RelationManager
                     ->label('Add item')
                     ->modalHeading('Add item')
                     ->modalWidth(Width::FiveExtraLarge)
-                    ->mutateFormDataUsing(function (array $data): array {
-                        if (isset($data['image_path']) && is_array($data['image_path'])) {
-                            $paths = array_values(array_filter(
-                                $data['image_path'],
-                                fn ($p): bool => is_string($p) && filled($p),
-                            ));
-                            $data['image_path'] = $paths[0] ?? null;
-                        }
-
-                        return $data;
-                    })
                     ->visible(fn (): bool => RestaurantMenuResource::canEdit($this->getOwnerRecord()->menu)),
             ])
             ->recordActions([
@@ -153,17 +140,6 @@ class RestaurantMenuCategoryItemsRelationManager extends RelationManager
                     ->label('Edit')
                     ->modalHeading('Edit item')
                     ->modalWidth(Width::FiveExtraLarge)
-                    ->mutateDataUsing(function (array $data): array {
-                        if (isset($data['image_path']) && is_array($data['image_path'])) {
-                            $paths = array_values(array_filter(
-                                $data['image_path'],
-                                fn ($p): bool => is_string($p) && filled($p),
-                            ));
-                            $data['image_path'] = $paths[0] ?? null;
-                        }
-
-                        return $data;
-                    })
                     ->visible(fn (): bool => RestaurantMenuResource::canEdit($this->getOwnerRecord()->menu)),
                 DeleteAction::make()
                     ->label('Delete')

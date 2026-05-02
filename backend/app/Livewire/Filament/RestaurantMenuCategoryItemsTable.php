@@ -34,7 +34,6 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Arr;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
@@ -75,6 +74,7 @@ class RestaurantMenuCategoryItemsTable extends Component implements HasActions, 
                             ->directory('menus/items')
                             ->visibility('public')
                             ->maxFiles(1)
+                            ->fetchFileInformation(false)
                             ->nullable()
                             ->downloadable(false)
                             ->openable()
@@ -143,11 +143,9 @@ class RestaurantMenuCategoryItemsTable extends Component implements HasActions, 
                     ->square()
                     ->imageHeight(44)
                     ->imageWidth(44)
-                    ->getStateUsing(function (RestaurantMenuItem $record): mixed {
-                        $path = $record->image_path;
-
-                        return is_array($path) ? Arr::first($path) : $path;
-                    })
+                    ->checkFileExistence(false)
+                    ->visibility('public')
+                    ->getStateUsing(fn (RestaurantMenuItem $record): ?string => RestaurantMenuItem::normalizeStoredImagePath($record->image_path))
                     ->placeholder('—'),
                 TextColumn::make('name')
                     ->label('Name')
@@ -188,36 +186,17 @@ class RestaurantMenuCategoryItemsTable extends Component implements HasActions, 
                     ->modalWidth(Width::FiveExtraLarge)
                     ->model(RestaurantMenuItem::class)
                     ->visible(fn (): bool => $this->canEditMenu())
-                    ->mutateFormDataUsing(function (array $data): array {
-                        $data['restaurant_menu_category_id'] = $this->categoryId;
-                        if (isset($data['image_path']) && is_array($data['image_path'])) {
-                            $paths = array_values(array_filter(
-                                $data['image_path'],
-                                fn ($p): bool => is_string($p) && filled($p),
-                            ));
-                            $data['image_path'] = $paths[0] ?? null;
-                        }
-
-                        return $data;
-                    }),
+                    ->mutateFormDataUsing(fn (array $data): array => [
+                        ...$data,
+                        'restaurant_menu_category_id' => $this->categoryId,
+                    ]),
             ])
             ->recordActions([
                 EditAction::make()
                     ->label('Edit')
                     ->modalHeading('Edit item')
                     ->modalWidth(Width::FiveExtraLarge)
-                    ->visible(fn (): bool => $this->canEditMenu())
-                    ->mutateDataUsing(function (array $data): array {
-                        if (isset($data['image_path']) && is_array($data['image_path'])) {
-                            $paths = array_values(array_filter(
-                                $data['image_path'],
-                                fn ($p): bool => is_string($p) && filled($p),
-                            ));
-                            $data['image_path'] = $paths[0] ?? null;
-                        }
-
-                        return $data;
-                    }),
+                    ->visible(fn (): bool => $this->canEditMenu()),
                 DeleteAction::make()
                     ->label('Delete')
                     ->modalWidth(Width::Medium)

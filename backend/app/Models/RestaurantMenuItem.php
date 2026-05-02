@@ -40,6 +40,57 @@ class RestaurantMenuItem extends Model
         return $this->belongsTo(RestaurantMenuCategory::class, 'restaurant_menu_category_id');
     }
 
+    /**
+     * Normalize menu item image paths for storage and Filament previews.
+     * Expects the final DB value to be a path relative to the public disk root (e.g. menus/items/foo.png).
+     */
+    public static function normalizeStoredImagePath(mixed $path): ?string
+    {
+        if (is_array($path)) {
+            $strings = array_values(array_filter(
+                $path,
+                fn ($p): bool => is_string($p) && filled(trim($p)),
+            ));
+
+            return self::normalizeStoredImagePath($strings[0] ?? null);
+        }
+
+        if (! is_string($path)) {
+            return null;
+        }
+
+        $path = trim($path);
+
+        if ($path === '') {
+            return null;
+        }
+
+        if (str_starts_with($path, '[')) {
+            $decoded = json_decode($path, true);
+            if (is_array($decoded)) {
+                return self::normalizeStoredImagePath($decoded);
+            }
+        }
+
+        $publicUrl = rtrim((string) config('filesystems.disks.public.url'), '/');
+        if ($publicUrl !== '' && str_starts_with($path, $publicUrl.'/')) {
+            $path = substr($path, strlen($publicUrl) + 1);
+        }
+
+        $appUrl = rtrim((string) config('app.url'), '/');
+        if ($appUrl !== '' && str_starts_with($path, $appUrl.'/')) {
+            $path = substr($path, strlen($appUrl) + 1);
+        }
+
+        $path = ltrim($path, '/');
+
+        if (str_starts_with($path, 'storage/')) {
+            $path = substr($path, strlen('storage/'));
+        }
+
+        return $path !== '' ? $path : null;
+    }
+
     protected static function booted(): void
     {
         static::saving(function (RestaurantMenuItem $item): void {
@@ -47,22 +98,22 @@ class RestaurantMenuItem extends Model
                 $item->currency = 'IQD';
             }
 
-            $path = $item->image_path;
-            if (is_array($path)) {
-                $paths = array_values(array_filter($path, fn ($p): bool => is_string($p) && filled($p)));
-                $item->image_path = $paths[0] ?? null;
-            }
+            $originalNormalized = $item->exists
+                ? self::normalizeStoredImagePath($item->getOriginal('image_path'))
+                : null;
 
-            $originalImagePath = $item->exists ? $item->getOriginal('image_path') : null;
+            $incomingNormalized = self::normalizeStoredImagePath($item->image_path);
 
             if (
-                $item->isDirty('image_path')
-                && filled($originalImagePath)
-                && $originalImagePath !== $item->image_path
-                && Storage::disk('public')->exists($originalImagePath)
+                $item->exists
+                && filled($originalNormalized)
+                && $originalNormalized !== $incomingNormalized
+                && Storage::disk('public')->exists($originalNormalized)
             ) {
-                Storage::disk('public')->delete($originalImagePath);
+                Storage::disk('public')->delete($originalNormalized);
             }
+
+            $item->image_path = $incomingNormalized;
 
             $validator = Validator::make($item->getAttributes(), [
                 'restaurant_menu_category_id' => ['required', 'integer', Rule::exists('restaurant_menu_categories', 'id')],

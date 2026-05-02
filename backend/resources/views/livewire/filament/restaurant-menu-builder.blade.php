@@ -24,62 +24,66 @@
             class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-950 dark:ring-white/10"
         >
             <header
-                class="flex flex-col gap-4 border-b border-gray-200 bg-gray-50/80 px-6 py-4 dark:border-white/10 dark:bg-white/5 sm:flex-row sm:items-center sm:justify-between"
+                class="border-b border-gray-200 bg-gray-50 px-6 py-5 dark:border-white/10 dark:bg-white/[0.03]"
             >
-                <div class="min-w-0 flex-1 space-y-2">
-                    <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
-                        <h4 class="truncate text-base font-semibold leading-6 text-gray-950 dark:text-white">
+                <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between lg:gap-6">
+                    <div class="min-w-0 flex-1 space-y-3">
+                        <h4 class="text-lg font-semibold leading-snug tracking-tight text-gray-950 dark:text-white">
                             {{ $category->name }}
                         </h4>
-                        @if ($category->is_active)
-                            <span
-                                class="fi-badge fi-size-xs inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset fi-color-success bg-success-50 text-success-700 ring-success-600/10 dark:bg-success-400/10 dark:text-success-400 dark:ring-success-400/20"
-                            >
-                                Active
-                            </span>
-                        @else
-                            <span
-                                class="fi-badge fi-size-xs inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset fi-color-gray bg-gray-50 text-gray-700 ring-gray-600/10 dark:bg-gray-400/10 dark:text-gray-400 dark:ring-gray-400/20"
-                            >
-                                Inactive
-                            </span>
+                        @if (filled($category->description))
+                            <p class="max-w-4xl text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                                {{ $category->description }}
+                            </p>
                         @endif
-                        <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
-                            Order {{ $category->display_order }}
-                        </span>
+                        <div class="flex flex-wrap items-center gap-2">
+                            @if ($category->is_active)
+                                <span
+                                    class="fi-badge fi-size-sm inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset fi-color-success bg-success-50 text-success-700 ring-success-600/10 dark:bg-success-400/10 dark:text-success-400 dark:ring-success-400/20"
+                                >
+                                    Active
+                                </span>
+                            @else
+                                <span
+                                    class="fi-badge fi-size-sm inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset fi-color-gray bg-gray-50 text-gray-700 ring-gray-600/10 dark:bg-gray-400/10 dark:text-gray-400 dark:ring-gray-400/20"
+                                >
+                                    Inactive
+                                </span>
+                            @endif
+                            <span
+                                class="fi-badge fi-size-sm inline-flex items-center gap-x-1 rounded-md bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700 ring-1 ring-gray-600/10 ring-inset dark:bg-white/10 dark:text-gray-300 dark:ring-white/10"
+                            >
+                                Order #{{ $category->display_order }}
+                            </span>
+                        </div>
                     </div>
-                    @if (filled($category->description))
-                        <p class="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-                            {{ $category->description }}
-                        </p>
+
+                    @if ($this->canManage())
+                        <div class="flex shrink-0 flex-wrap items-center gap-2 lg:pt-1">
+                            <x-filament::button
+                                size="sm"
+                                color="gray"
+                                outlined
+                                type="button"
+                                wire:click="mountAction('editCategory', {{ Js::from(['category' => $category->id]) }})"
+                            >
+                                Edit category
+                            </x-filament::button>
+                            <x-filament::button
+                                size="sm"
+                                color="danger"
+                                outlined
+                                type="button"
+                                wire:click="mountAction('deleteCategory', {{ Js::from(['category' => $category->id]) }})"
+                            >
+                                Delete category
+                            </x-filament::button>
+                        </div>
                     @endif
                 </div>
-
-                @if ($this->canManage())
-                    <div class="flex shrink-0 flex-wrap items-center justify-end gap-2 sm:justify-end">
-                        <x-filament::button
-                            size="sm"
-                            color="gray"
-                            outlined
-                            type="button"
-                            wire:click="mountAction('editCategory', {{ Js::from(['category' => $category->id]) }})"
-                        >
-                            Edit category
-                        </x-filament::button>
-                        <x-filament::button
-                            size="sm"
-                            color="danger"
-                            outlined
-                            type="button"
-                            wire:click="mountAction('deleteCategory', {{ Js::from(['category' => $category->id]) }})"
-                        >
-                            Delete category
-                        </x-filament::button>
-                    </div>
-                @endif
             </header>
 
-            <div class="px-4 py-4 sm:px-6 sm:py-5">
+            <div class="bg-white px-4 py-4 dark:bg-gray-950 sm:px-6 sm:py-5">
                 @livewire(
                     \App\Livewire\Filament\RestaurantMenuCategoryItemsTable::class,
                     ['categoryId' => $category->id],
