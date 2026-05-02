@@ -73,6 +73,11 @@ Native Filament resources under **`Access Management`** (sidebar):
 
 This layer **does not** change Sanctum/mobile APIs or introduce new REST endpoints — it is dashboard inspection and controlled **`super_admin`** maintenance only.
 
+### Permission catalog (seeded)
+
+- **`PermissionsCatalogSeeder`** owns the canonical **`web`** permission strings (`users.view`, `users.manage`, `bookings.manage`, …). Call it safely multiple times — each row is **`findOrCreate`**’d by **`name` + `guard_name`**.
+- **`RolePermissionDefaultsSeeder`** runs once roles exist (`DatabaseSeeder` order). It attaches catalog rows to **`super_admin`** (`syncPermissions` over the entire catalog) and to **`operations_admin`** with **`roles.view`**, **`roles.manage`**, and **`permissions.view`** withheld (still **`super_admin`**-only screens today). Restaurant/customer roles intentionally receive **no** catalog attachments yet — metadata/readiness until modules explicitly enforce **`hasPermissionTo`** checks.
+
 ## Restaurant panel scoping (Phase 2)
 
 Phase 2 introduces restaurant operational data and scoping via `RestaurantStaffAssignment`:

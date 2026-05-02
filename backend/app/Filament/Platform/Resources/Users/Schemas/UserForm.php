@@ -34,6 +34,9 @@ class UserForm
                         ->nullable()
                         ->minLength(8)
                         ->visible(fn ($livewire): bool => $livewire instanceof CreateRecord || static::editorMaySetPassword())
+                        ->helperText(fn ($livewire): ?string => $livewire instanceof CreateRecord
+                            ? 'Leave blank to auto-generate a secure password. If you enter a value, use at least 8 characters.'
+                            : (Filament::auth()->user()?->hasRole('super_admin') ? 'Leave blank to keep the current password.' : null))
                         ->dehydrated(fn (?string $state): bool => filled($state)),
                     Select::make('roles')
                         ->label('Roles')
@@ -45,6 +48,7 @@ class UserForm
                         ->multiple()
                         ->preload()
                         ->searchable()
+                        ->helperText('Optional. Pick one or more roles so Spatie assignments match how this account should access panels or mobile.')
                         ->visible(fn (): bool => static::editorMayAssignRoles())
                         ->dehydrated(fn (): bool => static::editorMayAssignRoles()),
                 ]),

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Platform\Resources\Users\Tables;
 
+use App\Filament\Platform\Resources\Users\UserResource;
+use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -93,7 +95,8 @@ class UsersTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
-                DeleteAction::make(),
+                DeleteAction::make()
+                    ->visible(fn (User $record): bool => UserResource::canDelete($record)),
             ])
             ->bulkActions([]);
     }

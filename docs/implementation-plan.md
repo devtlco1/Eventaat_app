@@ -734,10 +734,12 @@ Adds **`Access Management`** navigation on **`/platform`**:
 - **`UserResource`**: full user index with filters (role, audience segment, created-between), global search on **`name` / `email` / **`phone`**, profile editing rules (**`super_admin`** assigns **`roles`** + optional **`password`**; **`operations_admin`** never dehydrates those fields so Spatie pivots stay untouched), guarded deletes (**cannot** delete **`super_admin`** holders or yourself), relation managers for **`customerBookings`** + **`restaurantReviews`** with links back to booking/review Filament routes.
 - **`RoleResource`** (**`super_admin`** only): CRUD for Spatie **`roles`** + permission attachments; **core** roles cannot be deleted and keep immutable **`name`/`guard_name`** on edit.
 - **`PermissionResource`** (**`super_admin`** only): table + **`ViewPermission`** infolist — **no** create/update/delete routes.
+- **`PermissionsCatalogSeeder`** + **`RolePermissionDefaultsSeeder`**: idempotent **`web`** capability catalog aligned with dashboard modules; **`super_admin`** receives every catalog permission on the pivot, **`operations_admin`** receives everything except **`roles.view`**, **`roles.manage`**, and **`permissions.view`** — purely metadata/readiness unless resources opt into **`hasPermissionTo`** checks later.
+- UX polish: **`CreateAction`** buttons (**Add user**, **Add role**) render only when **`canCreate`** passes; **`DeleteAction`** visibility mirrors **`canDelete`** on Users/Roles tables **and** edit headers so blocked deletes are not surfaced.
 
 Automated coverage lives in **`tests/Feature/PlatformAccessManagementFilamentTest.php`** + **`PlatformOperationsConsistencyTest`** now opens **`/platform/users`** for platform operators.
 
-Explicit non-goals: **no** mobile/public API additions, **no** migrations (Spatie tables unchanged), **no** Filament dashboard redesign beyond the new navigation group.
+Explicit non-goals: **no** mobile/public API additions, **no** migrations (Spatie tables unchanged), **no** Filament dashboard redesign beyond the new navigation group, **no** migration of Filament authorization to permission-based gates in this phase.
 
 ### Unified dashboard login entry
 
