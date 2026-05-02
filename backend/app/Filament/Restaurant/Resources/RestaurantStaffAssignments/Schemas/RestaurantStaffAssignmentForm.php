@@ -3,6 +3,7 @@
 namespace App\Filament\Restaurant\Resources\RestaurantStaffAssignments\Schemas;
 
 use App\Enums\RestaurantStaffRole;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\Branch;
 use App\Models\User;
 use App\Support\RestaurantPanelScope;
@@ -25,7 +26,7 @@ class RestaurantStaffAssignmentForm
             ? RestaurantPanelScope::restaurants($user)->orderBy('name')->pluck('name', 'id')->all()
             : [];
 
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Details')
                 ->compact()
                 ->schema([

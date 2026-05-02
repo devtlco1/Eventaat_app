@@ -2,6 +2,7 @@
 
 namespace App\Filament\Restaurant\Resources\RestaurantEvents\Schemas;
 
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\Branch;
 use App\Models\RestaurantEvent;
 use App\Models\User;
@@ -30,11 +31,11 @@ class RestaurantEventForm
 
         $isBranchScoped = count($branchIds) > 0;
 
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Basics')
                 ->compact()
                 ->schema([
-                    Grid::make(3)->schema([
+                    Grid::make(4)->schema([
                         TextInput::make('title')
                             ->required()
                             ->maxLength(255),
@@ -55,8 +56,6 @@ class RestaurantEventForm
                             ->disabled(count($restaurantIds) === 1)
                             ->dehydrated(true)
                             ->reactive(),
-                    ]),
-                    Grid::make(3)->schema([
                         Select::make('branch_id')
                             ->label('Branch'.($isBranchScoped ? '' : ' (optional)'))
                             ->options(function (Get $get) use ($branchIds) {
@@ -112,18 +111,18 @@ class RestaurantEventForm
                             ->maxLength(255)
                             ->nullable(),
                     ]),
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         DateTimePicker::make('starts_at')
                             ->required(),
                         DateTimePicker::make('ends_at')
                             ->nullable()
                             ->rule('after:starts_at'),
-                    ]),
-                    Grid::make(3)->schema([
                         TextInput::make('capacity')
                             ->numeric()
                             ->minValue(1)
                             ->nullable(),
+                    ]),
+                    Grid::make(3)->schema([
                         Placeholder::make('active_reserved_seats')
                             ->label('Active reserved seats')
                             ->content(fn (?RestaurantEvent $record) => $record ? (string) $record->activeReservedSeats() : '—'),

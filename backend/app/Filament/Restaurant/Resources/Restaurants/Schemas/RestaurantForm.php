@@ -3,6 +3,7 @@
 namespace App\Filament\Restaurant\Resources\Restaurants\Schemas;
 
 use App\Enums\RestaurantStatus;
+use App\Filament\Support\FilamentSchemaLayout;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
@@ -13,7 +14,7 @@ class RestaurantForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Details')
                 ->compact()
                 ->schema([

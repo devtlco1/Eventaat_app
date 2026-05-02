@@ -3,6 +3,7 @@
 namespace App\Filament\Platform\Resources\Users\RelationManagers;
 
 use App\Filament\Platform\Resources\RestaurantReviews\RestaurantReviewResource;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\RestaurantReview;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
@@ -17,7 +18,7 @@ class RestaurantReviewsRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return FilamentSchemaLayout::stackSections($schema)->components([]);
     }
 
     public function table(Table $table): Table

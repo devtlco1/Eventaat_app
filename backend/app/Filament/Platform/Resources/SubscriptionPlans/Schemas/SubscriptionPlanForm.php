@@ -3,6 +3,7 @@
 namespace App\Filament\Platform\Resources\SubscriptionPlans\Schemas;
 
 use App\Enums\SubscriptionBillingInterval;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\SubscriptionPlan;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -17,7 +18,7 @@ class SubscriptionPlanForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Plan')
                 ->compact()
                 ->schema([

@@ -3,6 +3,7 @@
 namespace App\Filament\Restaurant\Resources\SeatingAreas\Schemas;
 
 use App\Enums\SeatingAreaType;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\User;
 use App\Support\RestaurantPanelScope;
 use Filament\Facades\Filament;
@@ -19,7 +20,7 @@ class SeatingAreaForm
         /** @var User|null $user */
         $user = Filament::auth()->user();
 
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Details')
                 ->compact()
                 ->schema([

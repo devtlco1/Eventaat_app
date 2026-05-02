@@ -2,6 +2,7 @@
 
 namespace App\Filament\Platform\Resources\Users\Schemas;
 
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\User;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
@@ -12,7 +13,7 @@ class UserInfolist
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema
+        return FilamentSchemaLayout::stackSections($schema)
             ->components([
                 Section::make('Mobile / customer visibility')
                     ->compact()

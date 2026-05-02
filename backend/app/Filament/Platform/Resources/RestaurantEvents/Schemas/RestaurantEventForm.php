@@ -2,6 +2,7 @@
 
 namespace App\Filament\Platform\Resources\RestaurantEvents\Schemas;
 
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\Branch;
 use App\Models\Restaurant;
 use App\Models\RestaurantEvent;
@@ -21,11 +22,11 @@ class RestaurantEventForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Basics')
                 ->compact()
                 ->schema([
-                    Grid::make(3)->schema([
+                    Grid::make(4)->schema([
                         TextInput::make('title')
                             ->required()
                             ->maxLength(255),
@@ -40,8 +41,6 @@ class RestaurantEventForm
                             ->searchable()
                             ->required()
                             ->reactive(),
-                    ]),
-                    Grid::make(3)->schema([
                         Select::make('branch_id')
                             ->label('Branch (optional)')
                             ->options(function (Get $get) {
@@ -84,18 +83,18 @@ class RestaurantEventForm
                             ->maxLength(255)
                             ->nullable(),
                     ]),
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         DateTimePicker::make('starts_at')
                             ->required(),
                         DateTimePicker::make('ends_at')
                             ->nullable()
                             ->rule('after:starts_at'),
-                    ]),
-                    Grid::make(3)->schema([
                         TextInput::make('capacity')
                             ->numeric()
                             ->minValue(1)
                             ->nullable(),
+                    ]),
+                    Grid::make(3)->schema([
                         Placeholder::make('active_reserved_seats')
                             ->label('Active reserved seats')
                             ->content(fn (?RestaurantEvent $record) => $record ? (string) $record->activeReservedSeats() : '—'),

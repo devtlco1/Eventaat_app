@@ -3,6 +3,7 @@
 namespace App\Filament\Platform\Resources\RestaurantInvoices\Schemas;
 
 use App\Enums\RestaurantInvoiceStatus;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\RestaurantInvoice;
 use App\Models\RestaurantSubscription;
 use Filament\Forms\Components\DatePicker;
@@ -20,7 +21,7 @@ class RestaurantInvoiceForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Invoice')
                 ->compact()
                 ->schema([

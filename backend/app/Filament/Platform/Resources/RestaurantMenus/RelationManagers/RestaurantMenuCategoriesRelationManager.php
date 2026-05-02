@@ -5,6 +5,7 @@ namespace App\Filament\Platform\Resources\RestaurantMenus\RelationManagers;
 use App\Filament\Platform\Resources\RestaurantMenus\Pages\EditRestaurantMenu;
 use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuCategoryResource;
 use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuResource;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Filament\Support\RestaurantMenuCategoryFormSchema;
 use App\Filament\Support\RestaurantMenuStructuredUi;
 use App\Models\RestaurantMenu;
@@ -40,7 +41,7 @@ class RestaurantMenuCategoriesRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema->components(RestaurantMenuCategoryFormSchema::sections());
+        return FilamentSchemaLayout::stackSections($schema)->components(RestaurantMenuCategoryFormSchema::sections());
     }
 
     public function table(Table $table): Table

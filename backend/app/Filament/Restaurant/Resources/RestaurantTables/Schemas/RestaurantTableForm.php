@@ -3,6 +3,7 @@
 namespace App\Filament\Restaurant\Resources\RestaurantTables\Schemas;
 
 use App\Enums\TableStatus;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\User;
 use App\Support\RestaurantPanelScope;
 use Filament\Facades\Filament;
@@ -19,7 +20,7 @@ class RestaurantTableForm
         /** @var User|null $user */
         $user = Filament::auth()->user();
 
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Details')
                 ->compact()
                 ->schema([

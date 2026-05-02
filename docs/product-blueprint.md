@@ -50,8 +50,9 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
 ### Filament layout consistency (Phase 8I)
 
-- **Panels**: Platform and Restaurant Filament panels default to **full content width** for resource pages; forms/infolists use **compact sections** and **multi-column grids** so create/edit/view screens stay horizontal and professional without custom dashboard kits.
-- **Coverage**: Aligns layouts across operators’ modules (access management, restaurant setup, bookings, menus, stories/offers/events, reviews, tickets, subscriptions/invoices/call logs, notification templates, booking notification detail) while preserving existing scopes and **`can*`** rules.
+- **Panels**: Platform and Restaurant Filament panels default to **full content width** for resource pages.
+- **Section stacking**: Root schemas force **one column** at all breakpoints (**`FilamentSchemaLayout::stackSections`**), so **main sections/cards never sit beside each other**; fields stay **horizontal inside** each section via **`Grid`** (typically **3–4** columns for short fields).
+- **Coverage**: Aligns layouts across operators’ modules (access management, restaurant setup, bookings, menus, stories/offers/events, reviews, tickets, subscriptions/invoices/call logs, notification templates, booking notification detail, relation-manager modals, structured menu Livewire editors) while preserving existing scopes and **`can*`** rules.
 
 ### Authorization alignment (Phase 8G)
 

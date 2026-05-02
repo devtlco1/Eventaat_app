@@ -3,6 +3,7 @@
 namespace App\Filament\Platform\Resources\RestaurantMenus\Schemas;
 
 use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuResource;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Livewire\Filament\RestaurantMenuStructuredContent;
 use App\Models\Branch;
 use App\Models\Restaurant;
@@ -25,7 +26,7 @@ class RestaurantMenuForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Basics')
                 ->compact()
                 ->schema([

@@ -4,6 +4,7 @@ namespace App\Filament\Platform\Resources\RestaurantMenus\RelationManagers;
 
 use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuCategoryResource;
 use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuResource;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Filament\Support\RestaurantMenuItemFormSchema;
 use App\Models\RestaurantMenuCategory;
 use App\Models\RestaurantMenuItem;
@@ -44,7 +45,7 @@ class RestaurantMenuCategoryItemsRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema->components(
+        return FilamentSchemaLayout::stackSections($schema)->components(
             RestaurantMenuItemFormSchema::sections($this->getOwnerRecord()->getKey()),
         );
     }

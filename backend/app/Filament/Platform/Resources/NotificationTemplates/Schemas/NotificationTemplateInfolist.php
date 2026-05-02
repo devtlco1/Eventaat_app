@@ -2,6 +2,7 @@
 
 namespace App\Filament\Platform\Resources\NotificationTemplates\Schemas;
 
+use App\Filament\Support\FilamentSchemaLayout;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -11,10 +12,10 @@ class NotificationTemplateInfolist
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Details')
                 ->schema([
-                    Grid::make(2)->schema([
+                    Grid::make(4)->schema([
                         TextEntry::make('event')->badge(),
                         TextEntry::make('is_active')->label('Active')->badge(),
                         TextEntry::make('channel'),
@@ -33,4 +34,3 @@ class NotificationTemplateInfolist
         ]);
     }
 }
-

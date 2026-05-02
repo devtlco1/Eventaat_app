@@ -2,6 +2,7 @@
 
 namespace App\Filament\Restaurant\Resources\Bookings\Schemas;
 
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\RestaurantEvent;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -16,7 +17,7 @@ class BookingForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Booking')
                 ->compact()
                 ->schema([

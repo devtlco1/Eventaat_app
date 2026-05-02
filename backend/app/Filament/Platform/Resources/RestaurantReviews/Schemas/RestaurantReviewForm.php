@@ -2,6 +2,7 @@
 
 namespace App\Filament\Platform\Resources\RestaurantReviews\Schemas;
 
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\Booking;
 use App\Models\Branch;
 use App\Models\Restaurant;
@@ -20,7 +21,7 @@ class RestaurantReviewForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Review')
                 ->compact()
                 ->schema([

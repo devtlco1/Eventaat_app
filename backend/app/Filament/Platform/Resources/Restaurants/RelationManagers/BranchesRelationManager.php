@@ -3,6 +3,7 @@
 namespace App\Filament\Platform\Resources\Restaurants\RelationManagers;
 
 use App\Enums\BranchStatus;
+use App\Filament\Support\FilamentSchemaLayout;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -21,7 +22,7 @@ class BranchesRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make()
                 ->compact()
                 ->schema([

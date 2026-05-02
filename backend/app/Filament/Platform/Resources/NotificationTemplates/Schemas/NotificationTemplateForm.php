@@ -2,6 +2,7 @@
 
 namespace App\Filament\Platform\Resources\NotificationTemplates\Schemas;
 
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\BookingNotification;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -15,13 +16,14 @@ class NotificationTemplateForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Template')
                 ->compact()
                 ->schema([
-                    Grid::make(3)->schema([
+                    Grid::make(4)->schema([
                         Select::make('event')
                             ->required()
+                            ->native(false)
                             ->options(array_combine(BookingNotification::EVENTS, BookingNotification::EVENTS))
                             ->searchable(),
                         Toggle::make('is_active')
@@ -31,8 +33,6 @@ class NotificationTemplateForm
                             ->default('internal')
                             ->disabled()
                             ->dehydrated(),
-                    ]),
-                    Grid::make(3)->schema([
                         TextInput::make('locale')
                             ->required()
                             ->default('en')

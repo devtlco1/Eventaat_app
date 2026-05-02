@@ -3,6 +3,7 @@
 namespace App\Filament\Platform\Resources\RestaurantSubscriptions\Schemas;
 
 use App\Enums\RestaurantSubscriptionStatus;
+use App\Filament\Support\FilamentSchemaLayout;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -14,7 +15,7 @@ class RestaurantSubscriptionForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Subscription')
                 ->compact()
                 ->schema([

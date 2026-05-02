@@ -2,6 +2,7 @@
 
 namespace App\Filament\Restaurant\Resources\RestaurantOffers\Schemas;
 
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\Branch;
 use App\Models\RestaurantOffer;
 use App\Models\User;
@@ -37,7 +38,7 @@ class RestaurantOfferForm
             RestaurantOffer::STATUS_CANCELLED,
         ];
 
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Basics')
                 ->compact()
                 ->schema([

@@ -3,15 +3,16 @@
 namespace App\Filament\Platform\Resources\Branches\RelationManagers;
 
 use App\Enums\SeatingAreaType;
+use App\Filament\Support\FilamentSchemaLayout;
+use Filament\Actions\CreateAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Actions\CreateAction;
 
 class SeatingAreasRelationManager extends RelationManager
 {
@@ -19,7 +20,7 @@ class SeatingAreasRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             TextInput::make('name')->required()->maxLength(255),
             TextInput::make('code')->required()->maxLength(64),
             Select::make('type')
@@ -54,4 +55,3 @@ class SeatingAreasRelationManager extends RelationManager
             ]);
     }
 }
-

@@ -2,6 +2,7 @@
 
 namespace App\Filament\RelationManagers;
 
+use App\Filament\Support\FilamentSchemaLayout;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -15,7 +16,7 @@ class BookingAuditLogsRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return FilamentSchemaLayout::stackSections($schema)->components([]);
     }
 
     public function table(Table $table): Table

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Restaurant\Resources\RestaurantStories\Schemas;
 
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\RestaurantStory;
 use App\Models\RestaurantStoryItem;
 use Carbon\CarbonInterface;
@@ -16,7 +17,7 @@ class RestaurantStoryInfolist
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Details')
                 ->schema([
                     Grid::make(2)->schema([

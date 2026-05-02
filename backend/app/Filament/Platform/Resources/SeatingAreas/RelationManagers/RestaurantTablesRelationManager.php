@@ -3,15 +3,16 @@
 namespace App\Filament\Platform\Resources\SeatingAreas\RelationManagers;
 
 use App\Enums\TableStatus;
+use App\Filament\Support\FilamentSchemaLayout;
+use Filament\Actions\CreateAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Actions\CreateAction;
 
 class RestaurantTablesRelationManager extends RelationManager
 {
@@ -19,7 +20,7 @@ class RestaurantTablesRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             TextInput::make('label')->required()->maxLength(64),
             TextInput::make('capacity')->numeric()->required()->minValue(1)->maxValue(99)->default(2),
             Select::make('status')
@@ -49,4 +50,3 @@ class RestaurantTablesRelationManager extends RelationManager
             ]);
     }
 }
-

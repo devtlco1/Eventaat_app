@@ -2,6 +2,7 @@
 
 namespace App\Filament\Platform\Resources\Users\Schemas;
 
+use App\Filament\Support\FilamentSchemaLayout;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -14,7 +15,7 @@ class UserForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Profile')
                 ->compact()
                 ->schema([

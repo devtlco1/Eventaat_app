@@ -2,6 +2,7 @@
 
 namespace App\Filament\Platform\Resources\Branches\Schemas;
 
+use App\Filament\Support\FilamentSchemaLayout;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -11,7 +12,7 @@ class BranchInfolist
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema
+        return FilamentSchemaLayout::stackSections($schema)
             ->components([
                 Section::make('Details')
                     ->schema([

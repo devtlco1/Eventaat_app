@@ -3,6 +3,7 @@
 namespace App\Filament\Restaurant\Resources\Branches\Schemas;
 
 use App\Enums\BranchStatus;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Select;
@@ -20,7 +21,7 @@ class BranchForm
 
         $restaurantIds = $user?->scopedRestaurantIds() ?? [];
 
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Details')
                 ->compact()
                 ->schema([

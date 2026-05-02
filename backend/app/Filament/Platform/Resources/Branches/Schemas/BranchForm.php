@@ -3,6 +3,7 @@
 namespace App\Filament\Platform\Resources\Branches\Schemas;
 
 use App\Enums\BranchStatus;
+use App\Filament\Support\FilamentSchemaLayout;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
@@ -13,7 +14,7 @@ class BranchForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Details')
                 ->compact()
                 ->schema([

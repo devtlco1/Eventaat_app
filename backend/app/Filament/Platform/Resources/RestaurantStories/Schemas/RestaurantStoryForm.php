@@ -2,6 +2,7 @@
 
 namespace App\Filament\Platform\Resources\RestaurantStories\Schemas;
 
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Filament\Support\RestaurantStoryContentRepeater;
 use App\Models\Branch;
 use App\Models\Restaurant;
@@ -22,7 +23,7 @@ class RestaurantStoryForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Basics')
                 ->compact()
                 ->schema([

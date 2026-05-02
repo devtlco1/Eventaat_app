@@ -3,6 +3,7 @@
 namespace App\Filament\Platform\Resources\SupportTickets\RelationManagers;
 
 use App\Filament\Platform\Resources\SupportTickets\SupportTicketResource;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\SupportTicketActivity;
 use Filament\Actions\CreateAction;
 use Filament\Facades\Filament;
@@ -33,7 +34,7 @@ class SupportTicketActivitiesRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return FilamentSchemaLayout::stackSections($schema)->components([]);
     }
 
     public function table(Table $table): Table

@@ -4,6 +4,7 @@ namespace App\Livewire\Filament;
 
 use App\Filament\Platform\Resources\RestaurantMenus\RestaurantMenuResource as PlatformRestaurantMenuResource;
 use App\Filament\Restaurant\Resources\RestaurantMenus\RestaurantMenuResource as RestaurantRestaurantMenuResource;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Filament\Support\RestaurantMenuItemFormSchema;
 use App\Models\RestaurantMenu;
 use App\Models\RestaurantMenuCategory;
@@ -55,7 +56,7 @@ class RestaurantMenuStructuredItemsTable extends Component implements HasActions
     public function getDefaultActionSchemaResolver(Action $action): ?Closure
     {
         return match (true) {
-            $action instanceof EditAction => fn (Schema $schema): Schema => $schema->components(
+            $action instanceof EditAction => fn (Schema $schema): Schema => FilamentSchemaLayout::stackSections($schema)->components(
                 RestaurantMenuItemFormSchema::sectionsForMenu($this->menuId),
             ),
             default => null,

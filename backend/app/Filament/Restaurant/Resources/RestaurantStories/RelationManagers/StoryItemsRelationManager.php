@@ -3,6 +3,7 @@
 namespace App\Filament\Restaurant\Resources\RestaurantStories\RelationManagers;
 
 use App\Filament\Restaurant\Resources\RestaurantStories\RestaurantStoryResource;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\RestaurantStoryItem;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -30,7 +31,7 @@ class StoryItemsRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema
+        return FilamentSchemaLayout::stackSections($schema)
             ->components([
                 Section::make()
                     ->compact()

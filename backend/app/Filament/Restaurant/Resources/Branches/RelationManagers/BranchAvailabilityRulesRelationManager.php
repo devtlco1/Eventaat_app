@@ -4,6 +4,7 @@ namespace App\Filament\Restaurant\Resources\Branches\RelationManagers;
 
 use App\Filament\Restaurant\Resources\Branches\BranchResource;
 use App\Filament\Support\BranchAvailabilityRuleFormComponents;
+use App\Filament\Support\FilamentSchemaLayout;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
@@ -26,7 +27,7 @@ class BranchAvailabilityRulesRelationManager extends RelationManager
 
     public function form(Schema $schema): Schema
     {
-        return $schema
+        return FilamentSchemaLayout::stackSections($schema)
             ->components([
                 Hidden::make('branch_id')
                     ->default(fn (): mixed => $this->getOwnerRecord()->getKey())

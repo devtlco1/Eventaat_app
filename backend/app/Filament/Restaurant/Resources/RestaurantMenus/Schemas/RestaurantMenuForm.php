@@ -3,6 +3,7 @@
 namespace App\Filament\Restaurant\Resources\RestaurantMenus\Schemas;
 
 use App\Filament\Restaurant\Resources\RestaurantMenus\RestaurantMenuResource;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Livewire\Filament\RestaurantMenuStructuredContent;
 use App\Models\Branch;
 use App\Models\RestaurantMenu;
@@ -35,7 +36,7 @@ class RestaurantMenuForm
 
         $isBranchScoped = count($branchIds) > 0;
 
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Basics')
                 ->compact()
                 ->schema([

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Platform\Resources\Roles\Schemas;
 
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Support\Platform\CoreRoles;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -14,7 +15,7 @@ class RoleForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Role')
                 ->compact()
                 ->schema([

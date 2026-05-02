@@ -3,6 +3,7 @@
 namespace App\Filament\Platform\Resources\SeatingAreas\Schemas;
 
 use App\Enums\SeatingAreaType;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\Branch;
 use App\Models\Restaurant;
 use App\Models\SeatingArea;
@@ -17,7 +18,7 @@ class SeatingAreaForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Details')
                 ->compact()
                 ->schema([

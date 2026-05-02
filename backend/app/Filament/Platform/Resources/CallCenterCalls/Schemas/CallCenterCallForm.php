@@ -5,6 +5,7 @@ namespace App\Filament\Platform\Resources\CallCenterCalls\Schemas;
 use App\Enums\CallCenterCallDirection;
 use App\Enums\CallCenterCallOutcome;
 use App\Enums\CallCenterCallReason;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\Booking;
 use App\Models\SupportTicket;
 use Filament\Forms\Components\DateTimePicker;
@@ -21,7 +22,7 @@ class CallCenterCallForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Call')
                 ->compact()
                 ->schema([

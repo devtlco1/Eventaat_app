@@ -7,6 +7,7 @@ use App\Filament\Platform\Resources\BookingNotifications\Pages\ListBookingNotifi
 use App\Filament\Platform\Resources\BookingNotifications\Pages\ViewBookingNotification;
 use App\Filament\Platform\Resources\BookingNotifications\RelationManagers\DispatchAttemptsRelationManager;
 use App\Filament\Platform\Resources\BookingNotifications\Tables\BookingNotificationsTable;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\BookingNotification;
 use BackedEnum;
 use Filament\Infolists\Components\TextEntry;
@@ -62,12 +63,12 @@ class BookingNotificationResource extends Resource
 
     public static function form(Schema $schema): Schema
     {
-        return $schema->components([]);
+        return FilamentSchemaLayout::stackSections($schema)->components([]);
     }
 
     public static function infolist(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Details')
                 ->compact()
                 ->schema([

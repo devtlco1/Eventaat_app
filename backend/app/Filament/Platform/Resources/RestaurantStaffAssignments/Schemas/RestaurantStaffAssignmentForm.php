@@ -3,6 +3,7 @@
 namespace App\Filament\Platform\Resources\RestaurantStaffAssignments\Schemas;
 
 use App\Enums\RestaurantStaffRole;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\Branch;
 use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Grid;
@@ -15,7 +16,7 @@ class RestaurantStaffAssignmentForm
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             Section::make('Details')
                 ->compact()
                 ->schema([

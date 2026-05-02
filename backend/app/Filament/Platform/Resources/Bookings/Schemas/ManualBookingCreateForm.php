@@ -5,6 +5,7 @@ namespace App\Filament\Platform\Resources\Bookings\Schemas;
 use App\Enums\BranchStatus;
 use App\Enums\RestaurantStatus;
 use App\Enums\TableStatus;
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\Branch;
 use App\Models\Restaurant;
 use App\Models\RestaurantEvent;
@@ -44,7 +45,7 @@ class ManualBookingCreateForm
 
     public static function configure(Schema $schema): Schema
     {
-        return $schema->components([
+        return FilamentSchemaLayout::stackSections($schema)->components([
             TextInput::make('customer_lookup_message')
                 ->dehydrated(false)
                 ->hidden(),

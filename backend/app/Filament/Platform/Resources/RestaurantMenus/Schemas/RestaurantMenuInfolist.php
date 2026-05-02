@@ -2,6 +2,7 @@
 
 namespace App\Filament\Platform\Resources\RestaurantMenus\Schemas;
 
+use App\Filament\Support\FilamentSchemaLayout;
 use App\Models\RestaurantMenu;
 use App\Models\RestaurantMenuItem;
 use Filament\Infolists\Components\ImageEntry;
@@ -17,7 +18,7 @@ class RestaurantMenuInfolist
 {
     public static function configure(Schema $schema): Schema
     {
-        return $schema
+        return FilamentSchemaLayout::stackSections($schema)
             ->components([
                 Section::make('Details')
                     ->compact()

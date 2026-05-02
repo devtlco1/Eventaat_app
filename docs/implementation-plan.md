@@ -757,8 +757,9 @@ Stabilization / documentation pass (no new business modules, no mobile API chang
 Presentation-only consistency pass for **`/platform`** and **`/restaurant`** Filament:
 
 - **Full-width chrome**: Both panel providers call **`maxContentWidth(Width::Full)`** so resource pages inherit wide layouts without per-page duplication (existing **`RestaurantMenu`** page overrides removed as redundant).
-- **Forms**: Prefer **`Section::compact()`** + responsive **`Grid`** layouts (**typically three columns** on desktop); long fields (notes, descriptions, uploads, modal-heavy selects) stay **`columnSpanFull()`** or dedicated collapsed sections — mirroring **`RestaurantMenuForm`** patterns.
-- **Infolists / view**: Matching **`compact()`** sections and denser **`Grid`** columns on menus, users, permissions, restaurants, support tickets, booking notifications, etc.
+- **Vertical section stacking (corrective layout rule)**: Filament **`Schema`** defaults to multiple root columns at larger breakpoints, which places sibling **`Section`** cards **side-by-side**. **`FilamentSchemaLayout::stackSections($schema)`** sets root **`columns([... => 1])`** for **`default` → `2xl`** so **every main section is full-width** and stacks (**Basics → Schedule → Notes → System → relation tables**, etc.). Applied anywhere forms/infolists return **`$schema->components([...])`**, including relation-manager schemas and Livewire structured menu tables.
+- **Forms**: Prefer **`Section::compact()`** + **section-internal** **`Grid`** rows (**typically 3–4 columns** for short fields on desktop); long fields (notes, descriptions, uploads, modal-heavy selects) stay **`columnSpanFull()`** or dedicated collapsed sections — mirroring **`RestaurantMenuForm`** patterns.
+- **Infolists / view**: Same stacking rule; **`Grid`** splits rows inside a section (e.g. event night **Details** uses multiple grids: identity row, status row, schedule row; **Capacity** is its own section below).
 - **Shared helpers**: **`BranchAvailabilityRuleFormComponents`** wraps weekday toggles and numeric/time picks in compact grids; menu category/item schemas centralized for category edit pages + relation-manager modals.
 - **Safety**: No schema/API/auth changes; **`php artisan test`** remains green.
 
