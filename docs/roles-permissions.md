@@ -144,6 +144,15 @@ Phase 8C adds **Subscription plans** and **Restaurant subscriptions** resources 
 
 No mobile/API routes expose subscription rows in Phase 8C.
 
+## Platform restaurant invoices (Phase 8D)
+
+Phase 8D adds **Restaurant invoices** under **`/platform`**:
+
+- Allowed: `super_admin`, `operations_admin`
+- Denied for restaurant-panel roles and **`customer`** — invoices are internal operator tooling only (no PDF/email/customer portal in this phase).
+
+No mobile/API routes expose invoice rows in Phase 8D.
+
 ## Event nights (Phase 11A)
 
 Phase 11A adds **Event nights** (`RestaurantEvent`) resources to both panels:

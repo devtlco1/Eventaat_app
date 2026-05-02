@@ -34,9 +34,12 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - `GET /api/mobile/restaurants/{slug}` includes per-branch **`booking_availability`** (customer-safe fields) or **`null`** when no rule exists
   - Restaurant details and create-booking screens show summaries and best-effort pre-submit checks; **server validation unchanged**
 - **Restaurant subscriptions — platform foundation (Phase 8C)** *(distinct phase id from booking Phase 8A–8B)*:
-  - **`subscription_plans`** catalog + **`restaurant_subscriptions`** assignments (`trial|active|past_due|cancelled|expired`); **no** payments/invoices/restaurant-panel UI yet
+  - **`subscription_plans`** catalog + **`restaurant_subscriptions`** assignments (`trial|active|past_due|cancelled|expired`); **no** payments/restaurant-panel subscription UI yet
   - Filament **`/platform`** resources **Subscription plans** + **Restaurant subscriptions** for `super_admin` / `operations_admin` only
   - Idempotent **`SubscriptionPlansSeeder`** (Basic / Pro / Enterprise placeholders)
+- **Restaurant invoices — internal ledger (Phase 8D)**:
+  - **`restaurant_invoices`** linked optionally to **`restaurant_subscriptions`**; statuses **`draft|issued|paid|void|overdue`**; **`RestaurantInvoiceService`** generates **`INV-{year}-{seq}`** numbers and drives simple status actions
+  - Filament **`/platform`** **Restaurant invoices** only — **no** PSP, PDF/email invoices, collections automation, or blocking restaurants by invoice status
 - **Booking notification foundation (Phase 9A)**:
   - Internal `booking_notifications` rows (`pending`, no outbound sending): lifecycle events recorded after successful booking creation and valid transitions
   - `BookingNotificationService` builds title/message/payload; insert failures are reported without failing the booking flow
@@ -241,7 +244,11 @@ Phase 6 extends restaurant day-of operations:
 
 ### Phase 8C: restaurant subscription foundation — platform only (dev only)
 
-Adds **`subscription_plans`** (priced catalog: IQD placeholders, monthly/yearly intervals) and **`restaurant_subscriptions`** (historical rows per restaurant; at most one **trial** or **active** slot enforced by validation). Filament Platform CRUD under **Operations** — **no** Stripe/invoices, **no** automatic blocking of restaurants by subscription status, **no** restaurant-panel screens or mobile/API exposure in this phase.
+Adds **`subscription_plans`** (priced catalog: IQD placeholders, monthly/yearly intervals) and **`restaurant_subscriptions`** (historical rows per restaurant; at most one **trial** or **active** slot enforced by validation). Filament Platform CRUD under **Operations** — **no** Stripe/payment gateways, **no** automatic blocking of restaurants by subscription status, **no** restaurant-panel screens or mobile/API exposure in this phase.
+
+### Phase 8D: restaurant invoices — internal ledger (platform-only, dev only)
+
+Adds **`restaurant_invoices`** with optional **`restaurant_subscription_id`**, unique **`invoice_number`** (`INV-{year}-{seq}` when blank on create), amount lines (**total** recomputed as **subtotal − discount + tax**), and **`RestaurantInvoiceService`** helpers (**Mark issued / Mark paid / Void** table actions). **No** PSP integration, PDF/email sending, finance exports as product features in this phase, and **no** restaurant-panel access.
 
 ### Phase 9A: booking notification foundation (dev only)
 

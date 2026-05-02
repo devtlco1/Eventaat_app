@@ -241,7 +241,7 @@ Adds practical branch-level booking constraints shared across mobile booking cre
 
 ### Phase 8C: restaurant subscription foundation (platform-only)
 
-Blueprint operational gap (subscriptions/finance): adds **catalog + assignments** only — **no** payments, invoices, payment gateways, automatic restaurant suspension, or restaurant-panel subscription UI.
+Blueprint operational gap (subscriptions): adds **catalog + assignments** only — **no** payments, payment gateways, automatic restaurant suspension, or restaurant-panel subscription UI (internal invoices land in Phase **8D**).
 
 - Tables: **`subscription_plans`** (`name`, unique **`slug`**, **`price_amount`** decimal, **`currency`** default IQD, **`billing_interval`** `monthly|yearly`, **`is_active`**, **`display_order`**) and **`restaurant_subscriptions`** (`restaurant_id`, nullable **`subscription_plan_id`**, **`status`** `trial|active|past_due|cancelled|expired`, **`starts_at|ends_at|cancelled_at`**, **`notes`**)
 - Restaurants may have **many** subscription rows over time; **at most one** `trial` **or** `active` row per restaurant enforced on save (validation — no blocking middleware on restaurants yet)
@@ -251,7 +251,21 @@ Blueprint operational gap (subscriptions/finance): adds **catalog + assignments*
 ### Explicit non-goals (Phase 8C)
 
 - No mobile/API exposure of subscriptions in this phase
-- No Stripe/billing adapters, webhooks, invoices, tax, proration, or entitlements engine
+- No Stripe/billing adapters, webhooks, third-party invoicing integrations, tax automation, proration, or entitlements engine
+
+### Phase 8D: restaurant invoice foundation (platform-only)
+
+Internal **finance ledger** for operators — builds on **`subscription_plans`** / **`restaurant_subscriptions`** but remains **manual** (no PSP, no collections, no PDF/email delivery, no restaurant-panel UI, no blocking logic tied to balances).
+
+- Migration **`restaurant_invoices`**: **`restaurant_id`**, nullable **`restaurant_subscription_id`**, unique **`invoice_number`**, **`status`** (`draft|issued|paid|void|overdue`), **`issue_date`/`due_date`/`paid_at`**, decimal **`subtotal_amount`/`discount_amount`/`tax_amount`/`total_amount`** (defaults 0), **`currency`** default IQD, **`notes`**, **`metadata`** JSON
+- **`RestaurantInvoiceService`**: **`generateUniqueInvoiceNumber()`** (`INV-{YYYY}-{000001}` per year with transaction `lockForUpdate`); **`markIssued`**, **`markPaid`**, **`markVoid`** (safe no-op outside allowed transitions)
+- Model **`saving`** hook: **`total = subtotal − min(discount, subtotal) + tax`** (rounded); validates subscription belongs to restaurant when set
+- Filament **`/platform`** **Restaurant invoices** resource: filters (status, restaurant, past-due toggle), native row actions **Mark issued / Mark paid / Void**, compact amount section + subscription dropdown scoped by restaurant
+
+### Explicit non-goals (Phase 8D)
+
+- No payment gateways, hosted checkout, card vaulting, payouts, webhooks, or automated cash application
+- No PDF generation, email/WhatsApp invoice delivery, tax jurisdiction engine, credit notes, or restaurant/mobile/API reads for invoices
 
 ### Phase 9A: booking notification foundation
 

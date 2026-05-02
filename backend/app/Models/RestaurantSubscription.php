@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\RestaurantSubscriptionStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Validation\ValidationException;
 
 class RestaurantSubscription extends Model
@@ -64,5 +65,10 @@ class RestaurantSubscription extends Model
     public function subscriptionPlan(): BelongsTo
     {
         return $this->belongsTo(SubscriptionPlan::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(RestaurantInvoice::class);
     }
 }

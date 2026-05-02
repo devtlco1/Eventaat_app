@@ -23,8 +23,13 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 ### Restaurant subscriptions — platform foundation (Phase 8C)
 
 - **`subscription_plans`** defines catalog tiers (**Basic**, **Pro**, **Enterprise** seeded idempotently as placeholders); **`restaurant_subscriptions`** links restaurants to optional plans with statuses **`trial|active|past_due|cancelled|expired`** and optional schedule/note fields.
-- **Platform Filament only** (`super_admin`, `operations_admin`): manage plans and subscriptions — **no** payment processor, invoices, finance reports, entitlement middleware, or restaurant-panel subscription screens in this phase.
+- **Platform Filament only** (`super_admin`, `operations_admin`): manage plans and subscriptions — **no** payment processor, entitlement middleware, or restaurant-panel subscription screens in this phase.
 - Restaurants may keep **multiple historical** subscriptions; only **one** `trial` **or** `active` row per restaurant is allowed at save time.
+
+### Restaurant invoices — internal ledger (Phase 8D)
+
+- **`restaurant_invoices`** captures operator-managed billing rows (**draft|issued|paid|void|overdue**) with optional link to **`restaurant_subscriptions`**, IQD-ready decimal amounts, and **`metadata`** JSON for future extensions.
+- Amounts reconcile on save (**total = subtotal − discount + tax**, discount capped at subtotal); **`RestaurantInvoiceService`** allocates **`INV-{YYYY}-{000001}`** numbers and powers Filament row actions (**Mark issued**, **Mark paid**, **Void**) — **no** PSP, PDF/email delivery, automated collections, customer-facing invoices, or blocking restaurants based on invoice status yet.
 
 ### Booking audit trail (Phase 5C)
 

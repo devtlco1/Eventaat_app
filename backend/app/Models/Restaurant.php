@@ -37,4 +37,9 @@ class Restaurant extends Model
     {
         return $this->hasMany(RestaurantSubscription::class)->orderByDesc('starts_at');
     }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(RestaurantInvoice::class)->orderByDesc('issue_date')->orderByDesc('id');
+    }
 }
