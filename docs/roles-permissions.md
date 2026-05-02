@@ -88,6 +88,13 @@ Manual booking creation (Filament):
 - Platform and Restaurant panel users can create bookings manually using customer phone (phone-first input), within their allowed scope.
 - Manual creation can create/reuse customer users by phone and assigns only the `customer` role.
 
+## Booking audit trail (Phase 5C)
+
+- **Filament only**: **Audit trail** appears as a read-only relation manager on **Edit booking** in both `/platform` and `/restaurant`.
+- **Platform** (`super_admin`, `operations_admin`): audit rows for any booking they can open (full booking access unchanged).
+- **Restaurant** (`restaurant_owner`, `branch_manager`, `restaurant_host`): audit rows only for bookings reached via the existing scoped booking query (`RestaurantPanelScope::bookings`) — opening another booking’s edit URL remains denied/out of scope as today.
+- **Customers**: no Filament access; mobile API does **not** list audit logs (lifecycle transitions triggered by the customer via cancel still record **`actor_id`** when authenticated with Sanctum).
+
 ## Platform booking notifications (Phase 9A)
 
 Phase 9A adds a **read-only** Filament resource **Booking notifications** under `/platform`:

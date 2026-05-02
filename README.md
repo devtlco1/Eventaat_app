@@ -20,8 +20,10 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - Date/time picker for booking start time (no manual typing required)
 - **Bookings (Phases 5–6)**:
   - Booking model + statuses: `pending|accepted|rejected|cancelled|arrived|seated|completed|no_show`
+  - **`booking_audit_logs`**: immutable lifecycle audit from **`BookingTransitionService`** (distinct from **`booking_notifications`**); optional **`actor_id`** when **`web`** or **`sanctum`** user is authenticated
   - Filament BookingResource in `/platform` and `/restaurant`
     - Lifecycle actions: Accept / Reject / Cancel / Mark arrived / Mark seated / Mark completed / Mark no-show
+    - **Audit trail** relation manager on Edit booking (read-only; restaurant scope unchanged)
     - Manual booking creation (phone-first) in both panels
   - Customer bookings API (create/list/detail/cancel)
 - **Branch booking availability (Phase 8A)**:
@@ -221,6 +223,10 @@ Key endpoints (see `docs/api-reference.md` for full details):
 
 Phase 5B adds:
 - simple conflict prevention when a `restaurant_table_id` is provided (prevents double-booking the same table/time)
+
+Phase 5C adds:
+- **`booking_audit_logs`** table + **`BookingAuditService`** wired into **`BookingTransitionService`** (`from_status` / `to_status`, **`actor_id`** when authenticated via **`web`** or **`sanctum`**)
+- Filament **Audit trail** on Edit booking (Platform + Restaurant; no API exposure)
 
 ### Phase 6: day-of booking operations (dev only)
 

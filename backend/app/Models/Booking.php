@@ -77,4 +77,9 @@ class Booking extends Model
     {
         return $this->hasMany(BookingNotification::class);
     }
+
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(BookingAuditLog::class)->orderByDesc('created_at');
+    }
 }

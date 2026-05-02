@@ -2,11 +2,12 @@
 
 namespace App\Filament\Platform\Resources\Bookings;
 
-use App\Filament\Platform\Resources\Bookings\Pages\EditBooking;
 use App\Filament\Platform\Resources\Bookings\Pages\CreateBooking;
+use App\Filament\Platform\Resources\Bookings\Pages\EditBooking;
 use App\Filament\Platform\Resources\Bookings\Pages\ListBookings;
 use App\Filament\Platform\Resources\Bookings\Schemas\BookingForm;
 use App\Filament\Platform\Resources\Bookings\Tables\BookingsTable;
+use App\Filament\RelationManagers\BookingAuditLogsRelationManager;
 use App\Models\Booking;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -42,7 +43,7 @@ class BookingResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            BookingAuditLogsRelationManager::class,
         ];
     }
 

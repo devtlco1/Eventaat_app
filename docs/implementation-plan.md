@@ -189,6 +189,21 @@ Non-feature usability step to make the hierarchy clearer in Filament using nativ
 - improve forms with dependent selects (Restaurant → Branch → Seating Area)
 - add relation managers on the Platform panel for Restaurant → Branches → Seating Areas → Tables
 
+### Phase 5C: booking audit trail foundation
+
+Adds **immutable** lifecycle auditing separate from **`booking_notifications`** (outbox):
+
+- Migration **`booking_audit_logs`**: `booking_id`, nullable **`actor_id`** / **`actor_type`**, **`action`**, **`from_status`** / **`to_status`**, optional **`message`** / **`metadata`**, **`created_at`** only; indexes on **`booking_id`+`created_at`**, **`action`**, **`from_status`+`to_status`**
+- **`BookingAuditService`** invoked only from **`BookingTransitionService`** after successful saves — records **`accepted`**, **`rejected`**, **`cancelled`**, **`arrived`**, **`seated`**, **`completed`**, **`no_show`** with accurate before/after statuses
+- **`actor_id`** resolved from **`sanctum`** then **`web`** when authenticated (Filament staff vs mobile cancel); otherwise null
+- Filament **Edit booking**: native **Audit trail** relation manager (Platform + Restaurant); restaurant visibility inherits existing **`RestaurantPanelScope::bookings`** — no API changes
+
+### Explicit non-goals (Phase 5C)
+
+- No mobile REST exposure of audit rows
+- No custom dashboards/widgets/stats
+- No rewriting lifecycle rules beyond inserting audit hooks after successful transitions
+
 ### Phase 6: day-of booking operations
 
 Adds visit-day operational statuses and actions for bookings:

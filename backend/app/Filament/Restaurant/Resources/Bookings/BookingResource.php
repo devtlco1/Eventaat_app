@@ -2,12 +2,14 @@
 
 namespace App\Filament\Restaurant\Resources\Bookings;
 
-use App\Filament\Restaurant\Resources\Bookings\Pages\EditBooking;
+use App\Filament\RelationManagers\BookingAuditLogsRelationManager;
 use App\Filament\Restaurant\Resources\Bookings\Pages\CreateBooking;
+use App\Filament\Restaurant\Resources\Bookings\Pages\EditBooking;
 use App\Filament\Restaurant\Resources\Bookings\Pages\ListBookings;
 use App\Filament\Restaurant\Resources\Bookings\Schemas\BookingForm;
 use App\Filament\Restaurant\Resources\Bookings\Tables\BookingsTable;
 use App\Models\Booking;
+use App\Models\User;
 use App\Support\RestaurantPanelScope;
 use BackedEnum;
 use Filament\Facades\Filament;
@@ -29,7 +31,7 @@ class BookingResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Filament::auth()->user();
 
         if (! $user) {
@@ -51,7 +53,7 @@ class BookingResource extends Resource
 
     public static function canEdit($record): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Filament::auth()->user();
 
         if (! $user) {
@@ -74,7 +76,7 @@ class BookingResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            BookingAuditLogsRelationManager::class,
         ];
     }
 

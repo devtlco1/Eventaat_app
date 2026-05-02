@@ -4,6 +4,7 @@ namespace App\Services\Bookings;
 
 use App\Enums\BookingStatus;
 use App\Models\Booking;
+use App\Models\BookingAuditLog;
 use App\Models\BookingNotification;
 use App\Services\Notifications\BookingNotificationService;
 use Illuminate\Support\Carbon;
@@ -12,6 +13,7 @@ class BookingTransitionService
 {
     public function __construct(
         private readonly BookingNotificationService $bookingNotifications,
+        private readonly BookingAuditService $bookingAudit,
     ) {}
 
     private function hasFinalTimestamp(Booking $booking): bool
@@ -82,6 +84,8 @@ class BookingTransitionService
             throw new BookingTransitionException('Booking has a final timestamp set and cannot be accepted.');
         }
 
+        $fromStatus = $booking->status;
+
         $now ??= now();
 
         $booking->status = BookingStatus::Accepted;
@@ -89,6 +93,7 @@ class BookingTransitionService
 
         $booking->save();
 
+        $this->bookingAudit->recordTransition($booking, BookingAuditLog::ACTION_ACCEPTED, $fromStatus, BookingStatus::Accepted);
         $this->bookingNotifications->record($booking, BookingNotification::EVENT_BOOKING_ACCEPTED);
 
         return $booking;
@@ -104,6 +109,8 @@ class BookingTransitionService
             throw new BookingTransitionException('Booking has a final timestamp set and cannot be rejected.');
         }
 
+        $fromStatus = $booking->status;
+
         $now ??= now();
 
         $booking->status = BookingStatus::Rejected;
@@ -111,6 +118,7 @@ class BookingTransitionService
 
         $booking->save();
 
+        $this->bookingAudit->recordTransition($booking, BookingAuditLog::ACTION_REJECTED, $fromStatus, BookingStatus::Rejected);
         $this->bookingNotifications->record($booking, BookingNotification::EVENT_BOOKING_REJECTED);
 
         return $booking;
@@ -126,6 +134,8 @@ class BookingTransitionService
             throw new BookingTransitionException('Booking has a final timestamp set and cannot be cancelled.');
         }
 
+        $fromStatus = $booking->status;
+
         $now ??= now();
 
         $booking->status = BookingStatus::Cancelled;
@@ -133,6 +143,7 @@ class BookingTransitionService
 
         $booking->save();
 
+        $this->bookingAudit->recordTransition($booking, BookingAuditLog::ACTION_CANCELLED, $fromStatus, BookingStatus::Cancelled);
         $this->bookingNotifications->record($booking, BookingNotification::EVENT_BOOKING_CANCELLED);
 
         return $booking;
@@ -161,6 +172,8 @@ class BookingTransitionService
             throw new BookingTransitionException('Booking has a final timestamp set and cannot be marked arrived.');
         }
 
+        $fromStatus = $booking->status;
+
         $now ??= now();
 
         $booking->status = BookingStatus::Arrived;
@@ -168,6 +181,7 @@ class BookingTransitionService
 
         $booking->save();
 
+        $this->bookingAudit->recordTransition($booking, BookingAuditLog::ACTION_ARRIVED, $fromStatus, BookingStatus::Arrived);
         $this->bookingNotifications->record($booking, BookingNotification::EVENT_BOOKING_ARRIVED);
 
         return $booking;
@@ -196,6 +210,8 @@ class BookingTransitionService
             throw new BookingTransitionException('Booking has a final timestamp set and cannot be marked seated.');
         }
 
+        $fromStatus = $booking->status;
+
         $now ??= now();
 
         $booking->status = BookingStatus::Seated;
@@ -203,6 +219,7 @@ class BookingTransitionService
 
         $booking->save();
 
+        $this->bookingAudit->recordTransition($booking, BookingAuditLog::ACTION_SEATED, $fromStatus, BookingStatus::Seated);
         $this->bookingNotifications->record($booking, BookingNotification::EVENT_BOOKING_SEATED);
 
         return $booking;
@@ -231,6 +248,8 @@ class BookingTransitionService
             throw new BookingTransitionException('Booking has a final timestamp set and cannot be marked completed.');
         }
 
+        $fromStatus = $booking->status;
+
         $now ??= now();
 
         $booking->status = BookingStatus::Completed;
@@ -238,6 +257,7 @@ class BookingTransitionService
 
         $booking->save();
 
+        $this->bookingAudit->recordTransition($booking, BookingAuditLog::ACTION_COMPLETED, $fromStatus, BookingStatus::Completed);
         $this->bookingNotifications->record($booking, BookingNotification::EVENT_BOOKING_COMPLETED);
 
         return $booking;
@@ -269,6 +289,8 @@ class BookingTransitionService
             throw new BookingTransitionException('Booking has a final timestamp set and cannot be marked no-show.');
         }
 
+        $fromStatus = $booking->status;
+
         $now ??= now();
 
         $booking->status = BookingStatus::NoShow;
@@ -276,6 +298,7 @@ class BookingTransitionService
 
         $booking->save();
 
+        $this->bookingAudit->recordTransition($booking, BookingAuditLog::ACTION_NO_SHOW, $fromStatus, BookingStatus::NoShow);
         $this->bookingNotifications->record($booking, BookingNotification::EVENT_BOOKING_NO_SHOW);
 
         return $booking;

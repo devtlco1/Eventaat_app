@@ -20,6 +20,12 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - Restaurant detail API exposes the same rule fields per branch as **`booking_availability`** (or **`null`**).
 - The mobile app shows summaries on restaurant details and create booking, and runs **best-effort** checks before submit; the API still returns **422** when the server rejects a time.
 
+### Booking audit trail (Phase 5C)
+
+- **`booking_audit_logs`** stores append-only lifecycle rows when **`BookingTransitionService`** successfully changes status (**`accepted`**, **`rejected`**, **`cancelled`**, **`arrived`**, **`seated`**, **`completed`**, **`no_show`**) with **`from_status`** / **`to_status`** and optional **`actor_id`** (dashboard **`web`** or mobile **`sanctum`** user).
+- This is **not** the notification outbox (`booking_notifications` remains separate).
+- Dashboard operators view a compact **Audit trail** table on **Edit booking** (Filament native relation manager); restaurant panel stays scoped as elsewhere.
+
 ### Booking notification foundation (Phase 9A)
 
 - Lifecycle events produce **`booking_notifications`** rows (`pending`, internal channel only): creation plus accepted/rejected/cancelled/arrived/seated/completed/no-show after successful transitions.
