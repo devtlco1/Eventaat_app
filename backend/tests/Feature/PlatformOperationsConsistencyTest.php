@@ -22,6 +22,7 @@ class PlatformOperationsConsistencyTest extends TestCase
     private function operationsIndexPaths(): array
     {
         return [
+            '/platform/users',
             '/platform/bookings',
             '/platform/booking-notifications',
             '/platform/notification-templates',

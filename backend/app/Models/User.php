@@ -69,6 +69,22 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
+     * Bookings placed by this user as the mobile/customer account (customer_id).
+     */
+    public function customerBookings(): HasMany
+    {
+        return $this->hasMany(Booking::class, 'customer_id');
+    }
+
+    /**
+     * Reviews submitted while authenticated as this user (`RestaurantReview.user_id`).
+     */
+    public function restaurantReviews(): HasMany
+    {
+        return $this->hasMany(RestaurantReview::class, 'user_id');
+    }
+
+    /**
      * @return array<int, int>
      */
     public function scopedRestaurantIds(): array

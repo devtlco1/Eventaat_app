@@ -61,6 +61,18 @@ Denied:
 - `operations_admin`
 - `customer`
 
+## Filament Access Management (`/platform`)
+
+Native Filament resources under **`Access Management`** (sidebar):
+
+| Resource | Who sees it | Notes |
+|----------|-------------|-------|
+| **Users** | `super_admin`, `operations_admin` | Lists **all** users, including mobile **`customer`** accounts (filters for customer/platform/restaurant audiences). **`super_admin`** assigns Spatie **`roles`** and may set **`password`** on create/edit; **`operations_admin`** may **not** assign roles or change passwords (fields omitted from dehydrated state). Users with **`super_admin`** cannot be edited by **`operations_admin`**; **`super_admin`** accounts cannot be deleted from this UI; other deletes require **`super_admin`** and never target accounts that still carry **`super_admin`**. Optional relation managers link to **customer bookings** and **reviews** authored as that user. |
+| **Roles** | `super_admin` only | Manage **`web`** roles and attach permissions; **core** roles (`super_admin`, `operations_admin`, `restaurant_owner`, `branch_manager`, `restaurant_host`, `customer`) **cannot** be deleted (names/guards locked on edit). |
+| **Permissions** | `super_admin` only | **Read-only** table + view page for auditing Spatie permission rows — creation/editing/deletion stays disabled so operators cannot drift from seeded naming conventions accidentally. |
+
+This layer **does not** change Sanctum/mobile APIs or introduce new REST endpoints — it is dashboard inspection and controlled **`super_admin`** maintenance only.
+
 ## Restaurant panel scoping (Phase 2)
 
 Phase 2 introduces restaurant operational data and scoping via `RestaurantStaffAssignment`:

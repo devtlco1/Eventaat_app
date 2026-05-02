@@ -45,6 +45,7 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
 - **`User`** exposes small role helpers (**platform operator**, **restaurant staff**, **structure managers**, **restaurant owners**) so Filament **`can*`** methods stop repeating literal **`hasAnyRole`** arrays; **`/platform`** resources share **`AuthorizesPlatformOperations`** / **`GrantsPlatformOperationsCrud`** traits instead of copying private **`isPlatformUser`** closures.
 - **`RestaurantPanelScope::restaurantEvents()`** mirrors restaurant-panel branch-scoping rules without changing outcomes — **no** new Laravel Policies / Gates for now.
+- **Filament Access Management**: **`Access Management → Users`** surfaces mobile **`customer`** accounts alongside staff; **`super_admin`** controls Spatie role assignment (the **`roles`** field is hidden/dehydrated for everyone else so **`operations_admin`** edits cannot rewrite pivots); **`super_admin`**-only **`Roles`** + read-only **`Permissions`** inventory complete the operator tooling — **no** API surface changes.
 
 ### Booking audit trail (Phase 5C)
 

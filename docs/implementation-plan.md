@@ -727,6 +727,18 @@ Adds **`RestaurantMenu`** → **`restaurant_menus`**, **`RestaurantMenuCategory`
 - No dashboards/widgets/analytics beyond Filament tables
 - No notifications
 
+### Platform Access Management UI (Filament; complements Phase 8G alignment)
+
+Adds **`Access Management`** navigation on **`/platform`**:
+
+- **`UserResource`**: full user index with filters (role, audience segment, created-between), global search on **`name` / `email` / **`phone`**, profile editing rules (**`super_admin`** assigns **`roles`** + optional **`password`**; **`operations_admin`** never dehydrates those fields so Spatie pivots stay untouched), guarded deletes (**cannot** delete **`super_admin`** holders or yourself), relation managers for **`customerBookings`** + **`restaurantReviews`** with links back to booking/review Filament routes.
+- **`RoleResource`** (**`super_admin`** only): CRUD for Spatie **`roles`** + permission attachments; **core** roles cannot be deleted and keep immutable **`name`/`guard_name`** on edit.
+- **`PermissionResource`** (**`super_admin`** only): table + **`ViewPermission`** infolist — **no** create/update/delete routes.
+
+Automated coverage lives in **`tests/Feature/PlatformAccessManagementFilamentTest.php`** + **`PlatformOperationsConsistencyTest`** now opens **`/platform/users`** for platform operators.
+
+Explicit non-goals: **no** mobile/public API additions, **no** migrations (Spatie tables unchanged), **no** Filament dashboard redesign beyond the new navigation group.
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)
