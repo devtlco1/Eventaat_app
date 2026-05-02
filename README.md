@@ -53,6 +53,13 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - **Roles** (**`super_admin`** only): manage **`web`** roles + attach permissions; core seeded roles cannot be deleted (**`name`/`guard_name`** locked on edit).
   - **Permissions** (**`super_admin`** inspect-only): **`PermissionsCatalogSeeder`** + **`RolePermissionDefaultsSeeder`** run from **`DatabaseSeeder`** — idempotent **`web`** capability catalog aligned with dashboard modules; **`super_admin`** receives every catalog permission on the role pivot, **`operations_admin`** receives the operational subset (**excludes** **`roles.view`**, **`roles.manage`**, **`permissions.view`**). Panel **`can*`** rules remain role-driven unless future code opts into **`hasPermissionTo`** checks.
   - **No** mobile/public API changes or migrations for this UI/catalog layer.
+- **Backend production readiness audit (Phase 8H)**:
+  - **`migrate:fresh --seed`** verified on an empty Postgres schema (local dev): all migrations apply in timestamp order; **`DatabaseSeeder`** chain is idempotent-friendly (`RolesAndTestUsersSeeder`, **`RolePermissionDefaultsSeeder`** → catalog, subscription plans, notification templates, demo restaurants/events/bookings).
+  - **Environment**: **`backend/.env.example`** documents DB, **`APP_URL`**, **`FILESYSTEM_PUBLIC_URL`** (optional; default **`/storage`** root-relative), **`OTP_DRIVER=log`**, **`NOTIFICATION_DRIVER=dry_run`**, **`BOOKING_REMINDER_HOURS`**, mail/session/cache/queue defaults — **no** real SMS/WhatsApp/payment providers.
+  - **Storage**: `public` disk root is **`storage/app/public`** with default URL prefix **`/storage`**; run **`php artisan storage:link`** once per deploy for web-served uploads (menus/PDFs/images).
+  - **Scheduler**: **`eventaat:booking-reminders`** is registered **hourly** in **`bootstrap/app.php`**; production needs system cron **`php artisan schedule:run`** every minute (see **`php artisan schedule:list`**).
+  - **API docs**: **`docs/api-reference.md`** intro points at **`route:list --path=api/mobile`**; mobile API behavior unchanged in this audit.
+  - **Filament**: platform/restaurant indexes covered by existing feature tests where applicable; Access Management / Operations resources use empty or non-destructive **`bulkActions`** (no bulk delete introduced for users/roles).
 - **Booking notification foundation (Phase 9A)**:
   - Internal `booking_notifications` rows (`pending`, no outbound sending): lifecycle events recorded after successful booking creation and valid transitions
   - `BookingNotificationService` builds title/message/payload; insert failures are reported without failing the booking flow

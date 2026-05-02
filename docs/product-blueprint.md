@@ -41,6 +41,13 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Filament `/platform` Operations** sidebar ordering is deterministic (no overlapping sort integers); **Bookings** and **Event nights** resources enforce the same **`super_admin` / `operations_admin`** gates as invoices/subscriptions/tickets/call logs.
 - Operations **table badges** use consistent semantic Filament colors for statuses/priorities/modes where rows were previously monochrome — presentation-only tightening (**no** API or schema churn).
 
+### Backend production readiness (Phase 8H)
+
+- **Database & seeds**: Migration order validated via fresh install + **`DatabaseSeeder`** (roles/users, permission catalog defaults, subscription plan placeholders, notification templates, demo restaurant/event/booking content where enabled). Re-run seeders remain idempotent at the row level they control.
+- **Runtime config**: **`OTP_DRIVER=log`**, **`NOTIFICATION_DRIVER=dry_run`**, and hourly **`eventaat:booking-reminders`** (internal notification rows only) remain the safe defaults — **no** live SMS/WhatsApp/email payment integrations in this audit.
+- **Operations**: Document **`php artisan storage:link`** for **`public`** disk URLs and **cron + `schedule:run`** for reminders; **`docs/api-reference.md`** ties mobile docs to **`route:list --path=api/mobile`**.
+- **Scope**: Documentation and verification only unless a regression is found — **no** new customer API routes or Filament modules in Phase 8H.
+
 ### Authorization alignment (Phase 8G)
 
 - **`User`** exposes small role helpers (**platform operator**, **restaurant staff**, **structure managers**, **restaurant owners**) so Filament **`can*`** methods stop repeating literal **`hasAnyRole`** arrays; **`/platform`** resources share **`AuthorizesPlatformOperations`** / **`GrantsPlatformOperationsCrud`** traits instead of copying private **`isPlatformUser`** closures.

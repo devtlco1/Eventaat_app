@@ -741,6 +741,17 @@ Automated coverage lives in **`tests/Feature/PlatformAccessManagementFilamentTes
 
 Explicit non-goals: **no** mobile/public API additions, **no** migrations (Spatie tables unchanged), **no** Filament dashboard redesign beyond the new navigation group, **no** migration of Filament authorization to permission-based gates in this phase.
 
+### Phase 8H: backend production readiness audit
+
+Stabilization / documentation pass (no new business modules, no mobile API changes, no dashboard redesign):
+
+- **Database**: Full migration chain runs cleanly from empty DB; ordering matches dependency needs (users → permissions → restaurants → bookings → notifications → … → call logs). **`php artisan migrate:fresh --seed`** exercised in dev to confirm. Seeders are designed to be re-runnable without duplicating logical rows (`firstOrCreate` / `findOrCreate` / idempotent demo seeders).
+- **Environment**: **`backend/.env.example`** reflects required operational keys (DB, app URL, optional **`FILESYSTEM_PUBLIC_URL`**, **`OTP_DRIVER`**, **`NOTIFICATION_DRIVER`**, **`BOOKING_REMINDER_HOURS`**, plus standard mail/session/cache/queue placeholders). Safe defaults only — no third-party credentials.
+- **Storage / public disk**: Menu PDFs and item images target the **`public`** disk; default published URL prefix is **`/storage`** unless overridden. **`php artisan storage:link`** documented for production.
+- **Scheduler**: **`bootstrap/app.php`** registers **`eventaat:booking-reminders`** on an hourly schedule; production requires cron **`schedule:run`**. Lightweight test asserts **`schedule:list`** output mentions the command.
+- **API documentation**: **`docs/api-reference.md`** header clarifies **`/api/mobile`** as the live contract and defers to **`route:list`** for drift detection.
+- **Filament**: No unsafe bulk-delete patterns added in audited resources; authorization matrix remains covered by existing tests (panel access, platform vs restaurant separation, Access Management rules).
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)

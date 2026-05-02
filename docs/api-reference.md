@@ -1,6 +1,8 @@
-## API reference (Phase 0–3)
+## API reference (mobile `/api/mobile`)
 
-Phase 0–2 does not introduce any mobile/customer API endpoints yet.
+Verify current routes with **`php artisan route:list --path=api/mobile`** (registered in **`routes/api.php`**). Historical phase labels below are for traceability only.
+
+Phase 0–2 did not introduce any mobile/customer API endpoints yet.
 
 Phase 1 adds:
 - Role-based Filament panel access (internal dashboards)
