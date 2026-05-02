@@ -2,6 +2,7 @@
 
 namespace App\Filament\Platform\Resources\Branches;
 
+use App\Filament\Concerns\GrantsPlatformOperationsCrud;
 use App\Filament\Platform\Resources\Branches\Pages\CreateBranch;
 use App\Filament\Platform\Resources\Branches\Pages\EditBranch;
 use App\Filament\Platform\Resources\Branches\Pages\ListBranches;
@@ -20,6 +21,8 @@ use Filament\Tables\Table;
 
 class BranchResource extends Resource
 {
+    use GrantsPlatformOperationsCrud;
+
     protected static ?string $model = Branch::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

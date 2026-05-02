@@ -2,6 +2,7 @@
 
 namespace App\Filament\Platform\Resources\SeatingAreas;
 
+use App\Filament\Concerns\GrantsPlatformOperationsCrud;
 use App\Filament\Platform\Resources\SeatingAreas\Pages\CreateSeatingArea;
 use App\Filament\Platform\Resources\SeatingAreas\Pages\EditSeatingArea;
 use App\Filament\Platform\Resources\SeatingAreas\Pages\ListSeatingAreas;
@@ -19,6 +20,8 @@ use Filament\Tables\Table;
 
 class SeatingAreaResource extends Resource
 {
+    use GrantsPlatformOperationsCrud;
+
     protected static ?string $model = SeatingArea::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

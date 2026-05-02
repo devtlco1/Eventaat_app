@@ -48,7 +48,7 @@ class BranchResource extends Resource
         /** @var User|null $user */
         $user = Filament::auth()->user();
 
-        return (bool) $user?->hasRole('restaurant_owner');
+        return (bool) $user?->isRestaurantOwner();
     }
 
     public static function canEdit($record): bool
@@ -56,7 +56,7 @@ class BranchResource extends Resource
         /** @var User|null $user */
         $user = Filament::auth()->user();
 
-        if (! $user || ! $user->hasAnyRole(['restaurant_owner', 'branch_manager'])) {
+        if (! $user || ! $user->canManageRestaurantStructure()) {
             return false;
         }
 

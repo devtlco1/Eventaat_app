@@ -46,17 +46,7 @@ class RestaurantEventResource extends Resource
             return parent::getEloquentQuery()->whereRaw('1=0');
         }
 
-        $restaurantIds = $user->scopedRestaurantIds();
-        $branchIds = $user->scopedBranchIds();
-
-        $query = RestaurantEvent::query()->whereIn('restaurant_id', $restaurantIds);
-
-        // Branch-scoped staff can only manage branch-scoped events (branch_id required).
-        if (count($branchIds)) {
-            $query->whereIn('branch_id', $branchIds);
-        }
-
-        return $query;
+        return RestaurantPanelScope::restaurantEvents($user);
     }
 
     public static function canCreate(): bool
@@ -64,7 +54,7 @@ class RestaurantEventResource extends Resource
         /** @var User|null $user */
         $user = Filament::auth()->user();
 
-        return (bool) $user?->hasAnyRole(['restaurant_owner', 'branch_manager', 'restaurant_host']);
+        return (bool) $user?->isRestaurantStaff();
     }
 
     public static function canEdit($record): bool
@@ -72,7 +62,7 @@ class RestaurantEventResource extends Resource
         /** @var User|null $user */
         $user = Filament::auth()->user();
 
-        if (! $user || ! $user->hasAnyRole(['restaurant_owner', 'branch_manager', 'restaurant_host'])) {
+        if (! $user || ! $user->isRestaurantStaff()) {
             return false;
         }
 
@@ -92,7 +82,7 @@ class RestaurantEventResource extends Resource
         /** @var User|null $user */
         $user = Filament::auth()->user();
 
-        return (bool) $user?->hasRole('restaurant_owner') && self::getEloquentQuery()->whereKey($record)->exists();
+        return (bool) $user?->isRestaurantOwner() && self::getEloquentQuery()->whereKey($record)->exists();
     }
 
     public static function form(Schema $schema): Schema
@@ -127,4 +117,3 @@ class RestaurantEventResource extends Resource
         ];
     }
 }
-

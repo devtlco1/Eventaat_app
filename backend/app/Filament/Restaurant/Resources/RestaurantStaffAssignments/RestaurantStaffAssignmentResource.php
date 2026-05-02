@@ -10,6 +10,7 @@ use App\Filament\Restaurant\Resources\RestaurantStaffAssignments\Schemas\Restaur
 use App\Filament\Restaurant\Resources\RestaurantStaffAssignments\Schemas\RestaurantStaffAssignmentInfolist;
 use App\Filament\Restaurant\Resources\RestaurantStaffAssignments\Tables\RestaurantStaffAssignmentsTable;
 use App\Models\RestaurantStaffAssignment;
+use App\Models\User;
 use App\Support\RestaurantPanelScope;
 use BackedEnum;
 use Filament\Facades\Filament;
@@ -31,7 +32,7 @@ class RestaurantStaffAssignmentResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Filament::auth()->user();
 
         if (! $user) {
@@ -43,18 +44,18 @@ class RestaurantStaffAssignmentResource extends Resource
 
     public static function canCreate(): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Filament::auth()->user();
 
-        return (bool) $user?->hasAnyRole(['restaurant_owner', 'branch_manager']);
+        return (bool) $user?->canManageRestaurantStructure();
     }
 
     public static function canEdit($record): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Filament::auth()->user();
 
-        if (! $user || ! $user->hasAnyRole(['restaurant_owner', 'branch_manager'])) {
+        if (! $user || ! $user->canManageRestaurantStructure()) {
             return false;
         }
 
@@ -63,7 +64,7 @@ class RestaurantStaffAssignmentResource extends Resource
 
     public static function canView($record): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Filament::auth()->user();
 
         return $user

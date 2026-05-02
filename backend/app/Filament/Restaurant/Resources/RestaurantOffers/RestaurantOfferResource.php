@@ -53,7 +53,7 @@ class RestaurantOfferResource extends Resource
         /** @var User|null $user */
         $user = Filament::auth()->user();
 
-        return (bool) $user?->hasAnyRole(['restaurant_owner', 'branch_manager', 'restaurant_host']);
+        return (bool) $user?->isRestaurantStaff();
     }
 
     public static function canEdit($record): bool
@@ -61,7 +61,7 @@ class RestaurantOfferResource extends Resource
         /** @var User|null $user */
         $user = Filament::auth()->user();
 
-        if (! $user || ! $user->hasAnyRole(['restaurant_owner', 'branch_manager', 'restaurant_host'])) {
+        if (! $user || ! $user->isRestaurantStaff()) {
             return false;
         }
 
@@ -81,7 +81,7 @@ class RestaurantOfferResource extends Resource
         /** @var User|null $user */
         $user = Filament::auth()->user();
 
-        if (! $user || ! $user->hasRole('restaurant_owner')) {
+        if (! $user || ! $user->isRestaurantOwner()) {
             return false;
         }
 
@@ -118,4 +118,3 @@ class RestaurantOfferResource extends Resource
         ];
     }
 }
-

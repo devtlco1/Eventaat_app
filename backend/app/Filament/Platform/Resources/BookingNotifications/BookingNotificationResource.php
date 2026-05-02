@@ -2,24 +2,25 @@
 
 namespace App\Filament\Platform\Resources\BookingNotifications;
 
+use App\Filament\Concerns\AuthorizesPlatformOperations;
 use App\Filament\Platform\Resources\BookingNotifications\Pages\ListBookingNotifications;
 use App\Filament\Platform\Resources\BookingNotifications\Pages\ViewBookingNotification;
 use App\Filament\Platform\Resources\BookingNotifications\RelationManagers\DispatchAttemptsRelationManager;
 use App\Filament\Platform\Resources\BookingNotifications\Tables\BookingNotificationsTable;
 use App\Models\BookingNotification;
-use App\Models\User;
 use BackedEnum;
-use Filament\Facades\Filament;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Section;
 
 class BookingNotificationResource extends Resource
 {
+    use AuthorizesPlatformOperations;
+
     protected static ?string $model = BookingNotification::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBellAlert;
@@ -36,18 +37,12 @@ class BookingNotificationResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        /** @var User|null $user */
-        $user = Filament::auth()->user();
-
-        return (bool) $user?->hasAnyRole(['super_admin', 'operations_admin']);
+        return self::isPlatformUser();
     }
 
     public static function canViewAny(): bool
     {
-        /** @var User|null $user */
-        $user = Filament::auth()->user();
-
-        return (bool) $user?->hasAnyRole(['super_admin', 'operations_admin']);
+        return self::isPlatformUser();
     }
 
     public static function canCreate(): bool

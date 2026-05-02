@@ -168,6 +168,15 @@ Phase **8F** does not introduce new roles or weaken gates — it aligns **`Booki
 
 Automated coverage includes **`PlatformOperationsConsistencyTest`** (HTTP **`GET`** smoke across those Operations index routes for platform roles vs **`restaurant_owner`**).
 
+## Authorization alignment (Phase 8G)
+
+Phase **8G** keeps **`User::canAccessPanel`** as the gate into Filament panels but removes duplicated **`hasAnyRole([...])`** literals spread across Filament resources:
+
+- **`User`** convenience helpers (**`isPlatformOperator()`**, **`isRestaurantStaff()`**, **`canManageRestaurantStructure()`**, **`isRestaurantOwner()`**) mirror those panel rules for conditional CRUD branches (owner-only deletes / branch-create bans remain unchanged semantically).
+- **`AuthorizesPlatformOperations`** / **`GrantsPlatformOperationsCrud`** consolidate **`/platform`** Filament **`can*`** implementations while **`RestaurantPanelScope`** continues to enforce tenant-safe queries (event nights additionally route through **`restaurantEvents()`** so branch rules stay centralized).
+
+Automated coverage adds **`UserAuthorizationHelpersTest`** (helper parity vs seeded roles + Filament panels).
+
 ## Event nights (Phase 11A)
 
 Phase 11A adds **Event nights** (`RestaurantEvent`) resources to both panels:

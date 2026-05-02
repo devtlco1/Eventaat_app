@@ -2,6 +2,7 @@
 
 namespace App\Filament\Platform\Resources\RestaurantTables;
 
+use App\Filament\Concerns\GrantsPlatformOperationsCrud;
 use App\Filament\Platform\Resources\RestaurantTables\Pages\CreateRestaurantTable;
 use App\Filament\Platform\Resources\RestaurantTables\Pages\EditRestaurantTable;
 use App\Filament\Platform\Resources\RestaurantTables\Pages\ListRestaurantTables;
@@ -18,6 +19,8 @@ use Filament\Tables\Table;
 
 class RestaurantTableResource extends Resource
 {
+    use GrantsPlatformOperationsCrud;
+
     protected static ?string $model = RestaurantTable::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

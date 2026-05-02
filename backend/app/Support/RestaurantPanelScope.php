@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\Booking;
 use App\Models\Branch;
 use App\Models\Restaurant;
+use App\Models\RestaurantEvent;
 use App\Models\RestaurantMenu;
 use App\Models\RestaurantOffer;
 use App\Models\RestaurantReview;
@@ -130,5 +131,19 @@ class RestaurantPanelScope
         }
 
         return RestaurantMenu::query()->whereIn('restaurant_id', $user->scopedRestaurantIds());
+    }
+
+    public static function restaurantEvents(User $user): Builder
+    {
+        $restaurantIds = $user->scopedRestaurantIds();
+        $branchIds = $user->scopedBranchIds();
+
+        $query = RestaurantEvent::query()->whereIn('restaurant_id', $restaurantIds);
+
+        if (count($branchIds)) {
+            $query->whereIn('branch_id', $branchIds);
+        }
+
+        return $query;
     }
 }

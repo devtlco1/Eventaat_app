@@ -41,6 +41,11 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Filament `/platform` Operations** sidebar ordering is deterministic (no overlapping sort integers); **Bookings** and **Event nights** resources enforce the same **`super_admin` / `operations_admin`** gates as invoices/subscriptions/tickets/call logs.
 - Operations **table badges** use consistent semantic Filament colors for statuses/priorities/modes where rows were previously monochrome — presentation-only tightening (**no** API or schema churn).
 
+### Authorization alignment (Phase 8G)
+
+- **`User`** exposes small role helpers (**platform operator**, **restaurant staff**, **structure managers**, **restaurant owners**) so Filament **`can*`** methods stop repeating literal **`hasAnyRole`** arrays; **`/platform`** resources share **`AuthorizesPlatformOperations`** / **`GrantsPlatformOperationsCrud`** traits instead of copying private **`isPlatformUser`** closures.
+- **`RestaurantPanelScope::restaurantEvents()`** mirrors restaurant-panel branch-scoping rules without changing outcomes — **no** new Laravel Policies / Gates for now.
+
 ### Booking audit trail (Phase 5C)
 
 - **`booking_audit_logs`** stores append-only lifecycle rows when **`BookingTransitionService`** successfully changes status (**`accepted`**, **`rejected`**, **`cancelled`**, **`arrived`**, **`seated`**, **`completed`**, **`no_show`**) with **`from_status`** / **`to_status`** and optional **`actor_id`** (dashboard **`web`** or mobile **`sanctum`** user).

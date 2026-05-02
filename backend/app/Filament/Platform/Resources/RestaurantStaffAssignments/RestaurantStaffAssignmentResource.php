@@ -2,6 +2,7 @@
 
 namespace App\Filament\Platform\Resources\RestaurantStaffAssignments;
 
+use App\Filament\Concerns\GrantsPlatformOperationsCrud;
 use App\Filament\Platform\Resources\RestaurantStaffAssignments\Pages\CreateRestaurantStaffAssignment;
 use App\Filament\Platform\Resources\RestaurantStaffAssignments\Pages\EditRestaurantStaffAssignment;
 use App\Filament\Platform\Resources\RestaurantStaffAssignments\Pages\ListRestaurantStaffAssignments;
@@ -18,6 +19,8 @@ use Filament\Tables\Table;
 
 class RestaurantStaffAssignmentResource extends Resource
 {
+    use GrantsPlatformOperationsCrud;
+
     protected static ?string $model = RestaurantStaffAssignment::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;

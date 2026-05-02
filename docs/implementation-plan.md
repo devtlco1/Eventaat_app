@@ -292,6 +292,18 @@ Stabilization pass for **`/platform`** **Operations** navigation and tables — 
 
 - No mobile/API/schema changes, no custom dashboards/widgets, no new bulk editors or destructive bulk actions
 
+### Phase 8G: authorization / policy alignment audit (filament-only)
+
+Maintenance pass to centralize duplicate role wiring **without** introducing Laravel **`Policy`** classes yet or altering effective permissions.
+
+- **`User`** helpers: **`isPlatformOperator()`**, **`isRestaurantStaff()`**, **`canManageRestaurantStructure()`**, **`isRestaurantOwner()`** (thin wrappers over Spatie roles for readability + reuse).
+- **`App\Filament\Concerns`**: **`AuthorizesPlatformOperations`** exposes **`isPlatformUser()`** for bespoke resources (read-only notifications + nested menu categories); **`GrantsPlatformOperationsCrud`** standardizes **`shouldRegisterNavigation`** / **`can*`** parity across **`/platform`** Operations **and** Restaurant Setup resources.
+- **`RestaurantPanelScope::restaurantEvents()`**: captures restaurant-panel **`RestaurantEvent`** branch-vs-owner visibility logic once (still **`RestaurantPanelScope::`** query helpers elsewhere).
+
+### Explicit non-goals (Phase 8G)
+
+- No mobile/API/schema changes; no broad **`Gate::`** overrides; **do not** loosen **`RestaurantPanelScope`** predicates or hide/delete pathways unless Filament defaults already matched them.
+
 ### Phase 9A: booking notification foundation
 
 Adds internal lifecycle notification rows only (no outbound channels):

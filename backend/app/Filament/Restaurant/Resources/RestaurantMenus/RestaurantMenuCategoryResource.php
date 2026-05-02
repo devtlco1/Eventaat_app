@@ -51,7 +51,7 @@ class RestaurantMenuCategoryResource extends Resource
         /** @var User|null $user */
         $user = Filament::auth()->user();
 
-        if (! $user || ! $user->hasAnyRole(['restaurant_owner', 'branch_manager', 'restaurant_host'])) {
+        if (! $user || ! $user->isRestaurantStaff()) {
             return false;
         }
 

@@ -2,19 +2,20 @@
 
 namespace App\Filament\Platform\Resources\RestaurantMenus;
 
+use App\Filament\Concerns\AuthorizesPlatformOperations;
 use App\Filament\Platform\Resources\RestaurantMenus\Pages\EditRestaurantMenuCategory;
 use App\Filament\Platform\Resources\RestaurantMenus\RelationManagers\RestaurantMenuCategoryItemsRelationManager;
 use App\Filament\Platform\Resources\RestaurantMenus\Schemas\RestaurantMenuCategoryForm;
 use App\Models\RestaurantMenu;
 use App\Models\RestaurantMenuCategory;
-use App\Models\User;
-use Filament\Facades\Filament;
 use Filament\Resources\ParentResourceRegistration;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 
 class RestaurantMenuCategoryResource extends Resource
 {
+    use AuthorizesPlatformOperations;
+
     protected static ?string $model = RestaurantMenuCategory::class;
 
     protected static ?string $slug = 'categories';
@@ -32,14 +33,6 @@ class RestaurantMenuCategoryResource extends Resource
         return RestaurantMenuResource::asParent(static::class)
             ->relationship('categories')
             ->inverseRelationship('menu');
-    }
-
-    private static function isPlatformUser(): bool
-    {
-        /** @var User|null $user */
-        $user = Filament::auth()->user();
-
-        return (bool) $user?->hasAnyRole(['super_admin', 'operations_admin']);
     }
 
     protected static function menu(RestaurantMenuCategory $record): RestaurantMenu

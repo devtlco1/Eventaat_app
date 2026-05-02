@@ -25,11 +25,40 @@ class User extends Authenticatable implements FilamentUser
     use HasFactory, Notifiable;
     use HasRoles;
 
+    /**
+     * Platform Filament operators (`super_admin`, `operations_admin`).
+     */
+    public function isPlatformOperator(): bool
+    {
+        return $this->hasAnyRole(['super_admin', 'operations_admin']);
+    }
+
+    /**
+     * Restaurant Filament staff (owner / branch manager / host).
+     */
+    public function isRestaurantStaff(): bool
+    {
+        return $this->hasAnyRole(['restaurant_owner', 'branch_manager', 'restaurant_host']);
+    }
+
+    /**
+     * Restaurant structure CRUD that excludes hosts (branches, seating, tables, staff rows).
+     */
+    public function canManageRestaurantStructure(): bool
+    {
+        return $this->hasAnyRole(['restaurant_owner', 'branch_manager']);
+    }
+
+    public function isRestaurantOwner(): bool
+    {
+        return $this->hasRole('restaurant_owner');
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
         return match ($panel->getId()) {
-            'platform' => $this->hasAnyRole(['super_admin', 'operations_admin']),
-            'restaurant' => $this->hasAnyRole(['restaurant_owner', 'branch_manager', 'restaurant_host']),
+            'platform' => $this->isPlatformOperator(),
+            'restaurant' => $this->isRestaurantStaff(),
             default => false,
         };
     }
@@ -44,7 +73,7 @@ class User extends Authenticatable implements FilamentUser
      */
     public function scopedRestaurantIds(): array
     {
-        if (! $this->hasAnyRole(['restaurant_owner', 'branch_manager', 'restaurant_host'])) {
+        if (! $this->isRestaurantStaff()) {
             return [];
         }
 

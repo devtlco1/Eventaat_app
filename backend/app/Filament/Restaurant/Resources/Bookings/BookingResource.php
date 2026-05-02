@@ -43,7 +43,10 @@ class BookingResource extends Resource
 
     public static function canCreate(): bool
     {
-        return true;
+        /** @var User|null $user */
+        $user = Filament::auth()->user();
+
+        return (bool) $user?->isRestaurantStaff();
     }
 
     public static function canDelete($record): bool
