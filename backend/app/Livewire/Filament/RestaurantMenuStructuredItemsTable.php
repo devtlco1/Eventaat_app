@@ -24,57 +24,63 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ViewColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
-class RestaurantMenuCategoryItemsTable extends Component implements HasActions, HasSchemas, HasTable
+class RestaurantMenuStructuredItemsTable extends Component implements HasActions, HasSchemas, HasTable
 {
     use InteractsWithActions;
     use InteractsWithSchemas;
     use InteractsWithTable;
 
     #[Locked]
-    public int $categoryId;
+    public int $menuId;
 
-    public function mount(int $categoryId): void
+    public function mount(int $menuId): void
     {
-        $this->categoryId = $categoryId;
+        $this->menuId = $menuId;
+    }
+
+    #[On('menu-structure-changed')]
+    public function refreshStructuredItems(): void
+    {
+        $this->resetTable();
     }
 
     public function getDefaultActionSchemaResolver(Action $action): ?Closure
     {
         return match (true) {
-            $action instanceof EditAction => fn (Schema $schema): Schema => $this->form($schema),
+            $action instanceof EditAction => fn (Schema $schema): Schema => $schema->components(
+                RestaurantMenuItemFormSchema::sectionsForMenu($this->menuId),
+            ),
             default => null,
         };
-    }
-
-    public function form(Schema $schema): Schema
-    {
-        return $schema->components(RestaurantMenuItemFormSchema::sections($this->categoryId));
     }
 
     public function table(Table $table): Table
     {
         return $table
-            ->query($this->getTableQuery())
+            ->query($this->tableQuery())
             ->paginated(false)
-            ->defaultSort('display_order')
             ->striped()
             ->searchable(false)
-            ->emptyStateHeading('No items yet')
+            ->emptyStateHeading('No menu items yet.')
             ->emptyStateDescription('Use Add item to create the first item.')
             ->emptyStateIcon(null)
             ->columns([
                 ViewColumn::make('image_thumb')
                     ->label('Image')
                     ->view('filament.tables.columns.restaurant-menu-item-thumb'),
+                TextColumn::make('category.name')
+                    ->label('Category')
+                    ->placeholder('—'),
                 TextColumn::make('name')
                     ->label('Name')
-                    ->sortable()
                     ->wrap(),
                 TextColumn::make('description')
                     ->label('Description')
@@ -84,7 +90,6 @@ class RestaurantMenuCategoryItemsTable extends Component implements HasActions, 
                     ->wrap(),
                 TextColumn::make('price')
                     ->label('Price')
-                    ->sortable()
                     ->alignEnd()
                     ->formatStateUsing(fn ($state): string => $state === null || $state === ''
                         ? '—'
@@ -100,42 +105,61 @@ class RestaurantMenuCategoryItemsTable extends Component implements HasActions, 
                     ->boolean(),
                 TextColumn::make('display_order')
                     ->label('Order')
-                    ->sortable()
                     ->alignCenter(),
+            ])
+            ->filters([
+                SelectFilter::make('restaurant_menu_category_id')
+                    ->label('Category')
+                    ->options(fn (): array => RestaurantMenuCategory::query()
+                        ->where('restaurant_menu_id', $this->menuId)
+                        ->orderBy('display_order')
+                        ->orderBy('name')
+                        ->pluck('name', 'id')
+                        ->all()),
             ])
             ->recordActions([
                 EditAction::make()
                     ->label('Edit')
                     ->modalHeading('Edit item')
                     ->modalWidth(Width::FiveExtraLarge)
-                    ->visible(fn (): bool => $this->canEditMenu()),
+                    ->visible(fn (): bool => $this->canManage())
+                    ->after(fn () => $this->dispatch('menu-structure-changed')),
                 DeleteAction::make()
                     ->label('Delete')
                     ->modalWidth(Width::Medium)
-                    ->visible(fn (): bool => $this->canEditMenu()),
+                    ->requiresConfirmation()
+                    ->visible(fn (): bool => $this->canManage())
+                    ->after(fn () => $this->dispatch('menu-structure-changed')),
             ])
             ->bulkActions([]);
     }
 
-    protected function getTableQuery(): Builder
+    protected function tableQuery(): Builder
     {
         return RestaurantMenuItem::query()
-            ->where('restaurant_menu_category_id', $this->categoryId);
+            ->select('restaurant_menu_items.*')
+            ->join(
+                'restaurant_menu_categories',
+                'restaurant_menu_items.restaurant_menu_category_id',
+                '=',
+                'restaurant_menu_categories.id',
+            )
+            ->where('restaurant_menu_categories.restaurant_menu_id', $this->menuId)
+            ->with(['category'])
+            ->orderBy('restaurant_menu_categories.display_order')
+            ->orderBy('restaurant_menu_categories.name')
+            ->orderBy('restaurant_menu_items.display_order')
+            ->orderBy('restaurant_menu_items.name');
     }
 
     protected function resolveMenu(): ?RestaurantMenu
     {
-        $category = RestaurantMenuCategory::query()
-            ->with('menu')
-            ->find($this->categoryId);
-
-        return $category?->menu;
+        return RestaurantMenu::query()->find($this->menuId);
     }
 
-    protected function canEditMenu(): bool
+    protected function canManage(): bool
     {
         $menu = $this->resolveMenu();
-
         if (! $menu || ! $menu->isStructured()) {
             return false;
         }
@@ -149,6 +173,6 @@ class RestaurantMenuCategoryItemsTable extends Component implements HasActions, 
 
     public function render(): View
     {
-        return view('livewire.filament.restaurant-menu-category-items-table');
+        return view('livewire.filament.restaurant-menu-structured-items-table');
     }
 }

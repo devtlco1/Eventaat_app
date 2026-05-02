@@ -7,8 +7,8 @@ use App\Enums\RestaurantStaffRole;
 use App\Enums\RestaurantStatus;
 use App\Filament\Platform\Resources\RestaurantMenus\Pages\CreateRestaurantMenu as PlatformCreateRestaurantMenu;
 use App\Filament\Platform\Resources\RestaurantMenus\Pages\EditRestaurantMenu as PlatformEditRestaurantMenu;
-use App\Livewire\Filament\RestaurantMenuBuilder;
-use App\Livewire\Filament\RestaurantMenuCategoryItemsTable;
+use App\Livewire\Filament\RestaurantMenuStructuredContent;
+use App\Livewire\Filament\RestaurantMenuStructuredItemsTable;
 use App\Models\Branch;
 use App\Models\Restaurant;
 use App\Models\RestaurantMenu;
@@ -142,10 +142,10 @@ class RestaurantMenusDashboardTest extends TestCase
         $this->get(route('filament.platform.resources.restaurant-menus.create'))
             ->assertOk()
             ->assertSee('Save the menu first')
-            ->assertDontSee('Menu builder');
+            ->assertDontSee('Menu content');
     }
 
-    public function test_platform_edit_structured_menu_shows_menu_builder(): void
+    public function test_platform_edit_structured_menu_shows_menu_content(): void
     {
         $data = $this->seedRestaurantsAndMenus();
 
@@ -155,10 +155,10 @@ class RestaurantMenusDashboardTest extends TestCase
 
         Livewire::test(PlatformEditRestaurantMenu::class, ['record' => $data['aWide']->getKey()])
             ->assertSuccessful()
-            ->assertSee('Menu builder');
+            ->assertSee('Menu content');
     }
 
-    public function test_platform_menu_builder_lists_category_actions_and_embedded_items_table(): void
+    public function test_platform_structured_menu_content_lists_categories_and_items_table(): void
     {
         $data = $this->seedRestaurantsAndMenus();
 
@@ -174,17 +174,19 @@ class RestaurantMenusDashboardTest extends TestCase
         Filament::setCurrentPanel('platform');
         $this->actingAs($admin);
 
-        Livewire::test(RestaurantMenuBuilder::class, ['record' => $data['aWide']])
+        Livewire::test(RestaurantMenuStructuredContent::class, ['record' => $data['aWide']])
             ->assertSuccessful()
-            ->assertSee('Menu builder')
-            ->assertSee('Manage categories and items for this structured menu.')
+            ->assertSee('Menu content')
+            ->assertSee('Manage categories and menu items for this structured menu.')
             ->assertSee('Add category')
             ->assertSee('Add item')
+            ->assertSee('Categories')
+            ->assertSee('Items')
             ->assertSee($category->name);
 
-        Livewire::test(RestaurantMenuCategoryItemsTable::class, ['categoryId' => $category->id])
+        Livewire::test(RestaurantMenuStructuredItemsTable::class, ['menuId' => $data['aWide']->id])
             ->assertSuccessful()
-            ->assertSee('No items yet')
+            ->assertSee('No menu items yet.')
             ->assertSee('Use Add item to create the first item.');
     }
 

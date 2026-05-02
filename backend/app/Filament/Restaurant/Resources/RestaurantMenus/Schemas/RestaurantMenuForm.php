@@ -3,7 +3,7 @@
 namespace App\Filament\Restaurant\Resources\RestaurantMenus\Schemas;
 
 use App\Filament\Restaurant\Resources\RestaurantMenus\RestaurantMenuResource;
-use App\Livewire\Filament\RestaurantMenuBuilder;
+use App\Livewire\Filament\RestaurantMenuStructuredContent;
 use App\Models\Branch;
 use App\Models\RestaurantMenu;
 use App\Models\User;
@@ -156,10 +156,10 @@ class RestaurantMenuForm
                     && $livewire instanceof EditRecord
                     && RestaurantMenuResource::canView($livewire->getRecord()))
                 ->schema([
-                    Livewire::make(RestaurantMenuBuilder::class)
+                    Livewire::make(RestaurantMenuStructuredContent::class)
                         ->key(fn ($livewire): string => $livewire instanceof EditRecord
-                            ? 'restaurant-menu-builder-'.$livewire->getRecord()->getKey()
-                            : 'restaurant-menu-builder'),
+                            ? 'restaurant-menu-structured-'.$livewire->getRecord()->getKey()
+                            : 'restaurant-menu-structured'),
                 ])
                 ->columnSpanFull(),
 

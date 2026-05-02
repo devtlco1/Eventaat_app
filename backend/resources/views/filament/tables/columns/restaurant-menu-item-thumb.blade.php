@@ -8,13 +8,13 @@
         : null;
 
     $hasFile = filled($path) && Storage::disk('public')->exists($path);
-    $src = $hasFile ? asset('storage/'.ltrim((string) $path, '/')) : null;
+    $relativeSrc = $hasFile ? '/storage/'.ltrim((string) $path, '/') : null;
 @endphp
 
 <div class="flex items-center justify-start py-0.5">
-    @if ($src)
+    @if ($relativeSrc)
         <img
-            src="{{ $src }}"
+            src="{{ $relativeSrc }}"
             alt=""
             loading="lazy"
             decoding="async"
