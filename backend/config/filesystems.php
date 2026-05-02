@@ -41,7 +41,9 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            // Default root-relative URLs so previews (e.g. Filament FileUpload) follow the browser host:port.
+            // Override with an absolute URL in production/CDN via FILESYSTEM_PUBLIC_URL.
+            'url' => rtrim((string) env('FILESYSTEM_PUBLIC_URL', '/storage'), '/'),
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
