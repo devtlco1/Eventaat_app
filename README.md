@@ -98,6 +98,8 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - **`bootstrap/app.php`** registers an **hourly** Laravel scheduler entry; run **`php artisan schedule:run`** from cron (or invoke the command manually) — command does **not** send SMS/WhatsApp by itself
 - **Twilio SMS OTP (Phase 7D)**:
   - Opt-in **`OTP_DRIVER=twilio_sms`** with **`TWILIO_ACCOUNT_SID`**, **`TWILIO_AUTH_TOKEN`**, **`TWILIO_MESSAGING_SERVICE_SID`** (Messaging Service SID from Twilio console; never commit real values). Optional **`TWILIO_OTP_VALIDITY_PERIOD`** (default **300**). Default **`OTP_DRIVER=log`** unchanged. **SMS only** for mobile OTP — no WhatsApp, no booking notifications via Twilio in this phase.
+- **OTP phone validation + SMS copy (Phase 7E)**:
+  - Mobile **`request-otp`** / **`verify-otp`** reject non–E.164 phones (no partial/placeholder numbers). Twilio SMS uses the short copy: **“Eventaat code: {code}. Do not share this code.”**
 - **Event nights dashboard foundation (Phase 11A)**:
   - Model `RestaurantEvent` (`restaurant_events`) to represent restaurant-hosted event nights (dashboard-only in this phase)
   - Platform panel can manage all event nights
@@ -223,7 +225,7 @@ Demo data includes:
 ### Phase 3: mobile customer auth API (dev only)
 
 Phase 3 adds a mobile/customer REST API foundation:
-- OTP request/verify (local/dev OTP sender logs OTP to app logs)
+- OTP request/verify: **`phone`** must be **E.164-style** (`+` then country code and digits, e.g. **`+9647700001781`**); local/dev OTP sender still logs OTP to app logs (**`OTP_DRIVER=log`**)
 - Sanctum token auth for mobile sessions
 - `GET /api/mobile/me`, `PATCH /api/mobile/me`, and logout
 

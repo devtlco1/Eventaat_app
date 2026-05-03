@@ -448,6 +448,19 @@ Adds backend-only reminder **generation** (internal outbox rows still — **no**
 - No WhatsApp or booking-notification Twilio integration
 - No mobile app or mobile API response shape changes
 
+### Phase 7E: OTP phone validation + safer SMS copy
+
+- **`POST /api/mobile/auth/request-otp`** and **`verify-otp`**: **`phone`** validated as **E.164-style** (`/^\+[1-9]\d{7,14}$/` after whitespace trim/collapse), rejecting placeholders (e.g. **`X`**), missing **`+`**, too-short numbers, and alphabetic junk — **422** with standard Laravel validation JSON.
+- Successful OTP response payload unchanged (**`success`** / **`expires_at`**).
+- **`TwilioSmsOtpSender`** SMS body: **`Eventaat code: {code}. Do not share this code.`**
+- **`LocalLogOtpSender`** unchanged (structured log fields).
+
+### Explicit non-goals (Phase 7E)
+
+- No WhatsApp; no booking-notification SMS changes
+- No DB migrations
+- No successful-response contract changes for OTP endpoints
+
 ### Phase 11A: event nights dashboard foundation
 
 Adds dashboard-only event nights management using native Filament resources:

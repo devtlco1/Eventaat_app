@@ -121,6 +121,11 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Mobile auth only**: when **`OTP_DRIVER=twilio_sms`**, OTP codes for **`/api/mobile/auth/request-otp`** are sent via Twilio using **`TWILIO_MESSAGING_SERVICE_SID`** (plus account SID and auth token). Default remains **`log`** (OTP in application logs).
 - **Not in this phase**: WhatsApp, Twilio-backed booking notifications, or mobile API contract changes.
 
+### OTP phone validation + SMS wording (Phase 7E)
+
+- **`phone`** on **`request-otp`** and **`verify-otp`** must be **E.164-style** international (`+` prefix, valid length and digits only after normalization — no placeholders such as **`X`**).
+- Twilio-delivered OTP SMS uses the short wording **“Eventaat code: … Do not share this code.”**
+
 ### Booking notification template lifecycle + dry-run polish (Phase 7B)
 
 - Default templates are seeded idempotently for all **`BookingNotification::EVENTS`** keys (nine rows including **`booking_arrival_reminder`**).

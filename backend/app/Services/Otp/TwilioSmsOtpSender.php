@@ -32,7 +32,7 @@ final class TwilioSmsOtpSender implements OtpSender
         $validityPeriod = self::normalizeValidityPeriod((int) $twilio['otp_validity_period']);
 
         $client = $this->twilioClient ?? new Client($accountSid, $authToken);
-        $body = sprintf('Your Eventaat verification code is: %s', $otp);
+        $body = sprintf('Eventaat code: %s. Do not share this code.', $otp);
 
         $params = [
             'messagingServiceSid' => $messagingServiceSid,

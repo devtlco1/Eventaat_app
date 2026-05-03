@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\MobileOtp;
 use App\Models\User;
 use Database\Seeders\RolesAndTestUsersSeeder;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
@@ -17,7 +18,51 @@ class MobileAuthApiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        config([
+            'eventaat-notifications.otp.driver' => 'log',
+        ]);
+
         $this->seed(RolesAndTestUsersSeeder::class);
+    }
+
+    public function test_request_otp_accepts_valid_e164_international_phone_with_log_driver(): void
+    {
+        $phone = '+9647700001781';
+
+        $this->postJson('/api/mobile/auth/request-otp', ['phone' => $phone])
+            ->assertOk()
+            ->assertJson(['success' => true]);
+
+        $this->assertDatabaseHas('mobile_otps', ['phone' => $phone]);
+    }
+
+    public function test_request_otp_rejects_phone_with_non_digit_placeholders(): void
+    {
+        $this->postJson('/api/mobile/auth/request-otp', ['phone' => '+9647XXXXXXXXX'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['phone']);
+    }
+
+    public function test_request_otp_rejects_too_short_e164_phone(): void
+    {
+        $this->postJson('/api/mobile/auth/request-otp', ['phone' => '+1234567'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['phone']);
+    }
+
+    public function test_request_otp_rejects_phone_without_leading_plus(): void
+    {
+        $this->postJson('/api/mobile/auth/request-otp', ['phone' => '9647700001781'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['phone']);
+    }
+
+    public function test_request_otp_rejects_invalid_phone_with_letters(): void
+    {
+        $this->postJson('/api/mobile/auth/request-otp', ['phone' => 'abc'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['phone']);
     }
 
     public function test_request_otp_creates_or_updates_record(): void
@@ -121,7 +166,7 @@ class MobileAuthApiTest extends TestCase
             'password' => Hash::make('x'),
         ])->syncRoles(['customer']);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         User::create([
             'name' => '',
@@ -140,4 +185,3 @@ class MobileAuthApiTest extends TestCase
         $this->get('/restaurant')->assertForbidden();
     }
 }
-

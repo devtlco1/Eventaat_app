@@ -10,7 +10,7 @@ class RequestOtpRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'string', 'min:6', 'max:32'],
+            'phone' => MobileOtpService::otpPhoneValidationRules(),
         ];
     }
 
@@ -23,4 +23,3 @@ class RequestOtpRequest extends FormRequest
         }
     }
 }
-

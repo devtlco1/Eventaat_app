@@ -9,6 +9,9 @@ use Illuminate\Support\Str;
 
 class MobileOtpService
 {
+    /** E.164-style OTP phone: leading "+", first digit after "+" non-zero, 8–15 digits total after "+". */
+    public const OTP_PHONE_E164_REGEX = '/^\+[1-9]\d{7,14}$/';
+
     public function __construct(
         private readonly OtpSender $sender,
     ) {}
@@ -48,6 +51,7 @@ class MobileOtpService
 
         if (! Hash::check($otp, $record->otp_hash)) {
             $record->increment('attempts');
+
             return null;
         }
 
@@ -60,12 +64,18 @@ class MobileOtpService
     {
         $phone = trim($phone);
         $phone = preg_replace('/\\s+/', '', $phone) ?? $phone;
+
         return $phone;
+    }
+
+    /** @return list<string> */
+    public static function otpPhoneValidationRules(): array
+    {
+        return ['required', 'string', 'regex:'.self::OTP_PHONE_E164_REGEX];
     }
 
     public static function mobileEmailForPhone(string $phone): string
     {
-        return 'mobile_' . Str::lower(substr(sha1($phone), 0, 16)) . '@mobile.eventaat.test';
+        return 'mobile_'.Str::lower(substr(sha1($phone), 0, 16)).'@mobile.eventaat.test';
     }
 }
-

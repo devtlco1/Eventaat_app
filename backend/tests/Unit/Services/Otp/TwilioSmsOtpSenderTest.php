@@ -47,7 +47,7 @@ class TwilioSmsOtpSenderTest extends TestCase
 
         $this->assertSame('+15550000001', $capturedTo);
         $this->assertSame('MGxxxxxxxx', $capturedParams['messagingServiceSid']);
-        $this->assertSame('Your Eventaat verification code is: 123456', $capturedParams['body']);
+        $this->assertSame('Eventaat code: 123456. Do not share this code.', $capturedParams['body']);
         $this->assertSame(300, $capturedParams['validityPeriod']);
     }
 

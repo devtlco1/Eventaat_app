@@ -26,11 +26,15 @@ Request:
 { "phone": "+15550000001" }
 ```
 
-Response:
+**Validation (`phone`):** required string in **E.164-style** international form: must start with **`+`**, then a non-zero digit and **7–14** further digits (8–15 digits after `+` in total). Examples: **`+15550000001`**, **`+9647700001781`**. Rejected examples: missing **`+`**, national-only digits, placeholders such as **`X`**, too few digits, or non-digit characters.
+
+Response **unchanged on success**:
 
 ```json
 { "success": true, "expires_at": "2026-04-29T12:00:00.000000Z" }
 ```
+
+Invalid `phone` returns **422** with Laravel validation errors on `phone`. SMS OTP body when using Twilio (Phase **7D**): short text **`Eventaat code: {code}. Do not share this code.`**
 
 ### POST `/api/mobile/auth/verify-otp`
 
@@ -39,6 +43,8 @@ Request:
 ```json
 { "phone": "+15550000001", "otp": "123456", "name": "Optional Name" }
 ```
+
+**Validation (`phone`):** same E.164-style rules as **`request-otp`** (must include leading **`+`** and match the normalized format above).
 
 Response:
 
