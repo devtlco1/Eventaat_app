@@ -394,7 +394,7 @@ Prepares the notification system for future providers without integrating any ex
 Aligns blueprint **Phase 7** with shipping configuration (no paid provider integration):
 
 - `config/eventaat-notifications.php` driven by **`OTP_DRIVER`** (default **`log`**) and **`NOTIFICATION_DRIVER`** (default **`dry_run`**)
-- **`OtpSenderFactory`** / **`BookingNotificationProviderFactory`** centralize driver selection; **`sms`** and **`whatsapp`** are explicit placeholders that fail fast with helpful exceptions until implemented
+- **`OtpSenderFactory`** / **`BookingNotificationProviderFactory`** centralize driver selection; **`twilio_sms`** is the supported SMS OTP driver when Twilio env vars are set (Phase **7D**); reserved **`sms`** / **`whatsapp`** values still fail fast with helpful errors (no generic `sms` alias)
 - Container bindings in **`AppServiceProvider`**: `OtpSender`, `NotificationProvider`
 - **`NotificationDispatchService::dispatchInternalDryRun`** resolves **`NotificationProvider`** from the container (supports test doubles via `NotificationProvider::class`) and stores **`$provider->identifier()`** on dispatch attempts
 - Misconfigured drivers surface clearly at resolution time (unsupported OTP driver breaks OTP resolution; unsupported notification driver breaks provider resolution / dry-run dispatch)
@@ -435,6 +435,18 @@ Adds backend-only reminder **generation** (internal outbox rows still — **no**
 - No mobile/public API changes
 - No real outbound messaging or new provider drivers
 - No Filament dashboards or reminder tuning UI
+
+### Phase 7D: Twilio SMS OTP provider (mobile auth)
+
+- **`OTP_DRIVER=twilio_sms`** with **`TWILIO_ACCOUNT_SID`**, **`TWILIO_AUTH_TOKEN`**, **`TWILIO_MESSAGING_SERVICE_SID`** sends mobile login/register OTP via Twilio Programmable Messaging using a **Messaging Service SID** (no hardcoded SIDs; optional **`TWILIO_OTP_VALIDITY_PERIOD`** for Twilio message queue validity, default **300** seconds, clamped to Twilio’s allowed range).
+- **`OTP_DRIVER=log`** remains the default (**`LocalLogOtpSender`**); Twilio env vars are ignored when not using **`twilio_sms`**.
+- Composer dependency **`twilio/sdk`**; **`TwilioSmsOtpSender`** implements **`OtpSender`**; failures map to safe HTTP errors without leaking credentials; logs include masked destination and message SID only.
+- **Out of scope**: WhatsApp, booking notifications via Twilio, mobile app or public API contract changes.
+
+### Explicit non-goals (Phase 7D)
+
+- No WhatsApp or booking-notification Twilio integration
+- No mobile app or mobile API response shape changes
 
 ### Phase 11A: event nights dashboard foundation
 
@@ -746,7 +758,7 @@ Explicit non-goals: **no** mobile/public API additions, **no** migrations (Spati
 Stabilization / documentation pass (no new business modules, no mobile API changes, no dashboard redesign):
 
 - **Database**: Full migration chain runs cleanly from empty DB; ordering matches dependency needs (users → permissions → restaurants → bookings → notifications → … → call logs). **`php artisan migrate:fresh --seed`** exercised in dev to confirm. Seeders are designed to be re-runnable without duplicating logical rows (`firstOrCreate` / `findOrCreate` / idempotent demo seeders).
-- **Environment**: **`backend/.env.example`** reflects required operational keys (DB, app URL, optional **`FILESYSTEM_PUBLIC_URL`**, **`OTP_DRIVER`**, **`NOTIFICATION_DRIVER`**, **`BOOKING_REMINDER_HOURS`**, plus standard mail/session/cache/queue placeholders). Safe defaults only — no third-party credentials.
+- **Environment**: **`backend/.env.example`** reflects required operational keys (DB, app URL, optional **`FILESYSTEM_PUBLIC_URL`**, **`OTP_DRIVER`**, optional **`TWILIO_*`** when **`OTP_DRIVER=twilio_sms`**, **`NOTIFICATION_DRIVER`**, **`BOOKING_REMINDER_HOURS`**, plus standard mail/session/cache/queue placeholders). Safe defaults only — real Twilio values belong in private **`.env`**, not in the repo.
 - **Storage / public disk**: Menu PDFs and item images target the **`public`** disk; default published URL prefix is **`/storage`** unless overridden. **`php artisan storage:link`** documented for production.
 - **Scheduler**: **`bootstrap/app.php`** registers **`eventaat:booking-reminders`** on an hourly schedule; production requires cron **`schedule:run`**. Lightweight test asserts **`schedule:list`** output mentions the command.
 - **API documentation**: **`docs/api-reference.md`** header clarifies **`/api/mobile`** as the live contract and defers to **`route:list`** for drift detection.

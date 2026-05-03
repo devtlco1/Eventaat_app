@@ -5,6 +5,7 @@ namespace App\Support\EventaatNotifications;
 use App\Exceptions\UnsupportedOtpDriverException;
 use App\Services\Otp\LocalLogOtpSender;
 use App\Services\Otp\OtpSender;
+use App\Services\Otp\TwilioSmsOtpSender;
 
 final class OtpSenderFactory
 {
@@ -22,6 +23,7 @@ final class OtpSenderFactory
 
         return match ($driver) {
             'log' => new LocalLogOtpSender,
+            'twilio_sms' => new TwilioSmsOtpSender,
             'sms', 'whatsapp' => throw UnsupportedOtpDriverException::forDriver($driver),
             default => throw UnsupportedOtpDriverException::forDriver($driver),
         };

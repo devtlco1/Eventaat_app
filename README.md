@@ -55,7 +55,7 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - **No** mobile/public API changes or migrations for this UI/catalog layer.
 - **Backend production readiness audit (Phase 8H)**:
   - **`migrate:fresh --seed`** verified on an empty Postgres schema (local dev): all migrations apply in timestamp order; **`DatabaseSeeder`** chain is idempotent-friendly (`RolesAndTestUsersSeeder`, **`RolePermissionDefaultsSeeder`** → catalog, subscription plans, notification templates, demo restaurants/events/bookings).
-  - **Environment**: **`backend/.env.example`** documents DB, **`APP_URL`**, **`FILESYSTEM_PUBLIC_URL`** (optional; default **`/storage`** root-relative), **`OTP_DRIVER=log`**, **`NOTIFICATION_DRIVER=dry_run`**, **`BOOKING_REMINDER_HOURS`**, mail/session/cache/queue defaults — **no** real SMS/WhatsApp/payment providers.
+  - **Environment**: **`backend/.env.example`** documents DB, **`APP_URL`**, **`FILESYSTEM_PUBLIC_URL`** (optional; default **`/storage`** root-relative), **`OTP_DRIVER=log`** (optional **`OTP_DRIVER=twilio_sms`** + **`TWILIO_*`** for real SMS OTP), **`NOTIFICATION_DRIVER=dry_run`**, **`BOOKING_REMINDER_HOURS`**, mail/session/cache/queue defaults — booking notifications stay internal/dry-run unless configured otherwise; no payment providers.
   - **Storage**: `public` disk root is **`storage/app/public`** with default URL prefix **`/storage`**; run **`php artisan storage:link`** once per deploy for web-served uploads (menus/PDFs/images).
   - **Scheduler**: **`eventaat:booking-reminders`** is registered **hourly** in **`bootstrap/app.php`**; production needs system cron **`php artisan schedule:run`** every minute (see **`php artisan schedule:list`**).
   - **API docs**: **`docs/api-reference.md`** intro points at **`route:list --path=api/mobile`**; mobile API behavior unchanged in this audit.
@@ -89,13 +89,15 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - Platform Filament adds **Dry-run dispatch** for pending/internal booking notifications and shows dispatch attempt history on the view page
 - **Notification provider configuration readiness (Phase 7A)**:
   - `config/eventaat-notifications.php` with **`OTP_DRIVER`** (default **`log`**) and **`NOTIFICATION_DRIVER`** (default **`dry_run`**); see `backend/.env.example`
-  - Central factories resolve senders/providers; **`sms`** / **`whatsapp`** are reserved and throw clear exceptions until a real integration exists (no credentials, no outbound messages in this phase)
+  - Central factories resolve senders/providers; **`sms`** / **`whatsapp`** OTP values remain reserved and throw clear errors; use **`OTP_DRIVER=twilio_sms`** + Twilio env for real SMS OTP (Phase **7D**)
 - **Booking notification templates + dry-run lifecycle (Phase 7B)**:
   - Idempotent **`NotificationTemplatesSeeder`** for default English templates; dry-run **`dispatchInternalDryRun`** stores provider **`internal_dry_run`** on **`notification_dispatch_attempts`**
   - Still **no** live SMS/WhatsApp — outbound integrations remain future work
 - **Booking arrival reminder command (Phase 7C)**:
   - **`php artisan eventaat:booking-reminders`** — records internal **`booking_arrival_reminder`** notifications for **`accepted`** bookings whose **`starts_at`** is within the next **`BOOKING_REMINDER_HOURS`** (default **2**, app timezone); skips bookings that already have that reminder row
   - **`bootstrap/app.php`** registers an **hourly** Laravel scheduler entry; run **`php artisan schedule:run`** from cron (or invoke the command manually) — command does **not** send SMS/WhatsApp by itself
+- **Twilio SMS OTP (Phase 7D)**:
+  - Opt-in **`OTP_DRIVER=twilio_sms`** with **`TWILIO_ACCOUNT_SID`**, **`TWILIO_AUTH_TOKEN`**, **`TWILIO_MESSAGING_SERVICE_SID`** (Messaging Service SID from Twilio console; never commit real values). Optional **`TWILIO_OTP_VALIDITY_PERIOD`** (default **300**). Default **`OTP_DRIVER=log`** unchanged. **SMS only** for mobile OTP — no WhatsApp, no booking notifications via Twilio in this phase.
 - **Event nights dashboard foundation (Phase 11A)**:
   - Model `RestaurantEvent` (`restaurant_events`) to represent restaurant-hosted event nights (dashboard-only in this phase)
   - Platform panel can manage all event nights

@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Exceptions\MissingTwilioOtpConfigurationException;
 use App\Exceptions\UnsupportedNotificationDriverException;
 use App\Exceptions\UnsupportedOtpDriverException;
 use App\Services\Notifications\Providers\InternalDryRunNotificationProvider;
 use App\Services\Notifications\Providers\NotificationProvider;
 use App\Services\Otp\LocalLogOtpSender;
 use App\Services\Otp\OtpSender;
+use App\Services\Otp\TwilioSmsOtpSender;
 use App\Support\EventaatNotifications\BookingNotificationProviderFactory;
 use App\Support\EventaatNotifications\OtpSenderFactory;
 use Tests\TestCase;
@@ -44,10 +46,51 @@ class EventaatNotificationsConfigurationTest extends TestCase
 
     public function test_unsupported_otp_driver_throws_clear_exception(): void
     {
+        config(['eventaat-notifications.otp.driver' => 'carrier_pigeon']);
+
+        $this->expectException(UnsupportedOtpDriverException::class);
+        $this->expectExceptionMessage('carrier_pigeon');
+
+        app(OtpSender::class);
+    }
+
+    public function test_reserved_sms_otp_driver_throws_unsupported(): void
+    {
         config(['eventaat-notifications.otp.driver' => 'sms']);
 
         $this->expectException(UnsupportedOtpDriverException::class);
         $this->expectExceptionMessage('sms');
+
+        app(OtpSender::class);
+    }
+
+    public function test_twilio_sms_driver_resolves_twilio_sender_when_configured(): void
+    {
+        config([
+            'eventaat-notifications.otp.driver' => 'twilio_sms',
+            'eventaat-notifications.twilio.account_sid' => 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+            'eventaat-notifications.twilio.auth_token' => 'not_a_real_token',
+            'eventaat-notifications.twilio.messaging_service_sid' => 'MGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+            'eventaat-notifications.twilio.otp_validity_period' => 300,
+        ]);
+
+        $sender = app(OtpSender::class);
+
+        $this->assertInstanceOf(TwilioSmsOtpSender::class, $sender);
+        $this->assertInstanceOf(TwilioSmsOtpSender::class, OtpSenderFactory::make('twilio_sms'));
+    }
+
+    public function test_twilio_sms_missing_config_throws_clear_exception(): void
+    {
+        config([
+            'eventaat-notifications.otp.driver' => 'twilio_sms',
+            'eventaat-notifications.twilio.account_sid' => '',
+            'eventaat-notifications.twilio.auth_token' => '',
+            'eventaat-notifications.twilio.messaging_service_sid' => '',
+        ]);
+
+        $this->expectException(MissingTwilioOtpConfigurationException::class);
+        $this->expectExceptionMessage('TWILIO_ACCOUNT_SID');
 
         app(OtpSender::class);
     }

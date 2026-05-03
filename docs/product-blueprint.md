@@ -44,7 +44,7 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 ### Backend production readiness (Phase 8H)
 
 - **Database & seeds**: Migration order validated via fresh install + **`DatabaseSeeder`** (roles/users, permission catalog defaults, subscription plan placeholders, notification templates, demo restaurant/event/booking content where enabled). Re-run seeders remain idempotent at the row level they control.
-- **Runtime config**: **`OTP_DRIVER=log`**, **`NOTIFICATION_DRIVER=dry_run`**, and hourly **`eventaat:booking-reminders`** (internal notification rows only) remain the safe defaults — **no** live SMS/WhatsApp/email payment integrations in this audit.
+- **Runtime config**: **`OTP_DRIVER=log`**, **`NOTIFICATION_DRIVER=dry_run`**, and hourly **`eventaat:booking-reminders`** (internal notification rows only) remain the safe defaults. Optional **`OTP_DRIVER=twilio_sms`** + Twilio env enables **mobile OTP SMS only** (Phase **7D**); booking notifications are still not sent via Twilio by default.
 - **Operations**: Document **`php artisan storage:link`** for **`public`** disk URLs and **cron + `schedule:run`** for reminders; **`docs/api-reference.md`** ties mobile docs to **`route:list --path=api/mobile`**.
 - **Scope**: Documentation and verification only unless a regression is found — **no** new customer API routes or Filament modules in Phase 8H.
 
@@ -113,8 +113,13 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
 ### Notification provider configuration readiness (Phase 7A)
 
-- `config/eventaat-notifications.php` plus env **`OTP_DRIVER`** (default **`log`**) and **`NOTIFICATION_DRIVER`** (default **`dry_run`**) for production-safe defaults (no paid integrations yet).
-- Reserved drivers **`sms`** / **`whatsapp`** fail fast with clear errors until implemented.
+- `config/eventaat-notifications.php` plus env **`OTP_DRIVER`** (default **`log`**) and **`NOTIFICATION_DRIVER`** (default **`dry_run`**) for production-safe defaults.
+- Reserved OTP driver values **`sms`** / **`whatsapp`** still fail fast; production SMS OTP uses **`OTP_DRIVER=twilio_sms`** and Twilio Messaging Service configuration (Phase **7D**).
+
+### Twilio SMS OTP (Phase 7D)
+
+- **Mobile auth only**: when **`OTP_DRIVER=twilio_sms`**, OTP codes for **`/api/mobile/auth/request-otp`** are sent via Twilio using **`TWILIO_MESSAGING_SERVICE_SID`** (plus account SID and auth token). Default remains **`log`** (OTP in application logs).
+- **Not in this phase**: WhatsApp, Twilio-backed booking notifications, or mobile API contract changes.
 
 ### Booking notification template lifecycle + dry-run polish (Phase 7B)
 

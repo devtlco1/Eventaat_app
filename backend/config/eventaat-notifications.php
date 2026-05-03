@@ -9,14 +9,31 @@ return [
     |
     | Local/dev default: log — OTP is written to the app log only (no SMS).
     |
-    | Planned (not shipped yet): sms, whatsapp — configuring these fails fast until
-    | a real integration exists.
+    | Production SMS: twilio_sms — requires TWILIO_* env vars (see twilio below).
+    |
+    | Reserved (fail fast): sms, whatsapp — use twilio_sms for SMS until other
+    | providers exist.
     |
     | Env: OTP_DRIVER=log
     |
     */
     'otp' => [
         'driver' => env('OTP_DRIVER', 'log'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Twilio (OTP via SMS only when OTP_DRIVER=twilio_sms)
+    |--------------------------------------------------------------------------
+    |
+    | When OTP_DRIVER=log, these values are ignored and may be unset.
+    |
+    */
+    'twilio' => [
+        'account_sid' => env('TWILIO_ACCOUNT_SID', ''),
+        'auth_token' => env('TWILIO_AUTH_TOKEN', ''),
+        'messaging_service_sid' => env('TWILIO_MESSAGING_SERVICE_SID', ''),
+        'otp_validity_period' => (int) env('TWILIO_OTP_VALIDITY_PERIOD', 300),
     ],
 
     /*
