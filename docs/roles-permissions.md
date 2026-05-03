@@ -61,6 +61,12 @@ Denied:
 - `operations_admin`
 - `customer`
 
+### Restaurant panel data scoping (Phase 8J)
+
+- Restaurant Filament **`Resource::getEloquentQuery()`** implementations rely on **`App\Support\RestaurantPanelScope`** plus **`User::scopedRestaurantIds()`** and **`User::scopedBranchIds()`**, both derived from **`restaurant_staff_assignments`** (same rules as before this audit).
+- **`restaurant_owner`**: assignments typically use **`branch_id = null`** for restaurant-wide access; scopes resolve to that restaurant’s rows.
+- **`branch_manager`** / **`restaurant_host`**: assignments carry a **`branch_id`**; scopes narrow bookings, branches list, menus, offers, stories, reviews, tickets, and related entities to **assigned branches** where **`RestaurantPanelScope`** applies branch filtering — **do not bypass** these builders from custom queries without an explicit product decision.
+
 ## Filament Access Management (`/platform`)
 
 Native Filament resources under **`Access Management`** (sidebar):

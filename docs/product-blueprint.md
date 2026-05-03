@@ -54,6 +54,12 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Section stacking**: Root schemas force **one column** at all breakpoints (**`FilamentSchemaLayout::stackSections`**), so **main sections/cards never sit beside each other**; fields stay **horizontal inside** each section via **`Grid`** (typically **3–4** columns for short fields).
 - **Coverage**: Aligns layouts across operators’ modules (access management, restaurant setup, bookings, menus, stories/offers/events, reviews, tickets, subscriptions/invoices/call logs, notification templates, booking notification detail, relation-manager modals, structured menu Livewire editors) while preserving existing scopes and **`can*`** rules.
 
+### Restaurant panel readiness (Phase 8J)
+
+- **`/restaurant`** audited for staff roles with **`RestaurantPanelScope`** + **`User::scopedRestaurantIds()` / `scopedBranchIds()`** unchanged.
+- **Navigation polish**: unique sidebar icons per resource group and deterministic **`navigationSort`** within Operations so bookings/menus/events/offers/stories/reviews/tickets do not collide.
+- **Regression guard**: **`RestaurantPanelReadinessTest`** smoke-loads assigned-restaurant index URLs; deeper scoping stays in **`RestaurantPanelScopingTest`** and domain feature tests.
+
 ### Authorization alignment (Phase 8G)
 
 - **`User`** exposes small role helpers (**platform operator**, **restaurant staff**, **structure managers**, **restaurant owners**) so Filament **`can*`** methods stop repeating literal **`hasAnyRole`** arrays; **`/platform`** resources share **`AuthorizesPlatformOperations`** / **`GrantsPlatformOperationsCrud`** traits instead of copying private **`isPlatformUser`** closures.

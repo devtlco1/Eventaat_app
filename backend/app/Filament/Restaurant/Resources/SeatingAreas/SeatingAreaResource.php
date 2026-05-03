@@ -24,7 +24,7 @@ class SeatingAreaResource extends Resource
 {
     protected static ?string $model = SeatingArea::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSquaresPlus;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Restaurant Setup';
 

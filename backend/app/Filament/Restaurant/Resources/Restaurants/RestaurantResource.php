@@ -10,6 +10,7 @@ use App\Filament\Restaurant\Resources\Restaurants\Schemas\RestaurantForm;
 use App\Filament\Restaurant\Resources\Restaurants\Schemas\RestaurantInfolist;
 use App\Filament\Restaurant\Resources\Restaurants\Tables\RestaurantsTable;
 use App\Models\Restaurant;
+use App\Models\User;
 use App\Support\RestaurantPanelScope;
 use BackedEnum;
 use Filament\Facades\Filament;
@@ -23,7 +24,7 @@ class RestaurantResource extends Resource
 {
     protected static ?string $model = Restaurant::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingStorefront;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Restaurant Setup';
 
@@ -31,7 +32,7 @@ class RestaurantResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Filament::auth()->user();
 
         if (! $user) {

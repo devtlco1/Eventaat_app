@@ -24,7 +24,7 @@ class RestaurantTableResource extends Resource
 {
     protected static ?string $model = RestaurantTable::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTableCells;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Restaurant Setup';
 

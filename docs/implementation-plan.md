@@ -763,6 +763,15 @@ Presentation-only consistency pass for **`/platform`** and **`/restaurant`** Fil
 - **Shared helpers**: **`BranchAvailabilityRuleFormComponents`** wraps weekday toggles and numeric/time picks in compact grids; menu category/item schemas centralized for category edit pages + relation-manager modals.
 - **Safety**: No schema/API/auth changes; **`php artisan test`** remains green.
 
+### Phase 8J: Restaurant panel readiness audit
+
+Stabilization pass for **`/restaurant`** Filament (native UI only):
+
+- **Access / scoping**: Re-validated **`User::canAccessPanel('restaurant')`** vs platform/customer rules; data isolation continues via **`RestaurantPanelScope`** + staff-assignment scopes (**no weakening**).
+- **Navigation**: Deduped **`navigationSort`** within **Operations**; replaced duplicated **`OutlinedRectangleStack`** icons across Restaurant Setup / Operations with distinct Heroicons for quicker scanning.
+- **Tests**: Added **`RestaurantPanelReadinessTest`** to smoke-load core restaurant resource indexes when **`RestaurantStaffAssignment`** rows exist (**owner**, **branch_manager**, **restaurant_host** paths).
+- **Non-goals**: No mobile/API changes, no migrations, no new modules, no dashboard redesign.
+
 ### Unified dashboard login entry
 
 - Routes: `GET /login` (Blade sign-in form), `POST /login` (validate + `Auth::attempt` on default **web** guard)

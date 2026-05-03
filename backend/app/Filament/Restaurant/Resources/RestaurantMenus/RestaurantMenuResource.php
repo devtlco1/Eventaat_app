@@ -29,7 +29,7 @@ class RestaurantMenuResource extends Resource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Operations';
 
-    protected static ?int $navigationSort = 30;
+    protected static ?int $navigationSort = 12;
 
     protected static ?string $navigationLabel = 'Menus';
 
