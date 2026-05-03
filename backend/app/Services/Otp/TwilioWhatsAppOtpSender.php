@@ -12,16 +12,14 @@ final class TwilioWhatsAppOtpSender implements OtpSender
 {
     public function __construct(
         private readonly ?Client $twilioClient = null,
-    ) {
-        if ($this->twilioClient === null) {
-            self::assertConfigured();
-        }
-    }
+    ) {}
 
     public function send(string $phone, string $otp): void
     {
         $missing = self::missingRequiredKeys();
         if ($missing !== []) {
+            OtpDeliveryAttemptRecorder::recordConfigurationFailure($phone, 'twilio_whatsapp', 'whatsapp', 'twilio');
+
             throw MissingTwilioWhatsAppOtpConfigurationException::forKeys($missing);
         }
 
@@ -46,9 +44,25 @@ final class TwilioWhatsAppOtpSender implements OtpSender
             'contentVariables' => json_encode(['1' => $otp], JSON_THROW_ON_ERROR),
         ];
 
+        $attempt = OtpDeliveryAttemptRecorder::beginPending($phone, 'twilio_whatsapp', 'whatsapp', 'twilio');
+
         try {
             $message = $client->messages->create($toAddress, $params);
+            OtpDeliveryAttemptRecorder::markSent($attempt, $message->sid ?? null);
+
+            Log::info('Twilio WhatsApp OTP sent', [
+                'provider' => 'twilio_whatsapp',
+                'to' => TwilioSmsOtpSender::maskPhone($toAddress),
+                'message_sid' => $message->sid ?? null,
+            ]);
         } catch (TwilioException $e) {
+            OtpDeliveryAttemptRecorder::markFailed(
+                $attempt,
+                (string) $e->getCode(),
+                'Twilio REST API rejected the WhatsApp send.',
+                ['twilio_exception' => true],
+            );
+
             Log::error('Twilio WhatsApp OTP send failed', [
                 'provider' => 'twilio_whatsapp',
                 'to' => TwilioSmsOtpSender::maskPhone($toAddress),
@@ -61,6 +75,13 @@ final class TwilioWhatsAppOtpSender implements OtpSender
                 $e,
             );
         } catch (\Throwable $e) {
+            OtpDeliveryAttemptRecorder::markFailed(
+                $attempt,
+                'provider_error',
+                'Unexpected error sending WhatsApp OTP.',
+                ['exception' => $e::class],
+            );
+
             Log::error('Twilio WhatsApp OTP send failed', [
                 'provider' => 'twilio_whatsapp',
                 'to' => TwilioSmsOtpSender::maskPhone($toAddress),
@@ -72,12 +93,6 @@ final class TwilioWhatsAppOtpSender implements OtpSender
                 $e,
             );
         }
-
-        Log::info('Twilio WhatsApp OTP sent', [
-            'provider' => 'twilio_whatsapp',
-            'to' => TwilioSmsOtpSender::maskPhone($toAddress),
-            'message_sid' => $message->sid ?? null,
-        ]);
     }
 
     private static function whatsappAddress(string $e164Phone): string
@@ -87,14 +102,6 @@ final class TwilioWhatsAppOtpSender implements OtpSender
         return str_starts_with($e164Phone, 'whatsapp:')
             ? $e164Phone
             : 'whatsapp:'.$e164Phone;
-    }
-
-    private static function assertConfigured(): void
-    {
-        $missing = self::missingRequiredKeys();
-        if ($missing !== []) {
-            throw MissingTwilioWhatsAppOtpConfigurationException::forKeys($missing);
-        }
     }
 
     /**

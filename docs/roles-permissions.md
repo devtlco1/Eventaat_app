@@ -158,6 +158,15 @@ Phase 10A adds a **Dry-run dispatch** action and a read-only dispatch attempt hi
 
 This is provider-ready foundation only (no real WhatsApp/SMS/push/email sending, no external API calls, no retries).
 
+## Platform OTP delivery attempts (Phase 7H)
+
+Phase 7H adds a **read-only** Filament resource **OTP delivery attempts** under **`/platform`** (`otp_delivery_attempts`):
+
+- Allowed: `super_admin`, `operations_admin`
+- Denied for all restaurant-panel roles and **`customer`**
+
+Rows are **safe operational telemetry** only (masked phone + hash, driver/channel/provider, Twilio message SID when present, status/errors). **No OTP codes** or full E.164 numbers are stored or shown.
+
 ## Platform restaurant subscriptions (Phase 8C)
 
 Phase 8C adds **Subscription plans** and **Restaurant subscriptions** resources under **`/platform`**:

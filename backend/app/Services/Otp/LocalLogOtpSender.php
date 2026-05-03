@@ -9,9 +9,9 @@ class LocalLogOtpSender implements OtpSender
     public function send(string $phone, string $otp): void
     {
         Log::info('Mobile OTP (local/dev)', [
-            'phone' => $phone,
-            'otp' => $otp,
+            'phone_masked' => TwilioSmsOtpSender::maskPhone($phone),
         ]);
+
+        OtpDeliveryAttemptRecorder::recordLocalLogSent($phone);
     }
 }
-

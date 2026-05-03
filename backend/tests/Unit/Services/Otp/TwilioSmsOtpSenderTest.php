@@ -3,13 +3,19 @@
 namespace Tests\Unit\Services\Otp;
 
 use App\Exceptions\MissingTwilioOtpConfigurationException;
+use App\Models\OtpDeliveryAttempt;
 use App\Services\Otp\TwilioSmsOtpSender;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery;
+use Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException;
 use Tests\TestCase;
+use Twilio\Exceptions\TwilioException;
 use Twilio\Rest\Client;
 
 class TwilioSmsOtpSenderTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected function tearDown(): void
     {
         Mockery::close();
@@ -45,6 +51,14 @@ class TwilioSmsOtpSenderTest extends TestCase
         $sender = new TwilioSmsOtpSender($client);
         $sender->send('+15550000001', '123456');
 
+        $this->assertDatabaseHas('otp_delivery_attempts', [
+            'driver' => 'twilio_sms',
+            'channel' => 'sms',
+            'provider' => 'twilio',
+            'status' => OtpDeliveryAttempt::STATUS_SENT,
+            'provider_message_sid' => 'SM_test_sid',
+        ]);
+
         $this->assertSame('+15550000001', $capturedTo);
         $this->assertSame('MGxxxxxxxx', $capturedParams['messagingServiceSid']);
         $this->assertSame('Eventaat code: 123456. Do not share this code.', $capturedParams['body']);
@@ -59,9 +73,52 @@ class TwilioSmsOtpSenderTest extends TestCase
             'eventaat-notifications.twilio.messaging_service_sid' => '',
         ]);
 
-        $this->expectException(MissingTwilioOtpConfigurationException::class);
+        try {
+            (new TwilioSmsOtpSender(Mockery::mock(Client::class)))->send('+15550000001', '123456');
+            $this->fail('Expected MissingTwilioOtpConfigurationException.');
+        } catch (MissingTwilioOtpConfigurationException) {
+            $this->assertDatabaseHas('otp_delivery_attempts', [
+                'phone_hash' => hash('sha256', '+15550000001'),
+                'status' => OtpDeliveryAttempt::STATUS_FAILED,
+                'error_code' => 'configuration',
+            ]);
+        }
+    }
 
-        (new TwilioSmsOtpSender(Mockery::mock(Client::class)))->send('+15550000001', '123456');
+    public function test_failed_twilio_send_records_failed_audit_row(): void
+    {
+        config([
+            'eventaat-notifications.twilio.account_sid' => 'ACxxxxxxxx',
+            'eventaat-notifications.twilio.auth_token' => 'token_redacted',
+            'eventaat-notifications.twilio.messaging_service_sid' => 'MGxxxxxxxx',
+            'eventaat-notifications.twilio.otp_validity_period' => 300,
+        ]);
+
+        $messages = Mockery::mock();
+        $messages->shouldReceive('create')
+            ->once()
+            ->andThrow(new TwilioException('simulated_twilio_failure'));
+
+        $client = Mockery::mock(Client::class);
+        $client->messages = $messages;
+
+        $sender = new TwilioSmsOtpSender($client);
+
+        try {
+            $sender->send('+15550000002', '654321');
+            $this->fail('Expected ServiceUnavailableHttpException.');
+        } catch (ServiceUnavailableHttpException) {
+            //
+        }
+
+        $this->assertDatabaseHas('otp_delivery_attempts', [
+            'phone_hash' => hash('sha256', '+15550000002'),
+            'driver' => 'twilio_sms',
+            'status' => OtpDeliveryAttempt::STATUS_FAILED,
+        ]);
+        $this->assertDatabaseMissing('otp_delivery_attempts', [
+            'error_message' => '654321',
+        ]);
     }
 
     public function test_mask_phone_obscures_prefix(): void

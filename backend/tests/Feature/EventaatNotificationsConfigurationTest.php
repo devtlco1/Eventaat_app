@@ -14,10 +14,13 @@ use App\Services\Otp\TwilioSmsOtpSender;
 use App\Services\Otp\TwilioWhatsAppOtpSender;
 use App\Support\EventaatNotifications\BookingNotificationProviderFactory;
 use App\Support\EventaatNotifications\OtpSenderFactory;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class EventaatNotificationsConfigurationTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_default_otp_driver_resolves_log_sender(): void
     {
         config(['eventaat-notifications.otp.driver' => 'log']);
@@ -94,7 +97,7 @@ class EventaatNotificationsConfigurationTest extends TestCase
         $this->expectException(MissingTwilioOtpConfigurationException::class);
         $this->expectExceptionMessage('TWILIO_ACCOUNT_SID');
 
-        app(OtpSender::class);
+        app(OtpSender::class)->send('+15550000009', '123456');
     }
 
     public function test_twilio_whatsapp_driver_resolves_sender_when_configured(): void
@@ -126,7 +129,7 @@ class EventaatNotificationsConfigurationTest extends TestCase
         $this->expectException(MissingTwilioWhatsAppOtpConfigurationException::class);
         $this->expectExceptionMessage('TWILIO_WHATSAPP_FROM');
 
-        app(OtpSender::class);
+        app(OtpSender::class)->send('+15550000008', '123456');
     }
 
     public function test_reserved_whatsapp_otp_driver_alias_throws_unsupported(): void

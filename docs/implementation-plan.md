@@ -488,6 +488,19 @@ Adds backend-only reminder **generation** (internal outbox rows still — **no**
 - No DB migrations
 - No change to successful OTP JSON payloads
 
+### Phase 7H: OTP delivery visibility (platform audit)
+
+- **`otp_delivery_attempts`** table (append-only **`created_at`**): **`phone_hash`** (SHA-256 of E.164), **`phone_masked`**, **`driver`** (`log` / `twilio_sms` / `twilio_whatsapp`), **`channel`**, **`provider`** (`local_log` / `twilio`), **`provider_message_sid`**, **`status`** (`pending` → **`sent`** | **`failed`**), **`error_code`**, **`error_message`**, **`metadata`** — **never** OTP codes or full phone numbers.
+- **`OtpDeliveryAttemptRecorder`** wired into **`LocalLogOtpSender`**, **`TwilioSmsOtpSender`**, **`TwilioWhatsAppOtpSender`** (configuration failures insert **`failed`** directly; Twilio API paths **`beginPending`** then **`markSent`** / **`markFailed`** before safe rethrow).
+- **`LocalLogOtpSender`** app log line drops plaintext OTP (**`phone_masked`** only).
+- Twilio credential validation runs at **`send()`** time (not constructor) so misconfiguration rows include the attempted **`phone_hash`** / mask for audit (**Phase 7D**/**7F** containers may resolve senders before env is fixed).
+- Filament **`/platform`** **OTP delivery attempts**: **`super_admin`** / **`operations_admin`** read-only list + view (filters/search per spec); **no** create/edit/delete/bulk-delete.
+
+### Explicit non-goals (Phase 7H)
+
+- No mobile/public API contract changes
+- No OTP codes in dashboard rows or exports
+
 ### Phase 11A: event nights dashboard foundation
 
 Adds dashboard-only event nights management using native Filament resources:
@@ -802,7 +815,7 @@ Stabilization / documentation pass (no new business modules, no mobile API chang
 - **Storage / public disk**: Menu PDFs and item images target the **`public`** disk; default published URL prefix is **`/storage`** unless overridden. **`php artisan storage:link`** documented for production.
 - **Scheduler**: **`bootstrap/app.php`** registers **`eventaat:booking-reminders`** on an hourly schedule; production requires cron **`schedule:run`**. Lightweight test asserts **`schedule:list`** output mentions the command.
 - **API documentation**: **`docs/api-reference.md`** header clarifies **`/api/mobile`** as the live contract and defers to **`route:list`** for drift detection.
-- **Filament**: No unsafe bulk-delete patterns added in audited resources; authorization matrix remains covered by existing tests (panel access, platform vs restaurant separation, Access Management rules).
+- **Filament**: No unsafe bulk-delete patterns added in audited resources; authorization matrix remains covered by existing tests (panel access, platform vs restaurant separation, Access Management rules, **OTP delivery attempts** read-only module as of Phase **7H**).
 
 ### Phase 8I: Filament UI layout standardization
 

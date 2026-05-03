@@ -12,17 +12,15 @@ final class TwilioSmsOtpSender implements OtpSender
 {
     public function __construct(
         private readonly ?Client $twilioClient = null,
-    ) {
-        if ($this->twilioClient === null) {
-            self::assertTwilioConfigured();
-        }
-    }
+    ) {}
 
     public function send(string $phone, string $otp): void
     {
         $twilio = config('eventaat-notifications.twilio', []);
         $missing = self::missingRequiredKeys($twilio);
         if ($missing !== []) {
+            OtpDeliveryAttemptRecorder::recordConfigurationFailure($phone, 'twilio_sms', 'sms', 'twilio');
+
             throw MissingTwilioOtpConfigurationException::forKeys($missing);
         }
 
@@ -40,9 +38,25 @@ final class TwilioSmsOtpSender implements OtpSender
             'validityPeriod' => $validityPeriod,
         ];
 
+        $attempt = OtpDeliveryAttemptRecorder::beginPending($phone, 'twilio_sms', 'sms', 'twilio');
+
         try {
             $message = $client->messages->create($phone, $params);
+            OtpDeliveryAttemptRecorder::markSent($attempt, $message->sid ?? null);
+
+            Log::info('Twilio SMS OTP sent', [
+                'provider' => 'twilio_sms',
+                'to' => self::maskPhone($phone),
+                'message_sid' => $message->sid ?? null,
+            ]);
         } catch (TwilioException $e) {
+            OtpDeliveryAttemptRecorder::markFailed(
+                $attempt,
+                (string) $e->getCode(),
+                'Twilio REST API rejected the SMS send.',
+                ['twilio_exception' => true],
+            );
+
             Log::error('Twilio SMS OTP send failed', [
                 'provider' => 'twilio_sms',
                 'to' => self::maskPhone($phone),
@@ -55,6 +69,13 @@ final class TwilioSmsOtpSender implements OtpSender
                 $e,
             );
         } catch (\Throwable $e) {
+            OtpDeliveryAttemptRecorder::markFailed(
+                $attempt,
+                'provider_error',
+                'Unexpected error sending SMS OTP.',
+                ['exception' => $e::class],
+            );
+
             Log::error('Twilio SMS OTP send failed', [
                 'provider' => 'twilio_sms',
                 'to' => self::maskPhone($phone),
@@ -65,21 +86,6 @@ final class TwilioSmsOtpSender implements OtpSender
                 'Unable to send verification code. Please try again later.',
                 $e,
             );
-        }
-
-        Log::info('Twilio SMS OTP sent', [
-            'provider' => 'twilio_sms',
-            'to' => self::maskPhone($phone),
-            'message_sid' => $message->sid ?? null,
-        ]);
-    }
-
-    private static function assertTwilioConfigured(): void
-    {
-        $twilio = config('eventaat-notifications.twilio', []);
-        $missing = self::missingRequiredKeys($twilio);
-        if ($missing !== []) {
-            throw MissingTwilioOtpConfigurationException::forKeys($missing);
         }
     }
 

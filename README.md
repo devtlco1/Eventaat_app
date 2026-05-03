@@ -104,6 +104,8 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - Mobile **`request-otp`** / **`verify-otp`** reject non–E.164 phones (no partial/placeholder numbers). Twilio SMS uses the short copy: **“Eventaat code: {code}. Do not share this code.”**
 - **OTP rate limiting (Phase 7G)**:
   - Cache-backed per-phone caps: **`request-otp`** cooldown + hourly maximum; **`verify-otp`** failed-attempt lockout (**`OTP_REQUEST_COOLDOWN_SECONDS`**, **`OTP_REQUEST_MAX_PER_HOUR`**, **`OTP_VERIFY_MAX_ATTEMPTS`**, **`OTP_VERIFY_DECAY_MINUTES`** in **`backend/.env.example`**). **429** + **`retry_after`** when exceeded. No migrations.
+- **OTP delivery visibility (Phase 7H)**:
+  - **`otp_delivery_attempts`** audit rows (**masked phone**, **SHA-256 phone hash**, driver/channel/provider, Twilio message SID when present, status/errors — **no OTP**, **no full E.164**). Filament **`/platform`** → **OTP delivery attempts** (**`super_admin`**, **`operations_admin`** read-only). WhatsApp driver remains optional pending Meta/Twilio template approval.
 - **Event nights dashboard foundation (Phase 11A)**:
   - Model `RestaurantEvent` (`restaurant_events`) to represent restaurant-hosted event nights (dashboard-only in this phase)
   - Platform panel can manage all event nights

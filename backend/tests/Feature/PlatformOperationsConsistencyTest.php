@@ -25,6 +25,7 @@ class PlatformOperationsConsistencyTest extends TestCase
             '/platform/users',
             '/platform/bookings',
             '/platform/booking-notifications',
+            '/platform/otp-delivery-attempts',
             '/platform/notification-templates',
             '/platform/restaurant-events',
             '/platform/restaurant-offers',

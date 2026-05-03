@@ -136,6 +136,11 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - **Verify**: per phone, bounded failed **`verify-otp`** attempts per time window — **429** when exceeded (**`OTP_VERIFY_MAX_ATTEMPTS`**, **`OTP_VERIFY_DECAY_MINUTES`**); success clears the failure counter.
 - WhatsApp OTP driver remains optional where provider/Meta approval is pending; SMS and **`log`** drivers unchanged.
 
+### OTP delivery audit (Phase 7H)
+
+- Platform **`/platform`** → **OTP delivery attempts**: operational visibility into **`log`** / SMS / WhatsApp sends (**pending**/**sent**/**failed**) without storing OTP codes or full phone numbers (masked display + SHA-256 hash, Twilio SID when returned).
+- **`LocalLogOtpSender`** structured logs omit plaintext OTP (**masked destination only**).
+
 ### Booking notification template lifecycle + dry-run polish (Phase 7B)
 
 - Default templates are seeded idempotently for all **`BookingNotification::EVENTS`** keys (nine rows including **`booking_arrival_reminder`**).
