@@ -72,7 +72,7 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - **Smoke coverage**: **`RestaurantPanelReadinessTest`** loads core restaurant resource index routes when demo assignments exist — complements **`RestaurantPanelScopingTest`**, **`PanelAccessTest`**, and feature modules (bookings/menus/stories/etc.).
   - **Scope**: audit/stabilization only — **no** mobile/public API changes, **no** migrations, **no** new business modules.
 - **Booking notification foundation (Phase 9A)**:
-  - Internal `booking_notifications` rows (`pending`, no outbound sending): lifecycle events recorded after successful booking creation and valid transitions
+  - Internal `booking_notifications` outbox rows (`pending` until an operator dispatches): lifecycle events recorded after successful booking creation and valid transitions (no automatic SMS at record time; **`NOTIFICATION_DRIVER=twilio_sms`** enables live SMS on dispatch — Phase **7J**)
   - `BookingNotificationService` builds title/message/payload; insert failures are reported without failing the booking flow
   - Platform Filament **Booking notifications** list (read-only) for `super_admin` and `operations_admin` only
 - **Notification templates + preview (Phase 9B)**:
@@ -109,6 +109,8 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - **`otp_delivery_attempts`** audit rows (**masked phone**, **SHA-256 phone hash**, driver/channel/provider, Twilio message SID when present, status/errors — **no OTP**, **no full E.164**). Filament **`/platform`** → **OTP delivery attempts** (**`super_admin`**, **`operations_admin`** read-only). WhatsApp driver remains optional pending Meta/Twilio template approval.
 - **OTP delivery status webhook (Phase 7I)**:
   - **`POST /api/webhooks/twilio/otp-status`** (no mobile auth): Twilio delivery status callbacks update existing rows by **`MessageSid`** (**`delivered`** / **`undelivered`** terminal states, **`metadata.provider_status`**, safe errors). Validates **`X-Twilio-Signature`** with **`TWILIO_AUTH_TOKEN`** when set; optional dev fallback **`TWILIO_WEBHOOK_SECRET`** + **`X-Eventaat-Webhook-Secret`** when the auth token is empty. Configure this URL under Twilio **Status callback** for the OTP Messaging Service / sender. **`To`/`From`/`Body` are never persisted.**
+- **Messaging operations runbook (Phase 7K)**:
+  - `docs/messaging-runbook.md` — safe toggle reference for `OTP_DRIVER` and `NOTIFICATION_DRIVER`; covers local safe mode, SMS OTP test mode, full booking SMS mode, WhatsApp OTP mode (blocked until template approved), webhook setup, and safety checklist. No new API or migration changes.
 - **Event nights dashboard foundation (Phase 11A)**:
   - Model `RestaurantEvent` (`restaurant_events`) to represent restaurant-hosted event nights (dashboard-only in this phase)
   - Platform panel can manage all event nights

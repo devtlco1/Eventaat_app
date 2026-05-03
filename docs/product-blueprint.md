@@ -157,6 +157,11 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - **`NOTIFICATION_DRIVER=twilio_sms`** sends **`BookingNotification`** SMS via Twilio Messaging Service using the same **`TWILIO_ACCOUNT_SID`**, **`TWILIO_AUTH_TOKEN`**, and **`TWILIO_MESSAGING_SERVICE_SID`** as OTP (mobile auth). Optional **`TWILIO_NOTIFICATION_VALIDITY_PERIOD`** controls booking SMS queue TTL only.
 - **`dry_run`** remains the default; **WhatsApp booking sends are not implemented**.
 
+### Messaging production toggle audit and runbook (Phase 7K)
+
+- Safe operations runbook: `docs/messaging-runbook.md` — toggle modes, Twilio webhook setup, and safety checklist.
+- Config defaults confirmed: `OTP_DRIVER=log`, `NOTIFICATION_DRIVER=dry_run`. No API or migration changes.
+
 ### Booking arrival reminder command (Phase 7C)
 
 - **`eventaat:booking-reminders`** creates at most one **`booking_arrival_reminder`** row per booking when status is **`accepted`** and **`starts_at`** falls within the configured upcoming window (see **`BOOKING_REMINDER_HOURS`** / **`config/eventaat-notifications.php`**).

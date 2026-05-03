@@ -4,6 +4,8 @@ Verify current routes with **`php artisan route:list --path=api/mobile`** (regis
 
 Server-to-server webhooks under **`/api/webhooks/*`** are documented separately below; they **do not** use mobile Sanctum auth and **do not** change **`/api/mobile`** success payloads.
 
+> For driver toggle modes (`OTP_DRIVER`, `NOTIFICATION_DRIVER`), webhook setup steps, and safety checklist, see **`docs/messaging-runbook.md`**.
+
 ### POST `/api/webhooks/twilio/otp-status` (Phase 7I)
 
 Twilio **delivery status callback** endpoint (configure in the Twilio console / Messaging Service **Status callback** URL for OTP traffic). **No** Bearer token; **no** mobile session.

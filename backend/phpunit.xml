@@ -34,6 +34,15 @@
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <!-- Messaging driver safety: always use log/dry_run in tests regardless of local .env -->
         <env name="OTP_DRIVER" value="log"/>
+        <env name="NOTIFICATION_DRIVER" value="dry_run"/>
+        <!-- Twilio credentials: force empty in tests so no real SMS/WhatsApp is ever sent -->
+        <env name="TWILIO_ACCOUNT_SID" value=""/>
+        <env name="TWILIO_AUTH_TOKEN" value=""/>
+        <env name="TWILIO_MESSAGING_SERVICE_SID" value=""/>
+        <env name="TWILIO_WHATSAPP_FROM" value=""/>
+        <env name="TWILIO_WHATSAPP_OTP_CONTENT_SID" value=""/>
+        <env name="TWILIO_WEBHOOK_SECRET" value=""/>
     </php>
 </phpunit>

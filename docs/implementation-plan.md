@@ -526,6 +526,20 @@ Adds backend-only reminder **generation** (internal outbox rows still — **no**
 
 - No WhatsApp booking notifications, no removal of **`dry_run`**, no mobile/public API contract changes
 
+### Phase 7K: messaging production toggle audit and runbook
+
+Documentation and safety audit pass — no new code modules, no API changes, no migrations:
+
+- **Config audit**: `config/eventaat-notifications.php` confirmed: `OTP_DRIVER` defaults to `log`, `NOTIFICATION_DRIVER` defaults to `dry_run`; all Twilio env keys default to empty string (optional unless the respective driver is selected). WhatsApp OTP documented as pending Meta/Twilio template approval.
+- **`.env.example` audit**: All required messaging placeholders confirmed present with safe defaults and no real credentials (`OTP_DRIVER=log`, `NOTIFICATION_DRIVER=dry_run`, empty `TWILIO_*`).
+- **Operations runbook**: `docs/messaging-runbook.md` created — covers all toggle modes (local safe, SMS OTP test, booking SMS, WhatsApp OTP blocked), Twilio status webhook setup, and safety checklist.
+- **Docs updated**: `README.md`, `docs/implementation-plan.md`, `docs/product-blueprint.md` cross-link the runbook; `docs/api-reference.md` webhook section already references the endpoint.
+- **Config safety test**: `tests/Feature/MessagingConfigDefaultsTest.php` verifies `OTP_DRIVER=log` and `NOTIFICATION_DRIVER=dry_run` are the true config defaults (no env vars set).
+
+### Explicit non-goals (Phase 7K)
+
+- No mobile changes, no public/mobile API changes, no new SMS/WhatsApp providers, no new env keys
+
 ### Phase 11A: event nights dashboard foundation
 
 Adds dashboard-only event nights management using native Filament resources:
