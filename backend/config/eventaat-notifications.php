@@ -68,6 +68,11 @@ return [
         */
         'webhook_secret' => env('TWILIO_WEBHOOK_SECRET', ''),
         'messaging_service_sid' => env('TWILIO_MESSAGING_SERVICE_SID', ''),
+        /*
+        | SMS queue TTL for booking notifications (NOTIFICATION_DRIVER=twilio_sms). 1–36000 seconds.
+        | Distinct from TWILIO_OTP_VALIDITY_PERIOD used for OTP messages.
+        */
+        'notification_validity_period' => (int) env('TWILIO_NOTIFICATION_VALIDITY_PERIOD', 36000),
         'otp_validity_period' => (int) env('TWILIO_OTP_VALIDITY_PERIOD', 300),
         'whatsapp' => [
             'from' => env('TWILIO_WHATSAPP_FROM', ''),
@@ -83,8 +88,9 @@ return [
     |
     | Default: dry_run — records dispatch attempts without external calls.
     |
-    | Planned (not shipped yet): sms, whatsapp — configuring these fails fast until
-    | a real integration exists.
+    | Opt-in production SMS: NOTIFICATION_DRIVER=twilio_sms — same Twilio account,
+    | token, and Messaging Service SID as OTP (TWILIO_*). WhatsApp booking sends
+    | are not implemented in this phase.
     |
     | Env: NOTIFICATION_DRIVER=dry_run
     |

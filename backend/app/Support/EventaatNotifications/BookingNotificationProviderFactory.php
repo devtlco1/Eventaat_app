@@ -5,6 +5,7 @@ namespace App\Support\EventaatNotifications;
 use App\Exceptions\UnsupportedNotificationDriverException;
 use App\Services\Notifications\Providers\InternalDryRunNotificationProvider;
 use App\Services\Notifications\Providers\NotificationProvider;
+use App\Services\Notifications\Providers\TwilioSmsNotificationProvider;
 
 final class BookingNotificationProviderFactory
 {
@@ -22,7 +23,7 @@ final class BookingNotificationProviderFactory
 
         return match ($driver) {
             'dry_run' => new InternalDryRunNotificationProvider,
-            'sms', 'whatsapp' => throw UnsupportedNotificationDriverException::forDriver($driver),
+            'twilio_sms' => new TwilioSmsNotificationProvider,
             default => throw UnsupportedNotificationDriverException::forDriver($driver),
         };
     }

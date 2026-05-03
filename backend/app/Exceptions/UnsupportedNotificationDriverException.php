@@ -9,7 +9,7 @@ final class UnsupportedNotificationDriverException extends RuntimeException
     public static function forDriver(string $driver): self
     {
         return new self(sprintf(
-            'Unsupported NOTIFICATION_DRIVER [%s]. Use NOTIFICATION_DRIVER=dry_run for local/dev. Planned drivers (not implemented yet): sms, whatsapp.',
+            'Unsupported NOTIFICATION_DRIVER [%s]. Supported: dry_run (default), twilio_sms. WhatsApp booking notifications are not implemented.',
             $driver === '' ? '(empty)' : $driver,
         ));
     }

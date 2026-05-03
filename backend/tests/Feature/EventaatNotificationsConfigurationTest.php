@@ -8,6 +8,7 @@ use App\Exceptions\UnsupportedNotificationDriverException;
 use App\Exceptions\UnsupportedOtpDriverException;
 use App\Services\Notifications\Providers\InternalDryRunNotificationProvider;
 use App\Services\Notifications\Providers\NotificationProvider;
+use App\Services\Notifications\Providers\TwilioSmsNotificationProvider;
 use App\Services\Otp\LocalLogOtpSender;
 use App\Services\Otp\OtpSender;
 use App\Services\Otp\TwilioSmsOtpSender;
@@ -47,6 +48,34 @@ class EventaatNotificationsConfigurationTest extends TestCase
         $provider = app(NotificationProvider::class);
 
         $this->assertInstanceOf(InternalDryRunNotificationProvider::class, $provider);
+    }
+
+    public function test_notification_driver_twilio_sms_resolves_twilio_provider(): void
+    {
+        config([
+            'eventaat-notifications.booking_notifications.driver' => 'twilio_sms',
+            'eventaat-notifications.twilio.account_sid' => 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+            'eventaat-notifications.twilio.auth_token' => 'not_a_real_token',
+            'eventaat-notifications.twilio.messaging_service_sid' => 'MGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+        ]);
+
+        $provider = app(NotificationProvider::class);
+
+        $this->assertInstanceOf(TwilioSmsNotificationProvider::class, $provider);
+        $this->assertSame(TwilioSmsNotificationProvider::PROVIDER_NAME, $provider->identifier());
+        $this->assertInstanceOf(TwilioSmsNotificationProvider::class, BookingNotificationProviderFactory::make('twilio_sms'));
+    }
+
+    public function test_notification_driver_accepts_hyphenated_twilio_sms(): void
+    {
+        config([
+            'eventaat-notifications.booking_notifications.driver' => 'twilio-sms',
+            'eventaat-notifications.twilio.account_sid' => 'ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+            'eventaat-notifications.twilio.auth_token' => 'not_a_real_token',
+            'eventaat-notifications.twilio.messaging_service_sid' => 'MGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+        ]);
+
+        $this->assertInstanceOf(TwilioSmsNotificationProvider::class, app(NotificationProvider::class));
     }
 
     public function test_unsupported_otp_driver_throws_clear_exception(): void

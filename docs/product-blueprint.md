@@ -44,7 +44,7 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 ### Backend production readiness (Phase 8H)
 
 - **Database & seeds**: Migration order validated via fresh install + **`DatabaseSeeder`** (roles/users, permission catalog defaults, subscription plan placeholders, notification templates, demo restaurant/event/booking content where enabled). Re-run seeders remain idempotent at the row level they control.
-- **Runtime config**: **`OTP_DRIVER=log`**, **`NOTIFICATION_DRIVER=dry_run`**, and hourly **`eventaat:booking-reminders`** (internal notification rows only) remain the safe defaults. Optional **`OTP_DRIVER=twilio_sms`** or **`twilio_whatsapp`** + Twilio env enables mobile OTP on those channels (Phase **7D** / **7F**); booking notifications are still not sent via Twilio by default.
+- **Runtime config**: **`OTP_DRIVER=log`**, **`NOTIFICATION_DRIVER=dry_run`**, and hourly **`eventaat:booking-reminders`** (internal notification rows only) remain the safe defaults. Optional **`OTP_DRIVER=twilio_sms`** or **`twilio_whatsapp`** + Twilio env enables mobile OTP on those channels (Phase **7D** / **7F**). Optional **`NOTIFICATION_DRIVER=twilio_sms`** (Phase **7J**) sends **booking** notification SMS via the same **`TWILIO_*`** Messaging Service — still off by default (**`dry_run`**).
 - **Operations**: Document **`php artisan storage:link`** for **`public`** disk URLs and **cron + `schedule:run`** for reminders; **`docs/api-reference.md`** ties mobile docs to **`route:list --path=api/mobile`**.
 - **Scope**: Documentation and verification only unless a regression is found — **no** new customer API routes or Filament modules in Phase 8H.
 
@@ -102,12 +102,13 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
 ### Notification provider foundation (Phase 10A)
 
-- Introduces provider abstraction for future WhatsApp/SMS providers, without external API calls:
+- Introduces booking **`NotificationProvider`** abstraction:
   - `NotificationProvider` interface
   - `NotificationProviderResult` value object
-  - `InternalDryRunNotificationProvider` implementation
-- Adds dispatch attempt tracking (`notification_dispatch_attempts`) for auditing provider interactions (dry-run payloads/results for now).
-- Platform admins can run **Dry-run dispatch** on pending/internal outbox rows:
+  - `InternalDryRunNotificationProvider` implementation (default)
+- **`TwilioSmsNotificationProvider`** (Phase **7J**) supplies optional live SMS using env **`NOTIFICATION_DRIVER=twilio_sms`**; WhatsApp booking notifications remain future work.
+- Dispatch attempt tracking (`notification_dispatch_attempts`) audits payloads/results (**`provider`** **`internal_dry_run`** or **`twilio_sms`**, **`provider_message_id`** when Twilio returns a SID).
+- Platform admins run **Dry-run dispatch** on pending/internal outbox rows (invokes the configured provider — **`dry_run`** or **`twilio_sms`**):
   - Creates an attempt row
   - Marks notification `sent` on success or `failed` on failure
 
@@ -149,7 +150,12 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
 - Default templates are seeded idempotently for all **`BookingNotification::EVENTS`** keys (nine rows including **`booking_arrival_reminder`**).
 - Outbox **`payload`** retains structured fields plus **`resolved_title`** / **`resolved_message`** for auditing rendered copy.
-- **Dry-run dispatch** records attempts with provider **`internal_dry_run`**; still no external WhatsApp/SMS integration.
+- **Dry-run dispatch** records attempts with provider **`internal_dry_run`** by default (**`NOTIFICATION_DRIVER=dry_run`**).
+
+### Twilio SMS booking notifications (Phase 7J)
+
+- **`NOTIFICATION_DRIVER=twilio_sms`** sends **`BookingNotification`** SMS via Twilio Messaging Service using the same **`TWILIO_ACCOUNT_SID`**, **`TWILIO_AUTH_TOKEN`**, and **`TWILIO_MESSAGING_SERVICE_SID`** as OTP (mobile auth). Optional **`TWILIO_NOTIFICATION_VALIDITY_PERIOD`** controls booking SMS queue TTL only.
+- **`dry_run`** remains the default; **WhatsApp booking sends are not implemented**.
 
 ### Booking arrival reminder command (Phase 7C)
 

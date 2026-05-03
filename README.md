@@ -55,7 +55,7 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - **No** mobile/public API changes or migrations for this UI/catalog layer.
 - **Backend production readiness audit (Phase 8H)**:
   - **`migrate:fresh --seed`** verified on an empty Postgres schema (local dev): all migrations apply in timestamp order; **`DatabaseSeeder`** chain is idempotent-friendly (`RolesAndTestUsersSeeder`, **`RolePermissionDefaultsSeeder`** → catalog, subscription plans, notification templates, demo restaurants/events/bookings).
-  - **Environment**: **`backend/.env.example`** documents DB, **`APP_URL`**, **`FILESYSTEM_PUBLIC_URL`** (optional; default **`/storage`** root-relative), **`OTP_DRIVER=log`** (optional **`twilio_sms`** / **`twilio_whatsapp`** + **`TWILIO_*`**), OTP rate-limit keys (**Phase 7G**), **`NOTIFICATION_DRIVER=dry_run`**, **`BOOKING_REMINDER_HOURS`**, mail/session/cache/queue defaults — booking notifications stay internal/dry-run unless configured otherwise; no payment providers.
+  - **Environment**: **`backend/.env.example`** documents DB, **`APP_URL`**, **`FILESYSTEM_PUBLIC_URL`** (optional; default **`/storage`** root-relative), **`OTP_DRIVER=log`** (optional **`twilio_sms`** / **`twilio_whatsapp`** + **`TWILIO_*`**), OTP rate-limit keys (**Phase 7G**), **`NOTIFICATION_DRIVER=dry_run`** (optional **`twilio_sms`** booking SMS shares **`TWILIO_*`** + optional **`TWILIO_NOTIFICATION_VALIDITY_PERIOD`**, Phase **7J**), **`BOOKING_REMINDER_HOURS`**, mail/session/cache/queue defaults — booking notifications default to **`dry_run`**; no payment providers.
   - **Storage**: `public` disk root is **`storage/app/public`** with default URL prefix **`/storage`**; run **`php artisan storage:link`** once per deploy for web-served uploads (menus/PDFs/images).
   - **Scheduler**: **`eventaat:booking-reminders`** is registered **hourly** in **`bootstrap/app.php`**; production needs system cron **`php artisan schedule:run`** every minute (see **`php artisan schedule:list`**).
   - **API docs**: **`docs/api-reference.md`** intro points at **`route:list --path=api/mobile`**; mobile API behavior unchanged in this audit.
@@ -81,18 +81,19 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - `BookingNotificationService` uses an active template when available; otherwise falls back to the Phase 9A hardcoded copy (never breaks booking flow)
   - Platform Filament **Notification templates** resource (CRUD + preview modal) for `super_admin` and `operations_admin` only
 - **Notification dispatch foundation (Phase 9C)**:
-  - Internal-only dispatch actions for `booking_notifications` (`pending -> sent|skipped|failed`) with safe, final statuses (no external delivery)
+  - Dispatch actions for `booking_notifications` (`pending -> sent|skipped|failed`) with safe, final statuses; external SMS only when **NOTIFICATION_DRIVER=twilio_sms** (Phase **7J**)
   - Platform Filament **Booking notifications** adds native actions: Mark sent / Mark skipped / Mark failed (reason required)
 - **Notification provider foundation (Phase 10A)**:
-  - Provider abstraction (`NotificationProvider` + `NotificationProviderResult`) plus an `InternalDryRunNotificationProvider` (no external API calls)
+  - Provider abstraction (`NotificationProvider` + `NotificationProviderResult`) with `InternalDryRunNotificationProvider` (default) and opt-in **`TwilioSmsNotificationProvider`** for booking SMS (Phase **7J**)
   - Dispatch attempt tracking (`notification_dispatch_attempts`) for provider-ready auditing
-  - Platform Filament adds **Dry-run dispatch** for pending/internal booking notifications and shows dispatch attempt history on the view page
+  - Platform Filament adds **Dry-run dispatch** (runs configured **`NotificationProvider`**: **`internal_dry_run`** by default or **`twilio_sms`** when opted in) for pending/internal booking notifications and shows dispatch attempt history on the view page
 - **Notification provider configuration readiness (Phase 7A)**:
   - `config/eventaat-notifications.php` with **`OTP_DRIVER`** (default **`log`**) and **`NOTIFICATION_DRIVER`** (default **`dry_run`**); see `backend/.env.example`
   - Central factories resolve senders/providers; **`sms`** / **`whatsapp`** OTP values remain reserved; use **`OTP_DRIVER=twilio_sms`** (SMS) or **`OTP_DRIVER=twilio_whatsapp`** (approved Content Template) + Twilio env (Phase **7D**–**7F**)
 - **Booking notification templates + dry-run lifecycle (Phase 7B)**:
-  - Idempotent **`NotificationTemplatesSeeder`** for default English templates; dry-run **`dispatchInternalDryRun`** stores provider **`internal_dry_run`** on **`notification_dispatch_attempts`**
-  - Still **no** live SMS/WhatsApp — outbound integrations remain future work
+  - Idempotent **`NotificationTemplatesSeeder`** for default English templates; **`dispatchInternalDryRun`** records **`notification_dispatch_attempts`** with **`internal_dry_run`** when **`NOTIFICATION_DRIVER=dry_run`** (default)
+- **Twilio SMS booking notifications (Phase 7J)**:
+  - **`NOTIFICATION_DRIVER=twilio_sms`** uses **`TwilioSmsNotificationProvider`** (Messaging Service SID + resolved **`BookingNotification`** body; E.164 **`recipient_phone`**; optional **`TWILIO_NOTIFICATION_VALIDITY_PERIOD`**). **`dry_run`** unchanged as default; **no** WhatsApp booking provider yet.
 - **Booking arrival reminder command (Phase 7C)**:
   - **`php artisan eventaat:booking-reminders`** — records internal **`booking_arrival_reminder`** notifications for **`accepted`** bookings whose **`starts_at`** is within the next **`BOOKING_REMINDER_HOURS`** (default **2**, app timezone); skips bookings that already have that reminder row
   - **`bootstrap/app.php`** registers an **hourly** Laravel scheduler entry; run **`php artisan schedule:run`** from cron (or invoke the command manually) — command does **not** send SMS/WhatsApp by itself
