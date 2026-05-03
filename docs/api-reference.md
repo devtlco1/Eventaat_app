@@ -34,7 +34,9 @@ Response **unchanged on success**:
 { "success": true, "expires_at": "2026-04-29T12:00:00.000000Z" }
 ```
 
-Invalid `phone` returns **422** with Laravel validation errors on `phone`. Successful JSON is unchanged regardless of server **`OTP_DRIVER`**. Delivery channel is configured only on the server: **`twilio_sms`** sends SMS copy (**Phase 7D**): **`Eventaat code: {code}. Do not share this code.`**; **`twilio_whatsapp`** sends via an approved Twilio WhatsApp Authentication Content Template (**Phase 7F**, **`contentVariables`** slot **`1`** = code — no plain SMS body).
+Invalid `phone` returns **422** with Laravel validation errors on `phone`. Successful JSON is unchanged regardless of server **`OTP_DRIVER`**. Delivery channel is configured only on the server: **`twilio_sms`** sends SMS copy (**Phase 7D**): **`Eventaat code: {code}. Do not share this code.`**; **`twilio_whatsapp`** sends via an approved Twilio WhatsApp Authentication Content Template (**Phase 7F**, **`contentVariables`** slot **`1`** = code — no plain SMS body). WhatsApp remains optional until Meta/Twilio approve the Authentication template.
+
+**Rate limits (Phase 7G, cache-backed):** Per normalized **`phone`** (after validation): **`request-otp`** enforces a minimum spacing (**`OTP_REQUEST_COOLDOWN_SECONDS`**, default **60**) and a rolling hourly cap (**`OTP_REQUEST_MAX_PER_HOUR`**, default **5**) on successful sends. When exceeded, response **429** with **`message`** and **`retry_after`** (seconds), plus **`Retry-After`** header.
 
 ### POST `/api/mobile/auth/verify-otp`
 
@@ -45,6 +47,8 @@ Request:
 ```
 
 **Validation (`phone`):** same E.164-style rules as **`request-otp`** (must include leading **`+`** and match the normalized format above).
+
+**Rate limits (Phase 7G):** Failed **`verify-otp`** attempts (wrong/expired OTP, **422**) count toward **`OTP_VERIFY_MAX_ATTEMPTS`** (default **5**) per **`phone`** within **`OTP_VERIFY_DECAY_MINUTES`** (default **10**). Over the limit: **429** with **`message`**, **`retry_after`**, **`Retry-After`** header — same generic messaging for wrong code vs no row (no existence leak). Successful verification clears that phone’s failure bucket for the next flow.
 
 Response:
 

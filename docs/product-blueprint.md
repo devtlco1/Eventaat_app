@@ -130,6 +130,12 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - **`phone`** on **`request-otp`** and **`verify-otp`** must be **E.164-style** international (`+` prefix, valid length and digits only after normalization — no placeholders such as **`X`**).
 - Twilio-delivered OTP SMS uses the short wording **“Eventaat code: … Do not share this code.”**
 
+### OTP rate limits (Phase 7G)
+
+- **Request**: per phone, minimum time between **`request-otp`** sends and maximum requests per rolling hour — **429** when exceeded (**`OTP_REQUEST_COOLDOWN_SECONDS`**, **`OTP_REQUEST_MAX_PER_HOUR`**).
+- **Verify**: per phone, bounded failed **`verify-otp`** attempts per time window — **429** when exceeded (**`OTP_VERIFY_MAX_ATTEMPTS`**, **`OTP_VERIFY_DECAY_MINUTES`**); success clears the failure counter.
+- WhatsApp OTP driver remains optional where provider/Meta approval is pending; SMS and **`log`** drivers unchanged.
+
 ### Booking notification template lifecycle + dry-run polish (Phase 7B)
 
 - Default templates are seeded idempotently for all **`BookingNotification::EVENTS`** keys (nine rows including **`booking_arrival_reminder`**).

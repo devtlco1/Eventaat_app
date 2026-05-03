@@ -17,8 +17,26 @@ return [
     | Reserved (fail fast): sms, whatsapp — use twilio_sms / twilio_whatsapp.
     |
     | Env: OTP_DRIVER=log
+    | Rate limits: see otp_rate_limit below (cache-backed; no DB migrations).
     |
     */
+    /*
+    |--------------------------------------------------------------------------
+    | Mobile OTP rate limits (cache-backed; no DB migrations)
+    |--------------------------------------------------------------------------
+    |
+    | OTP_REQUEST_COOLDOWN_SECONDS — minimum spacing between request-otp per phone (0 disables cooldown bucket).
+    | OTP_REQUEST_MAX_PER_HOUR — max successful OTP sends per phone per rolling hour window.
+    | OTP_VERIFY_MAX_ATTEMPTS — failed verify-otp attempts per phone before lockout for OTP_VERIFY_DECAY_MINUTES.
+    |
+    */
+    'otp_rate_limit' => [
+        'request_cooldown_seconds' => max(0, (int) env('OTP_REQUEST_COOLDOWN_SECONDS', 60)),
+        'request_max_per_hour' => max(1, (int) env('OTP_REQUEST_MAX_PER_HOUR', 5)),
+        'verify_max_attempts' => max(1, (int) env('OTP_VERIFY_MAX_ATTEMPTS', 5)),
+        'verify_decay_minutes' => max(1, (int) env('OTP_VERIFY_DECAY_MINUTES', 10)),
+    ],
+
     'otp' => [
         'driver' => env('OTP_DRIVER', 'log'),
         'twilio' => [

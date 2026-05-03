@@ -7,22 +7,32 @@ use App\Http\Requests\Mobile\RequestOtpRequest;
 use App\Http\Requests\Mobile\VerifyOtpRequest;
 use App\Http\Resources\Mobile\MeResource;
 use App\Models\User;
+use App\Services\Otp\MobileOtpRateLimiter;
 use App\Services\Otp\MobileOtpService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Illuminate\Http\Request;
 use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
     public function __construct(
         private readonly MobileOtpService $otp,
+        private readonly MobileOtpRateLimiter $otpRateLimiter,
     ) {}
 
     public function requestOtp(RequestOtpRequest $request): JsonResponse
     {
-        $record = $this->otp->request($request->string('phone')->toString());
+        $phone = $request->string('phone')->toString();
+
+        if ($limited = $this->otpRateLimiter->responseIfRequestLimited($phone)) {
+            return $limited;
+        }
+
+        $record = $this->otp->request($phone);
+
+        $this->otpRateLimiter->hitSuccessfulRequest($phone);
 
         return response()->json([
             'success' => true,
@@ -37,12 +47,20 @@ class AuthController extends Controller
         $name = $request->string('name')->toString();
         $name = trim($name);
 
+        if ($limited = $this->otpRateLimiter->responseIfVerifyLimited($phone)) {
+            return $limited;
+        }
+
         $verified = $this->otp->verify($phone, $otp);
         if (! $verified) {
+            $this->otpRateLimiter->hitVerifyFailure($phone);
+
             return response()->json([
                 'message' => 'Invalid or expired OTP.',
             ], 422);
         }
+
+        $this->otpRateLimiter->clearVerifyFailures($phone);
 
         $user = User::query()->where('phone', $phone)->first();
 
@@ -94,4 +112,3 @@ class AuthController extends Controller
         ]);
     }
 }
-

@@ -55,7 +55,7 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - **No** mobile/public API changes or migrations for this UI/catalog layer.
 - **Backend production readiness audit (Phase 8H)**:
   - **`migrate:fresh --seed`** verified on an empty Postgres schema (local dev): all migrations apply in timestamp order; **`DatabaseSeeder`** chain is idempotent-friendly (`RolesAndTestUsersSeeder`, **`RolePermissionDefaultsSeeder`** → catalog, subscription plans, notification templates, demo restaurants/events/bookings).
-  - **Environment**: **`backend/.env.example`** documents DB, **`APP_URL`**, **`FILESYSTEM_PUBLIC_URL`** (optional; default **`/storage`** root-relative), **`OTP_DRIVER=log`** (optional **`twilio_sms`** / **`twilio_whatsapp`** + **`TWILIO_*`**), **`NOTIFICATION_DRIVER=dry_run`**, **`BOOKING_REMINDER_HOURS`**, mail/session/cache/queue defaults — booking notifications stay internal/dry-run unless configured otherwise; no payment providers.
+  - **Environment**: **`backend/.env.example`** documents DB, **`APP_URL`**, **`FILESYSTEM_PUBLIC_URL`** (optional; default **`/storage`** root-relative), **`OTP_DRIVER=log`** (optional **`twilio_sms`** / **`twilio_whatsapp`** + **`TWILIO_*`**), OTP rate-limit keys (**Phase 7G**), **`NOTIFICATION_DRIVER=dry_run`**, **`BOOKING_REMINDER_HOURS`**, mail/session/cache/queue defaults — booking notifications stay internal/dry-run unless configured otherwise; no payment providers.
   - **Storage**: `public` disk root is **`storage/app/public`** with default URL prefix **`/storage`**; run **`php artisan storage:link`** once per deploy for web-served uploads (menus/PDFs/images).
   - **Scheduler**: **`eventaat:booking-reminders`** is registered **hourly** in **`bootstrap/app.php`**; production needs system cron **`php artisan schedule:run`** every minute (see **`php artisan schedule:list`**).
   - **API docs**: **`docs/api-reference.md`** intro points at **`route:list --path=api/mobile`**; mobile API behavior unchanged in this audit.
@@ -102,6 +102,8 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - Separate driver **`OTP_DRIVER=twilio_whatsapp`** — same **`TWILIO_ACCOUNT_SID`** / **`TWILIO_AUTH_TOKEN`**, plus **`TWILIO_WHATSAPP_FROM`** (WhatsApp-enabled sender, e.g. **`whatsapp:+…`**) and **`TWILIO_WHATSAPP_OTP_CONTENT_SID`** for an **approved WhatsApp Authentication Content Template** (template body managed in Twilio; OTP passed via **`contentVariables`** slot **`1`**). **`validityPeriod`** is **not** sent on WhatsApp template creates (Twilio Content-template flow differs from plain SMS). No booking WhatsApp notifications in this phase.
 - **OTP phone validation + SMS copy (Phase 7E)**:
   - Mobile **`request-otp`** / **`verify-otp`** reject non–E.164 phones (no partial/placeholder numbers). Twilio SMS uses the short copy: **“Eventaat code: {code}. Do not share this code.”**
+- **OTP rate limiting (Phase 7G)**:
+  - Cache-backed per-phone caps: **`request-otp`** cooldown + hourly maximum; **`verify-otp`** failed-attempt lockout (**`OTP_REQUEST_COOLDOWN_SECONDS`**, **`OTP_REQUEST_MAX_PER_HOUR`**, **`OTP_VERIFY_MAX_ATTEMPTS`**, **`OTP_VERIFY_DECAY_MINUTES`** in **`backend/.env.example`**). **429** + **`retry_after`** when exceeded. No migrations.
 - **Event nights dashboard foundation (Phase 11A)**:
   - Model `RestaurantEvent` (`restaurant_events`) to represent restaurant-hosted event nights (dashboard-only in this phase)
   - Platform panel can manage all event nights

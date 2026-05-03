@@ -77,6 +77,8 @@ class MobileAuthApiTest extends TestCase
 
         $first = MobileOtp::where('phone', $phone)->firstOrFail();
 
+        $this->travel(61)->seconds();
+
         $this->postJson('/api/mobile/auth/request-otp', ['phone' => $phone])->assertOk();
         $second = MobileOtp::where('phone', $phone)->latest('id')->firstOrFail();
 

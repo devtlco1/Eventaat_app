@@ -475,6 +475,19 @@ Adds backend-only reminder **generation** (internal outbox rows still — **no**
 - No booking-notification WhatsApp integration
 - No mobile app changes
 
+### Phase 7G: OTP rate limiting + resend protection
+
+- **`MobileOtpRateLimiter`** (Laravel **`RateLimiter`** + app cache): no migrations.
+- **`request-otp`**: per-phone (**SHA-256** cache key suffix) minimum spacing **`OTP_REQUEST_COOLDOWN_SECONDS`** (default **60**, **`0`** disables cooldown bucket) and rolling-hour cap **`OTP_REQUEST_MAX_PER_HOUR`** (default **5**). Hits recorded only after a successful **`MobileOtpService::request`** completes.
+- **`verify-otp`**: failed verification (**422**) increments **`OTP_VERIFY_MAX_ATTEMPTS`** (default **5**) per phone within **`OTP_VERIFY_DECAY_MINUTES`** (default **10**); success clears failures; lockout returns **429** with **`retry_after`** + **`Retry-After`** header.
+- Safe **`Log::warning`** lines only (masked digits); OTP codes never logged here.
+
+### Explicit non-goals (Phase 7G)
+
+- No WhatsApp fallback orchestration
+- No DB migrations
+- No change to successful OTP JSON payloads
+
 ### Phase 11A: event nights dashboard foundation
 
 Adds dashboard-only event nights management using native Filament resources:
@@ -785,7 +798,7 @@ Explicit non-goals: **no** mobile/public API additions, **no** migrations (Spati
 Stabilization / documentation pass (no new business modules, no mobile API changes, no dashboard redesign):
 
 - **Database**: Full migration chain runs cleanly from empty DB; ordering matches dependency needs (users → permissions → restaurants → bookings → notifications → … → call logs). **`php artisan migrate:fresh --seed`** exercised in dev to confirm. Seeders are designed to be re-runnable without duplicating logical rows (`firstOrCreate` / `findOrCreate` / idempotent demo seeders).
-- **Environment**: **`backend/.env.example`** reflects required operational keys (DB, app URL, optional **`FILESYSTEM_PUBLIC_URL`**, **`OTP_DRIVER`**, optional **`TWILIO_*`** when **`OTP_DRIVER=twilio_sms`** or **`twilio_whatsapp`**, **`NOTIFICATION_DRIVER`**, **`BOOKING_REMINDER_HOURS`**, plus standard mail/session/cache/queue placeholders). Safe defaults only — real Twilio values belong in private **`.env`**, not in the repo.
+- **Environment**: **`backend/.env.example`** reflects required operational keys (DB, app URL, optional **`FILESYSTEM_PUBLIC_URL`**, **`OTP_DRIVER`**, optional **`TWILIO_*`** when **`OTP_DRIVER=twilio_sms`** or **`twilio_whatsapp`**, OTP rate-limit keys (**`OTP_REQUEST_*`**, **`OTP_VERIFY_*`**, Phase **7G**), **`NOTIFICATION_DRIVER`**, **`BOOKING_REMINDER_HOURS`**, plus standard mail/session/cache/queue placeholders). Safe defaults only — real Twilio values belong in private **`.env`**, not in the repo.
 - **Storage / public disk**: Menu PDFs and item images target the **`public`** disk; default published URL prefix is **`/storage`** unless overridden. **`php artisan storage:link`** documented for production.
 - **Scheduler**: **`bootstrap/app.php`** registers **`eventaat:booking-reminders`** on an hourly schedule; production requires cron **`schedule:run`**. Lightweight test asserts **`schedule:list`** output mentions the command.
 - **API documentation**: **`docs/api-reference.md`** header clarifies **`/api/mobile`** as the live contract and defers to **`route:list`** for drift detection.
