@@ -138,8 +138,12 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 
 ### OTP delivery audit (Phase 7H)
 
-- Platform **`/platform`** → **OTP delivery attempts**: operational visibility into **`log`** / SMS / WhatsApp sends (**pending**/**sent**/**failed**) without storing OTP codes or full phone numbers (masked display + SHA-256 hash, Twilio SID when returned).
+- Platform **`/platform`** → **OTP delivery attempts**: operational visibility into **`log`** / SMS / WhatsApp sends (**pending**/**sent**/**failed** plus Twilio callback states **`delivered`**/**`undelivered`** from Phase **7I**) without storing OTP codes or full phone numbers (masked display + SHA-256 hash, Twilio SID when returned).
 - **`LocalLogOtpSender`** structured logs omit plaintext OTP (**masked destination only**).
+
+### OTP delivery status webhook (Phase 7I)
+
+- **`POST /api/webhooks/twilio/otp-status`**: Twilio **status callbacks** update **`otp_delivery_attempts`** by **`MessageSid`** (safe **`metadata`** for provider status timestamps; **`To`/`From`/`Body` not stored**). Secured with Twilio signature (**`TWILIO_AUTH_TOKEN`**) or optional static header secret when the auth token is unset (**`TWILIO_WEBHOOK_SECRET`**). Does not alter mobile OTP request/verify responses.
 
 ### Booking notification template lifecycle + dry-run polish (Phase 7B)
 

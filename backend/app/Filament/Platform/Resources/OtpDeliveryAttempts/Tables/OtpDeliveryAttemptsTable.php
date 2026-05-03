@@ -25,8 +25,8 @@ class OtpDeliveryAttemptsTable
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'sent' => 'success',
-                        'failed' => 'danger',
+                        'delivered', 'sent' => 'success',
+                        'failed', 'undelivered' => 'danger',
                         default => 'warning',
                     })
                     ->sortable(),
@@ -56,6 +56,8 @@ class OtpDeliveryAttemptsTable
                     ->options([
                         'pending' => 'pending',
                         'sent' => 'sent',
+                        'delivered' => 'delivered',
+                        'undelivered' => 'undelivered',
                         'failed' => 'failed',
                     ]),
                 Filter::make('created_between')

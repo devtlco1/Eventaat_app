@@ -167,6 +167,8 @@ Phase 7H adds a **read-only** Filament resource **OTP delivery attempts** under 
 
 Rows are **safe operational telemetry** only (masked phone + hash, driver/channel/provider, Twilio message SID when present, status/errors). **No OTP codes** or full E.164 numbers are stored or shown.
 
+**Phase 7I** Twilio **`POST /api/webhooks/twilio/otp-status`** is **not** Filament/RBAC-gated: Twilio validates the request ( **`X-Twilio-Signature`** + **`TWILIO_AUTH_TOKEN`**, or optional **`TWILIO_WEBHOOK_SECRET`** when the auth token is empty). It only mutates **`otp_delivery_attempts`** server-side.
+
 ## Platform restaurant subscriptions (Phase 8C)
 
 Phase 8C adds **Subscription plans** and **Restaurant subscriptions** resources under **`/platform`**:

@@ -62,6 +62,11 @@ return [
     'twilio' => [
         'account_sid' => env('TWILIO_ACCOUNT_SID', ''),
         'auth_token' => env('TWILIO_AUTH_TOKEN', ''),
+        /*
+        | Optional fallback when TWILIO_AUTH_TOKEN is empty (e.g. local tunnels): static shared secret header.
+        | Production should rely on Twilio X-Twilio-Signature validation using TWILIO_AUTH_TOKEN.
+        */
+        'webhook_secret' => env('TWILIO_WEBHOOK_SECRET', ''),
         'messaging_service_sid' => env('TWILIO_MESSAGING_SERVICE_SID', ''),
         'otp_validity_period' => (int) env('TWILIO_OTP_VALIDITY_PERIOD', 300),
         'whatsapp' => [

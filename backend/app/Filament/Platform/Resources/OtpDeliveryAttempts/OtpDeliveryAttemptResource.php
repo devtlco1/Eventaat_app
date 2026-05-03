@@ -83,8 +83,8 @@ class OtpDeliveryAttemptResource extends Resource
                         TextEntry::make('status')
                             ->badge()
                             ->color(fn (string $state): string => match ($state) {
-                                'sent' => 'success',
-                                'failed' => 'danger',
+                                'delivered', 'sent' => 'success',
+                                'failed', 'undelivered' => 'danger',
                                 default => 'warning',
                             }),
                         TextEntry::make('driver')->badge(),
@@ -98,7 +98,10 @@ class OtpDeliveryAttemptResource extends Resource
             Section::make('Failure details')
                 ->compact()
                 ->collapsed()
-                ->visible(fn (mixed $record): bool => $record instanceof OtpDeliveryAttempt && $record->status === OtpDeliveryAttempt::STATUS_FAILED)
+                ->visible(fn (mixed $record): bool => $record instanceof OtpDeliveryAttempt && in_array($record->status, [
+                    OtpDeliveryAttempt::STATUS_FAILED,
+                    OtpDeliveryAttempt::STATUS_UNDELIVERED,
+                ], true))
                 ->schema([
                     TextEntry::make('error_code')->placeholder('—'),
                     TextEntry::make('error_message')->columnSpanFull()->placeholder('—'),

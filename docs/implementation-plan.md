@@ -490,7 +490,7 @@ Adds backend-only reminder **generation** (internal outbox rows still — **no**
 
 ### Phase 7H: OTP delivery visibility (platform audit)
 
-- **`otp_delivery_attempts`** table (append-only **`created_at`**): **`phone_hash`** (SHA-256 of E.164), **`phone_masked`**, **`driver`** (`log` / `twilio_sms` / `twilio_whatsapp`), **`channel`**, **`provider`** (`local_log` / `twilio`), **`provider_message_sid`**, **`status`** (`pending` → **`sent`** | **`failed`**), **`error_code`**, **`error_message`**, **`metadata`** — **never** OTP codes or full phone numbers.
+- **`otp_delivery_attempts`** table (append-only **`created_at`**): **`phone_hash`** (SHA-256 of E.164), **`phone_masked`**, **`driver`** (`log` / `twilio_sms` / `twilio_whatsapp`), **`channel`**, **`provider`** (`local_log` / `twilio`), **`provider_message_sid`**, **`status`** (`pending` → **`sent`** → webhook may set **`delivered`** / **`undelivered`** / **`failed`**; see Phase **7I**), **`error_code`**, **`error_message`**, **`metadata`** — **never** OTP codes or full phone numbers.
 - **`OtpDeliveryAttemptRecorder`** wired into **`LocalLogOtpSender`**, **`TwilioSmsOtpSender`**, **`TwilioWhatsAppOtpSender`** (configuration failures insert **`failed`** directly; Twilio API paths **`beginPending`** then **`markSent`** / **`markFailed`** before safe rethrow).
 - **`LocalLogOtpSender`** app log line drops plaintext OTP (**`phone_masked`** only).
 - Twilio credential validation runs at **`send()`** time (not constructor) so misconfiguration rows include the attempted **`phone_hash`** / mask for audit (**Phase 7D**/**7F** containers may resolve senders before env is fixed).
@@ -500,6 +500,19 @@ Adds backend-only reminder **generation** (internal outbox rows still — **no**
 
 - No mobile/public API contract changes
 - No OTP codes in dashboard rows or exports
+
+### Phase 7I: OTP delivery status webhook (Twilio)
+
+- **`POST /api/webhooks/twilio/otp-status`** (named **`webhooks.twilio.otp-status`**): server-to-server, **no** Sanctum mobile auth; **does not** change successful **`/api/mobile/auth/*`** JSON.
+- **Auth**: Twilio **`X-Twilio-Signature`** validation via **`Twilio\Security\RequestValidator`** and **`TWILIO_AUTH_TOKEN`** when non-empty; if the auth token is empty, **`X-Eventaat-Webhook-Secret`** must match **`TWILIO_WEBHOOK_SECRET`** (local/tunnel fallback). Misconfiguration (**both** unset) → **403**; invalid signature/secret → **403**. Never log tokens or secrets.
+- **Handler**: **`OtpDeliveryStatusService`** maps **`MessageStatus`/`SmsStatus`** to internal **`pending`/`sent`/`delivered`/`undelivered`/`failed`** (additive **`delivered`/`undelivered`** on the existing **`status`** column); merges safe **`metadata`** (`provider_status`, `callback_received_at`, optional Twilio **`AccountSid`**, sanitized errors). Finds row by **`provider_message_sid` = `MessageSid`**; unknown SID → **200** + safe **`Log::warning`** (no new row, no full **`To`**).
+- **Privacy**: ignores webhook **`To`/`From`/`Body`** for persistence (no OTP, no full E.164 in **`metadata`**).
+- Tests: **`tests/Feature/TwilioOtpStatusWebhookTest.php`** (signature + secret paths, delivered/failed updates, unknown SID, metadata privacy).
+
+### Explicit non-goals (Phase 7I)
+
+- No new outbound Twilio sends; no **`StatusCallback`** wiring on **`MessageResource::create`** in this phase (operators configure the callback URL in Twilio console / Messaging Service).
+- No mobile app or public mobile API contract changes
 
 ### Phase 11A: event nights dashboard foundation
 

@@ -2,6 +2,21 @@
 
 Verify current routes with **`php artisan route:list --path=api/mobile`** (registered in **`routes/api.php`**). Historical phase labels below are for traceability only.
 
+Server-to-server webhooks under **`/api/webhooks/*`** are documented separately below; they **do not** use mobile Sanctum auth and **do not** change **`/api/mobile`** success payloads.
+
+### POST `/api/webhooks/twilio/otp-status` (Phase 7I)
+
+Twilio **delivery status callback** endpoint (configure in the Twilio console / Messaging Service **Status callback** URL for OTP traffic). **No** Bearer token; **no** mobile session.
+
+- **Security**
+  - **Preferred:** Twilio **`X-Twilio-Signature`** HMAC validated with **`TWILIO_AUTH_TOKEN`** (same secret as the REST API auth token).
+  - **Fallback** (e.g. local tunneling with an empty auth token): **`X-Eventaat-Webhook-Secret`** must exactly match **`TWILIO_WEBHOOK_SECRET`**. If **both** token and secret are unset, requests are rejected (**403**). Invalid signature or secret → **403**. Tokens/secrets must never appear in logs.
+- **Request:** **`application/x-www-form-urlencoded`** body. Common fields: **`MessageSid`**, **`MessageStatus`** and/or **`SmsStatus`**, optional **`ErrorCode`**, **`ErrorMessage`**, **`AccountSid`**. Other fields (**`To`**, **`From`**, **`Body`**, …) are **not** stored (avoids persisting full numbers or OTP-bearing bodies).
+- **Behavior:** Looks up **`otp_delivery_attempts.provider_message_sid` = `MessageSid`**. Updates **`status`** (**`delivered`**, **`undelivered`**, **`failed`**, **`sent`**, intermediate states merge into **`metadata.provider_status`**) and safe **`metadata`** (e.g. **`callback_received_at`**). Unknown **`MessageSid`**: responds **200** with an empty body and does **not** create a row.
+- **Response:** **200** empty body on success; **403** when authentication fails.
+
+Mobile **`request-otp`** / **`verify-otp`** contracts are unchanged.
+
 Phase 0–2 did not introduce any mobile/customer API endpoints yet.
 
 Phase 1 adds:

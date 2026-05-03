@@ -7,7 +7,11 @@ use App\Http\Controllers\Api\Mobile\MeController;
 use App\Http\Controllers\Api\Mobile\MyReviewsController;
 use App\Http\Controllers\Api\Mobile\RestaurantDiscoveryController;
 use App\Http\Controllers\Api\Mobile\RestaurantReviewController;
+use App\Http\Controllers\Api\Webhooks\TwilioOtpStatusWebhookController;
 use Illuminate\Support\Facades\Route;
+
+Route::post('webhooks/twilio/otp-status', TwilioOtpStatusWebhookController::class)
+    ->name('webhooks.twilio.otp-status');
 
 Route::prefix('mobile')
     ->middleware('api')

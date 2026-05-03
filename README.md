@@ -106,6 +106,8 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - Cache-backed per-phone caps: **`request-otp`** cooldown + hourly maximum; **`verify-otp`** failed-attempt lockout (**`OTP_REQUEST_COOLDOWN_SECONDS`**, **`OTP_REQUEST_MAX_PER_HOUR`**, **`OTP_VERIFY_MAX_ATTEMPTS`**, **`OTP_VERIFY_DECAY_MINUTES`** in **`backend/.env.example`**). **429** + **`retry_after`** when exceeded. No migrations.
 - **OTP delivery visibility (Phase 7H)**:
   - **`otp_delivery_attempts`** audit rows (**masked phone**, **SHA-256 phone hash**, driver/channel/provider, Twilio message SID when present, status/errors — **no OTP**, **no full E.164**). Filament **`/platform`** → **OTP delivery attempts** (**`super_admin`**, **`operations_admin`** read-only). WhatsApp driver remains optional pending Meta/Twilio template approval.
+- **OTP delivery status webhook (Phase 7I)**:
+  - **`POST /api/webhooks/twilio/otp-status`** (no mobile auth): Twilio delivery status callbacks update existing rows by **`MessageSid`** (**`delivered`** / **`undelivered`** terminal states, **`metadata.provider_status`**, safe errors). Validates **`X-Twilio-Signature`** with **`TWILIO_AUTH_TOKEN`** when set; optional dev fallback **`TWILIO_WEBHOOK_SECRET`** + **`X-Eventaat-Webhook-Secret`** when the auth token is empty. Configure this URL under Twilio **Status callback** for the OTP Messaging Service / sender. **`To`/`From`/`Body` are never persisted.**
 - **Event nights dashboard foundation (Phase 11A)**:
   - Model `RestaurantEvent` (`restaurant_events`) to represent restaurant-hosted event nights (dashboard-only in this phase)
   - Platform panel can manage all event nights
