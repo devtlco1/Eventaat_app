@@ -3,15 +3,10 @@
     wire:key="restaurant-menu-structured-content-{{ $record->getKey() }}"
 >
     @if ($record->isStructured())
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div class="min-w-0 flex-1 space-y-1">
-                <h3 class="text-base font-semibold leading-6 text-gray-950 dark:text-white">
-                    Menu content
-                </h3>
-                <p class="max-w-3xl text-sm text-gray-600 dark:text-gray-400">
-                    Manage categories and menu items for this structured menu.
-                </p>
-            </div>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h3 class="text-sm font-semibold leading-6 text-gray-950 dark:text-white">
+                Menu builder
+            </h3>
             @if ($this->canManage())
                 <div class="flex shrink-0 flex-wrap items-center justify-end gap-2">
                     {{ $this->createCategoryAction }}

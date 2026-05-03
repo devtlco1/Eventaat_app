@@ -3,7 +3,7 @@
 namespace App\Filament\Support;
 
 /**
- * Structured menus use the Menu content Livewire tables on the menu Edit form.
+ * Structured menus use the Menu builder Livewire tables on the menu Edit form.
  * Set to true only if you need the Categories relation manager tab as a fallback.
  */
 final class RestaurantMenuStructuredUi

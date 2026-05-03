@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Filament\Support\FilamentActionSizing;
 use App\Http\Middleware\EnsureMobileCustomer;
 use App\Http\Middleware\EnsureValidSanctumToken;
 use App\Http\Responses\FilamentLogoutResponse;
@@ -36,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        FilamentActionSizing::configure();
+
         SupportTicket::observe(SupportTicketObserver::class);
 
         Route::aliasMiddleware('mobile.customer', EnsureMobileCustomer::class);

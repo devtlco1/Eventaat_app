@@ -144,10 +144,10 @@ class RestaurantMenusDashboardTest extends TestCase
         $this->get(route('filament.platform.resources.restaurant-menus.create'))
             ->assertOk()
             ->assertSee('Save the menu first')
-            ->assertDontSee('Menu content');
+            ->assertDontSee('Menu builder');
     }
 
-    public function test_platform_edit_structured_menu_shows_menu_content(): void
+    public function test_platform_edit_structured_menu_shows_menu_builder(): void
     {
         $data = $this->seedRestaurantsAndMenus();
 
@@ -157,7 +157,7 @@ class RestaurantMenusDashboardTest extends TestCase
 
         Livewire::test(PlatformEditRestaurantMenu::class, ['record' => $data['aWide']->getKey()])
             ->assertSuccessful()
-            ->assertSee('Menu content');
+            ->assertSee('Menu builder');
     }
 
     public function test_platform_edit_pdf_menu_hides_menu_content(): void
@@ -184,7 +184,7 @@ class RestaurantMenusDashboardTest extends TestCase
 
         Livewire::test(PlatformEditRestaurantMenu::class, ['record' => $pdfMenu->getKey()])
             ->assertSuccessful()
-            ->assertDontSee('Menu content')
+            ->assertDontSee('Menu builder')
             ->assertSee('PDF menu');
     }
 
@@ -212,7 +212,7 @@ class RestaurantMenusDashboardTest extends TestCase
 
         Livewire::test(PlatformEditRestaurantMenu::class, ['record' => $linkMenu->getKey()])
             ->assertSuccessful()
-            ->assertDontSee('Menu content')
+            ->assertDontSee('Menu builder')
             ->assertSee('External menu');
     }
 
@@ -293,8 +293,7 @@ class RestaurantMenusDashboardTest extends TestCase
 
         Livewire::test(RestaurantMenuStructuredContent::class, ['record' => $data['aWide']])
             ->assertSuccessful()
-            ->assertSee('Menu content')
-            ->assertSee('Manage categories and menu items for this structured menu.')
+            ->assertSee('Menu builder')
             ->assertSee('Add category')
             ->assertSee('Add item')
             ->assertSee('Categories')
