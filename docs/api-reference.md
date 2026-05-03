@@ -34,7 +34,7 @@ Response **unchanged on success**:
 { "success": true, "expires_at": "2026-04-29T12:00:00.000000Z" }
 ```
 
-Invalid `phone` returns **422** with Laravel validation errors on `phone`. SMS OTP body when using Twilio (Phase **7D**): short text **`Eventaat code: {code}. Do not share this code.`**
+Invalid `phone` returns **422** with Laravel validation errors on `phone`. Successful JSON is unchanged regardless of server **`OTP_DRIVER`**. Delivery channel is configured only on the server: **`twilio_sms`** sends SMS copy (**Phase 7D**): **`Eventaat code: {code}. Do not share this code.`**; **`twilio_whatsapp`** sends via an approved Twilio WhatsApp Authentication Content Template (**Phase 7F**, **`contentVariables`** slot **`1`** = code — no plain SMS body).
 
 ### POST `/api/mobile/auth/verify-otp`
 

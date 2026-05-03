@@ -9,24 +9,36 @@ return [
     |
     | Local/dev default: log — OTP is written to the app log only (no SMS).
     |
-    | Production SMS: twilio_sms — requires TWILIO_* env vars (see twilio below).
+    | Production SMS: OTP_DRIVER=twilio_sms — Messaging Service SID + REST API.
     |
-    | Reserved (fail fast): sms, whatsapp — use twilio_sms for SMS until other
-    | providers exist.
+    | Production WhatsApp: OTP_DRIVER=twilio_whatsapp — approved Twilio Content
+    | Template (Authentication); see otp.twilio.whatsapp below.
+    |
+    | Reserved (fail fast): sms, whatsapp — use twilio_sms / twilio_whatsapp.
     |
     | Env: OTP_DRIVER=log
     |
     */
     'otp' => [
         'driver' => env('OTP_DRIVER', 'log'),
+        'twilio' => [
+            'otp_validity_period' => (int) env('TWILIO_OTP_VALIDITY_PERIOD', 300),
+            'whatsapp' => [
+                'from' => env('TWILIO_WHATSAPP_FROM', ''),
+                'otp_content_sid' => env('TWILIO_WHATSAPP_OTP_CONTENT_SID', ''),
+                'otp_validity_period' => (int) env('TWILIO_OTP_VALIDITY_PERIOD', 300),
+            ],
+        ],
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | Twilio (OTP via SMS only when OTP_DRIVER=twilio_sms)
+    | Twilio shared credentials + SMS / WhatsApp OTP settings
     |--------------------------------------------------------------------------
     |
-    | When OTP_DRIVER=log, these values are ignored and may be unset.
+    | When OTP_DRIVER=log, unused values may be unset.
+    |
+    | WhatsApp OTP reads sender + Content SID from otp.twilio.whatsapp.* above.
     |
     */
     'twilio' => [
@@ -34,6 +46,11 @@ return [
         'auth_token' => env('TWILIO_AUTH_TOKEN', ''),
         'messaging_service_sid' => env('TWILIO_MESSAGING_SERVICE_SID', ''),
         'otp_validity_period' => (int) env('TWILIO_OTP_VALIDITY_PERIOD', 300),
+        'whatsapp' => [
+            'from' => env('TWILIO_WHATSAPP_FROM', ''),
+            'otp_content_sid' => env('TWILIO_WHATSAPP_OTP_CONTENT_SID', ''),
+            'otp_validity_period' => (int) env('TWILIO_OTP_VALIDITY_PERIOD', 300),
+        ],
     ],
 
     /*
