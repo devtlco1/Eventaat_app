@@ -1,10 +1,15 @@
 import React from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { colors, spacing, typography } from "../theme/tokens";
 
-export function LoadingState({ message = "Loading…" }: { message?: string }) {
+type Props = {
+  message?: string;
+};
+
+export function LoadingState({ message = "Loading…" }: Props) {
   return (
     <View style={styles.center}>
-      <ActivityIndicator />
+      <ActivityIndicator color={colors.primary} size="large" />
       <Text style={styles.text}>{message}</Text>
     </View>
   );
@@ -15,9 +20,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    gap: 10,
-    padding: 16,
+    gap: spacing.md,
+    padding: spacing.lg,
   },
-  text: { color: "#4B5563" },
+  text: {
+    ...typography.base,
+    color: colors.textSecondary,
+  },
 });
-

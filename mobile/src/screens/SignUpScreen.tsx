@@ -5,11 +5,11 @@ import { requestOtp } from "../api/endpoints";
 import { AuthFooterLink } from "../components/auth/AuthFooterLink";
 import { AuthScreenLayout } from "../components/auth/AuthScreenLayout";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { PrimaryButton } from "../components/PrimaryButton";
+import { Button } from "../components/Button";
 import { TextField } from "../components/TextField";
-import type { RootStackParamList } from "../navigation/AppNavigator";
+import type { AuthStackParamList } from "../navigation/AppNavigator";
 
-type Props = NativeStackScreenProps<RootStackParamList, "SignUp">;
+type Props = NativeStackScreenProps<AuthStackParamList, "SignUp">;
 
 export function SignUpScreen({ navigation }: Props) {
   const [name, setName] = useState("");
@@ -35,8 +35,7 @@ export function SignUpScreen({ navigation }: Props) {
     }
   };
 
-  const canSubmit =
-    name.trim().length >= 2 && phone.trim().length >= 6 && !loading;
+  const canSubmit = name.trim().length >= 2 && phone.trim().length >= 6 && !loading;
 
   return (
     <AuthScreenLayout
@@ -68,9 +67,10 @@ export function SignUpScreen({ navigation }: Props) {
         keyboardType="phone-pad"
       />
 
-      <PrimaryButton
+      <Button
         title={loading ? "Sending..." : "Continue"}
         onPress={submit}
+        loading={loading}
         disabled={!canSubmit}
       />
     </AuthScreenLayout>

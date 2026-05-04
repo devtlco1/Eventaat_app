@@ -1,18 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../navigation/AppNavigator";
+import type { ExploreStackParamList } from "../navigation/AppNavigator";
 import { useAuth } from "../auth/AuthContext";
+import { Card } from "../components/Card";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { PrimaryButton } from "../components/PrimaryButton";
+import { Button } from "../components/Button";
+import { LoadingState } from "../components/LoadingState";
 import { TextField } from "../components/TextField";
 import { createBooking, getRestaurant, listRestaurants } from "../api/endpoints";
 import { getErrorMessage, getValidationErrors, isAuthError } from "../api/errors";
@@ -28,11 +29,34 @@ import {
   formatBookingAvailabilitySummary,
   validateClientBranchAvailability,
 } from "../booking/availabilityChecks";
+import { colors, radii, spacing, typography } from "../theme/tokens";
 
-type Props = NativeStackScreenProps<RootStackParamList, "CreateBooking">;
+type Props = NativeStackScreenProps<ExploreStackParamList, "CreateBooking">;
 
 function pickFirst<T>(arr: T[]): T | null {
   return arr.length ? arr[0] : null;
+}
+
+function ChoiceTile({
+  title,
+  subtitle,
+  selected,
+  onPress,
+}: {
+  title: string;
+  subtitle?: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      style={[styles.choice, selected && styles.choiceSelected]}
+      onPress={onPress}
+    >
+      <Text style={styles.choiceTitle}>{title}</Text>
+      {subtitle ? <Text style={styles.muted}>{subtitle}</Text> : null}
+    </Pressable>
+  );
 }
 
 export function CreateBookingScreen({ route, navigation }: Props) {
@@ -94,7 +118,6 @@ export function CreateBookingScreen({ route, navigation }: Props) {
       try {
         const res = await getRestaurant(token, slug);
         setDetails(res);
-        navigation.setOptions({ title: "Create booking" });
 
         const firstBranch = pickFirst(res.branches ?? []);
         setBranch(firstBranch);
@@ -110,7 +133,7 @@ export function CreateBookingScreen({ route, navigation }: Props) {
         setIsLoading(false);
       }
     },
-    [logout, navigation, token]
+    [logout, token]
   );
 
   useEffect(() => {
@@ -119,7 +142,6 @@ export function CreateBookingScreen({ route, navigation }: Props) {
 
   useEffect(() => {
     if (!restaurant?.slug) return;
-    // Reset selections while switching restaurant.
     setDetails(null);
     setBranch(null);
     setSeatingArea(null);
@@ -132,15 +154,6 @@ export function CreateBookingScreen({ route, navigation }: Props) {
     setBranch(b);
     setSeatingArea(pickFirst(b.seating_areas ?? []));
     setTable(null);
-  };
-
-  const onSelectSeatingArea = (sa: MobileSeatingArea | null) => {
-    setSeatingArea(sa);
-    setTable(null);
-  };
-
-  const onSelectTable = (t: MobileRestaurantTable | null) => {
-    setTable(t);
   };
 
   const validateLocal = (): boolean => {
@@ -156,7 +169,9 @@ export function CreateBookingScreen({ route, navigation }: Props) {
       if (!r.ok) errs.starts_at = r.message;
     }
     const ps = Number(partySize);
-    if (!partySize.trim() || Number.isNaN(ps) || ps < 1) errs.party_size = "Party size must be at least 1.";
+    if (!partySize.trim() || Number.isNaN(ps) || ps < 1) {
+      errs.party_size = "Party size must be at least 1.";
+    }
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -166,8 +181,7 @@ export function CreateBookingScreen({ route, navigation }: Props) {
     setError(null);
     setFieldErrors({});
     if (!validateLocal()) return;
-    if (!restaurant || !branch) return;
-    if (!startsAtDate) return;
+    if (!restaurant || !branch || !startsAtDate) return;
 
     setIsSubmitting(true);
     try {
@@ -181,7 +195,7 @@ export function CreateBookingScreen({ route, navigation }: Props) {
         customer_note: customerNote.trim() ? customerNote.trim() : null,
       });
 
-      Alert.alert("Created", "Booking created.");
+      Alert.alert("Booking created", "Your booking has been submitted.");
       navigation.replace("BookingDetails", { bookingId: res.booking.id });
     } catch (e) {
       if (isAuthError(e)) {
@@ -212,16 +226,15 @@ export function CreateBookingScreen({ route, navigation }: Props) {
   };
 
   if (isLoading && restaurants.length === 0) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator />
-        <Text style={styles.centerText}>Loading…</Text>
-      </View>
-    );
+    return <LoadingState message="Loading restaurants…" />;
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
       <ErrorBanner message={error} />
 
       <Text style={styles.sectionTitle}>Restaurant</Text>
@@ -229,103 +242,95 @@ export function CreateBookingScreen({ route, navigation }: Props) {
         <Text style={styles.muted}>No restaurants available.</Text>
       ) : (
         restaurants.map((r) => (
-          <TouchableOpacity
+          <ChoiceTile
             key={r.id}
-            style={[styles.choice, restaurant?.id === r.id ? styles.choiceSelected : null]}
+            title={r.name}
+            subtitle={`${r.active_branches_count} branch${r.active_branches_count !== 1 ? "es" : ""}`}
+            selected={restaurant?.id === r.id}
             onPress={() => setRestaurant(r)}
-          >
-            <Text style={styles.choiceTitle}>{r.name}</Text>
-            <Text style={styles.muted}>Active branches: {r.active_branches_count}</Text>
-          </TouchableOpacity>
+          />
         ))
       )}
-      {fieldErrors.restaurant_id ? <Text style={styles.fieldError}>{fieldErrors.restaurant_id}</Text> : null}
+      {fieldErrors.restaurant_id ? (
+        <Text style={styles.fieldError}>{fieldErrors.restaurant_id}</Text>
+      ) : null}
 
       <Text style={styles.sectionTitle}>Branch</Text>
       {branches.length === 0 ? (
         <Text style={styles.muted}>
-          {details
-            ? "No active branches for this restaurant."
-            : "Loading restaurant details…"}
+          {details ? "No active branches." : "Loading branches…"}
         </Text>
       ) : (
         branches.map((b) => (
-          <TouchableOpacity
+          <ChoiceTile
             key={b.id}
-            style={[styles.choice, branch?.id === b.id ? styles.choiceSelected : null]}
+            title={b.name}
+            selected={branch?.id === b.id}
             onPress={() => onSelectBranch(b)}
-          >
-            <Text style={styles.choiceTitle}>{b.name}</Text>
-            <Text style={styles.muted}>Code: {b.code}</Text>
-          </TouchableOpacity>
+          />
         ))
       )}
-      {fieldErrors.branch_id ? <Text style={styles.fieldError}>{fieldErrors.branch_id}</Text> : null}
+      {fieldErrors.branch_id ? (
+        <Text style={styles.fieldError}>{fieldErrors.branch_id}</Text>
+      ) : null}
 
       {branch ? (
-        <View style={styles.availabilityBox}>
-          <Text style={styles.sectionTitle}>Branch availability</Text>
+        <Card style={styles.availabilityCard}>
+          <Text style={styles.subTitle}>Availability</Text>
           {formatBookingAvailabilitySummary(branch.booking_availability ?? null).map((line, idx) => (
             <Text key={idx} style={styles.muted}>
               {line}
             </Text>
           ))}
-        </View>
+        </Card>
       ) : null}
 
       <Text style={styles.sectionTitle}>Seating area (optional)</Text>
-      <TouchableOpacity
-        style={[styles.choice, !seatingArea ? styles.choiceSelected : null]}
-        onPress={() => onSelectSeatingArea(null)}
-      >
-        <Text style={styles.choiceTitle}>No seating area</Text>
-      </TouchableOpacity>
+      <ChoiceTile
+        title="No preference"
+        selected={!seatingArea}
+        onPress={() => {
+          setSeatingArea(null);
+          setTable(null);
+        }}
+      />
       {seatingAreas.map((sa) => (
-        <TouchableOpacity
+        <ChoiceTile
           key={sa.id}
-          style={[styles.choice, seatingArea?.id === sa.id ? styles.choiceSelected : null]}
-          onPress={() => onSelectSeatingArea(sa)}
-        >
-          <Text style={styles.choiceTitle}>
-            {sa.name}
-            {sa.type ? ` (${sa.type})` : ""}
-          </Text>
-          <Text style={styles.muted}>Tables: {(sa.tables ?? []).length}</Text>
-        </TouchableOpacity>
+          title={sa.name + (sa.type ? ` · ${sa.type}` : "")}
+          subtitle={`${(sa.tables ?? []).length} table${(sa.tables ?? []).length !== 1 ? "s" : ""}`}
+          selected={seatingArea?.id === sa.id}
+          onPress={() => {
+            setSeatingArea(sa);
+            setTable(null);
+          }}
+        />
       ))}
 
       <Text style={styles.sectionTitle}>Table (optional)</Text>
-      <TouchableOpacity
-        style={[styles.choice, !table ? styles.choiceSelected : null]}
-        onPress={() => onSelectTable(null)}
-      >
-        <Text style={styles.choiceTitle}>Book without table</Text>
-        <Text style={styles.muted}>Optional — you can book without selecting a table.</Text>
-      </TouchableOpacity>
+      <ChoiceTile
+        title="No specific table"
+        selected={!table}
+        onPress={() => setTable(null)}
+      />
       {tables.map((t) => (
-        <TouchableOpacity
+        <ChoiceTile
           key={t.id}
-          style={[styles.choice, table?.id === t.id ? styles.choiceSelected : null]}
-          onPress={() => onSelectTable(t)}
-        >
-          <Text style={styles.choiceTitle}>
-            {t.label} (cap {t.capacity})
-          </Text>
-        </TouchableOpacity>
+          title={`${t.label} · capacity ${t.capacity}`}
+          selected={table?.id === t.id}
+          onPress={() => setTable(t)}
+        />
       ))}
-      {fieldErrors.restaurant_table_id ? <Text style={styles.fieldError}>{fieldErrors.restaurant_table_id}</Text> : null}
+      {fieldErrors.restaurant_table_id ? (
+        <Text style={styles.fieldError}>{fieldErrors.restaurant_table_id}</Text>
+      ) : null}
 
       <DateTimeField
-        label="Starts at"
+        label="Date & time"
         value={startsAtDate}
         onChange={setStartsAtDate}
         error={fieldErrors.starts_at ?? null}
       />
-      <Text style={styles.muted}>
-        The server still validates your time; if anything differs from your device clock, you may see a validation
-        message after submit.
-      </Text>
-      <Text style={styles.muted}>Format sent to backend: YYYY-MM-DD HH:mm</Text>
 
       <TextField
         label="Party size"
@@ -333,48 +338,46 @@ export function CreateBookingScreen({ route, navigation }: Props) {
         onChangeText={setPartySize}
         keyboardType="number-pad"
         placeholder="2"
+        error={fieldErrors.party_size}
       />
-      {fieldErrors.party_size ? <Text style={styles.fieldError}>{fieldErrors.party_size}</Text> : null}
 
       <TextField
-        label="Customer note (optional)"
+        label="Note (optional)"
         value={customerNote}
         onChangeText={setCustomerNote}
-        placeholder="Anything the restaurant should know"
+        placeholder="Any special requests"
         autoCapitalize="sentences"
       />
 
-      <PrimaryButton
-        title={isSubmitting ? "Submitting..." : "Create booking"}
+      <Button
+        title="Create booking"
         onPress={onSubmit}
+        loading={isSubmitting}
         disabled={isSubmitting}
       />
-      <Text style={styles.muted}>
-        If you select a table, the API may reject the booking for conflicts/capacity.
-      </Text>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, gap: 12 },
-  sectionTitle: { fontSize: 16, fontWeight: "700", color: "#111827" },
+  scroll: { flex: 1, backgroundColor: colors.surface },
+  container: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
+  sectionTitle: { ...typography.md, fontWeight: "700", color: colors.text },
+  subTitle: { ...typography.sm, fontWeight: "700", color: colors.text },
   choice: {
     borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 12,
-    padding: 12,
-    backgroundColor: "white",
+    borderColor: colors.border,
+    borderRadius: radii.input,
+    padding: spacing.md,
+    backgroundColor: colors.background,
     gap: 4,
   },
   choiceSelected: {
-    borderColor: "#111827",
+    borderColor: colors.primary,
+    borderWidth: 1.5,
   },
-  choiceTitle: { fontWeight: "700", color: "#111827" },
-  availabilityBox: { gap: 6, paddingVertical: 4 },
-  muted: { color: "#4B5563" },
-  fieldError: { color: "#991B1B" },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", gap: 8, padding: 16 },
-  centerText: { color: "#4B5563" },
+  choiceTitle: { ...typography.base, fontWeight: "700", color: colors.text },
+  availabilityCard: { gap: 6 },
+  muted: { ...typography.sm, color: colors.textSecondary },
+  fieldError: { ...typography.sm, color: colors.danger },
 });
-

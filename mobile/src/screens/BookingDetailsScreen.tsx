@@ -1,25 +1,38 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../navigation/AppNavigator";
+
 import { useAuth } from "../auth/AuthContext";
+import { Card } from "../components/Card";
+import { Button } from "../components/Button";
+import { Divider } from "../components/Divider";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { PrimaryButton } from "../components/PrimaryButton";
 import { LoadingState } from "../components/LoadingState";
 import { StatusBadge } from "../components/StatusBadge";
 import { cancelBooking, getBooking } from "../api/endpoints";
 import { getErrorMessage, isAuthError, getValidationErrors } from "../api/errors";
 import type { MobileBooking } from "../api/types";
+import { colors, spacing, typography } from "../theme/tokens";
 
-type Props = NativeStackScreenProps<RootStackParamList, "BookingDetails">;
+type BookingDetailsRoute = { BookingDetails: { bookingId: number } };
+type Props = NativeStackScreenProps<BookingDetailsRoute, "BookingDetails">;
 
 function fmt(iso: string | null): string {
-  if (!iso) return "-";
+  if (!iso) return "—";
   try {
     return new Date(iso).toLocaleString();
   } catch {
     return iso;
   }
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.infoRow}>
+      <Text style={styles.infoKey}>{label}</Text>
+      <Text style={styles.infoVal}>{value}</Text>
+    </View>
+  );
 }
 
 export function BookingDetailsScreen({ route, navigation }: Props) {
@@ -61,32 +74,36 @@ export function BookingDetailsScreen({ route, navigation }: Props) {
 
   const onCancel = async () => {
     if (!token || !data) return;
-    Alert.alert("Cancel booking", "Are you sure you want to cancel this booking?", [
-      { text: "No", style: "cancel" },
-      {
-        text: "Yes, cancel",
-        style: "destructive",
-        onPress: async () => {
-          setIsCancelling(true);
-          setError(null);
-          try {
-            await cancelBooking(token, data.id);
-            await load();
-            Alert.alert("Cancelled", "Booking cancelled.");
-          } catch (e) {
-            if (isAuthError(e)) {
-              await logout();
-              return;
+    Alert.alert(
+      "Cancel booking",
+      "Are you sure you want to cancel this booking?",
+      [
+        { text: "No", style: "cancel" },
+        {
+          text: "Yes, cancel",
+          style: "destructive",
+          onPress: async () => {
+            setIsCancelling(true);
+            setError(null);
+            try {
+              await cancelBooking(token, data.id);
+              await load();
+              Alert.alert("Cancelled", "Your booking has been cancelled.");
+            } catch (e) {
+              if (isAuthError(e)) {
+                await logout();
+                return;
+              }
+              const errors = getValidationErrors(e);
+              const statusErr = errors?.status?.[0] ?? null;
+              setError(statusErr ?? getErrorMessage(e));
+            } finally {
+              setIsCancelling(false);
             }
-            const errors = getValidationErrors(e);
-            const statusErr = errors?.status?.[0] ?? null;
-            setError(statusErr ?? getErrorMessage(e));
-          } finally {
-            setIsCancelling(false);
-          }
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
 
   if (isLoading) {
@@ -102,118 +119,78 @@ export function BookingDetailsScreen({ route, navigation }: Props) {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
       <ErrorBanner message={error} />
 
       <View style={styles.headerRow}>
-        <View style={{ flex: 1 }}>
+        <View style={styles.flex}>
           <Text style={styles.title}>Booking #{data.id}</Text>
-          <Text style={styles.subtitle}>{data.restaurant?.name ?? "-"}</Text>
+          <Text style={styles.subtitle}>{data.restaurant?.name ?? "—"}</Text>
         </View>
         <StatusBadge status={data.status} />
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.row}>
-          <Text style={styles.k}>Restaurant: </Text>
-          <Text style={styles.v}>{data.restaurant?.name ?? "-"}</Text>
-        </Text>
-        <Text style={styles.row}>
-          <Text style={styles.k}>Branch: </Text>
-          <Text style={styles.v}>{data.branch?.name ?? "-"}</Text>
-        </Text>
-        <Text style={styles.row}>
-          <Text style={styles.k}>Starts at: </Text>
-          <Text style={styles.v}>{fmt(data.starts_at)}</Text>
-        </Text>
-        <Text style={styles.row}>
-          <Text style={styles.k}>Party size: </Text>
-          <Text style={styles.v}>{data.party_size}</Text>
-        </Text>
-        <Text style={styles.row}>
-          <Text style={styles.k}>Seating area: </Text>
-          <Text style={styles.v}>{data.seating_area?.name ?? "-"}</Text>
-        </Text>
-        <Text style={styles.row}>
-          <Text style={styles.k}>Table: </Text>
-          <Text style={styles.v}>{data.table?.label ?? "-"}</Text>
-        </Text>
-      </View>
+      <Card>
+        <InfoRow label="Restaurant" value={data.restaurant?.name ?? "—"} />
+        <InfoRow label="Branch" value={data.branch?.name ?? "—"} />
+        <InfoRow label="Starts at" value={fmt(data.starts_at)} />
+        <InfoRow label="Party size" value={String(data.party_size)} />
+        <InfoRow label="Seating area" value={data.seating_area?.name ?? "—"} />
+        <InfoRow label="Table" value={data.table?.label ?? "—"} />
+      </Card>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Timeline</Text>
-        <View style={styles.timeline}>
-          <View style={styles.timelineRow}>
-            <Text style={styles.timelineKey}>Pending</Text>
-            <Text style={styles.timelineVal}>{fmt(data.created_at)}</Text>
-          </View>
-          <View style={styles.timelineRow}>
-            <Text style={styles.timelineKey}>Accepted</Text>
-            <Text style={styles.timelineVal}>{fmt(data.accepted_at)}</Text>
-          </View>
-          <View style={styles.timelineRow}>
-            <Text style={styles.timelineKey}>Arrived</Text>
-            <Text style={styles.timelineVal}>{fmt(data.arrived_at)}</Text>
-          </View>
-          <View style={styles.timelineRow}>
-            <Text style={styles.timelineKey}>Seated</Text>
-            <Text style={styles.timelineVal}>{fmt(data.seated_at)}</Text>
-          </View>
-          <View style={styles.timelineRow}>
-            <Text style={styles.timelineKey}>Completed</Text>
-            <Text style={styles.timelineVal}>{fmt(data.completed_at)}</Text>
-          </View>
-          <View style={styles.timelineRow}>
-            <Text style={styles.timelineKey}>No-show</Text>
-            <Text style={styles.timelineVal}>{fmt(data.no_show_at)}</Text>
-          </View>
-          <View style={styles.timelineRow}>
-            <Text style={styles.timelineKey}>Cancelled</Text>
-            <Text style={styles.timelineVal}>{fmt(data.cancelled_at)}</Text>
-          </View>
-          <View style={styles.timelineRow}>
-            <Text style={styles.timelineKey}>Rejected</Text>
-            <Text style={styles.timelineVal}>{fmt(data.rejected_at)}</Text>
-          </View>
-        </View>
-      </View>
+      <Divider />
+
+      <Text style={styles.sectionTitle}>Timeline</Text>
+      <Card>
+        <InfoRow label="Pending" value={fmt(data.created_at)} />
+        <InfoRow label="Accepted" value={fmt(data.accepted_at)} />
+        <InfoRow label="Arrived" value={fmt(data.arrived_at)} />
+        <InfoRow label="Seated" value={fmt(data.seated_at)} />
+        <InfoRow label="Completed" value={fmt(data.completed_at)} />
+        <InfoRow label="No-show" value={fmt(data.no_show_at)} />
+        <InfoRow label="Cancelled" value={fmt(data.cancelled_at)} />
+        <InfoRow label="Rejected" value={fmt(data.rejected_at)} />
+      </Card>
 
       {canAttemptCancel ? (
-        <PrimaryButton
-          title={isCancelling ? "Cancelling..." : "Cancel booking"}
+        <Button
+          title={isCancelling ? "Cancelling…" : "Cancel booking"}
           onPress={onCancel}
-          disabled={isCancelling}
+          variant="danger"
+          loading={isCancelling}
         />
       ) : (
-        <Text style={styles.muted}>Cancellation is not available for this booking status.</Text>
+        <Text style={styles.muted}>Cancellation is not available at this stage.</Text>
       )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, gap: 12 },
-  headerRow: { flexDirection: "row", justifyContent: "space-between", gap: 12, alignItems: "flex-start" },
-  title: { fontSize: 20, fontWeight: "800", color: "#111827" },
-  subtitle: { color: "#4B5563" },
-  section: { gap: 6 },
-  sectionTitle: { fontSize: 16, fontWeight: "700", color: "#111827" },
-  card: {
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 12,
-    padding: 12,
-    backgroundColor: "white",
-    gap: 6,
+  scroll: { flex: 1, backgroundColor: colors.surface },
+  container: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: spacing.md,
+    alignItems: "flex-start",
   },
-  row: { color: "#111827" },
-  k: { fontWeight: "700" },
-  v: { color: "#111827" },
-  muted: { color: "#4B5563" },
-  notFound: { flex: 1, padding: 16, justifyContent: "center" },
-  timeline: { borderWidth: 1, borderColor: "#E5E7EB", borderRadius: 12, padding: 12, backgroundColor: "white", gap: 8 },
-  timelineRow: { flexDirection: "row", justifyContent: "space-between", gap: 10 },
-  timelineKey: { fontWeight: "700", color: "#111827" },
-  timelineVal: { color: "#4B5563", textAlign: "right", flexShrink: 1 },
+  flex: { flex: 1, gap: 4 },
+  title: { ...typography.xl, fontWeight: "800", color: colors.text },
+  subtitle: { ...typography.base, color: colors.textSecondary },
+  sectionTitle: { ...typography.md, fontWeight: "700", color: colors.text },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  infoKey: { ...typography.base, fontWeight: "600", color: colors.text },
+  infoVal: { ...typography.base, color: colors.textSecondary, flexShrink: 1, textAlign: "right" },
+  muted: { ...typography.sm, color: colors.textSecondary },
+  notFound: { flex: 1, padding: spacing.lg, justifyContent: "center" },
 });
-

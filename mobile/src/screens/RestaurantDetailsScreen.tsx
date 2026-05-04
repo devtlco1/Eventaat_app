@@ -1,17 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../navigation/AppNavigator";
+import type { ExploreStackParamList } from "../navigation/AppNavigator";
 import { useAuth } from "../auth/AuthContext";
+import { Card } from "../components/Card";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { PrimaryButton } from "../components/PrimaryButton";
+import { Button } from "../components/Button";
 import { LoadingState } from "../components/LoadingState";
 import { getRestaurant } from "../api/endpoints";
 import { getErrorMessage, isAuthError } from "../api/errors";
 import type { MobileRestaurantDetails } from "../api/types";
 import { formatBookingAvailabilitySummary } from "../booking/availabilityChecks";
+import { colors, radii, spacing, typography } from "../theme/tokens";
 
-type Props = NativeStackScreenProps<RootStackParamList, "RestaurantDetails">;
+type Props = NativeStackScreenProps<ExploreStackParamList, "RestaurantDetails">;
 
 export function RestaurantDetailsScreen({ route, navigation }: Props) {
   const { slug } = route.params;
@@ -28,7 +30,7 @@ export function RestaurantDetailsScreen({ route, navigation }: Props) {
     try {
       const res = await getRestaurant(token, slug);
       setData(res);
-      navigation.setOptions({ title: "Restaurant details" });
+      navigation.setOptions({ title: res.name ?? "Restaurant" });
     } catch (e) {
       if (isAuthError(e)) {
         await logout();
@@ -51,20 +53,26 @@ export function RestaurantDetailsScreen({ route, navigation }: Props) {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      style={styles.scroll}
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
       <ErrorBanner message={error} />
 
       <Text style={styles.title}>{data?.name ?? "Restaurant"}</Text>
-      <Text style={styles.subtitle}>Active branches: {branches.length}</Text>
+      <Text style={styles.subtitle}>
+        {branches.length} active branch{branches.length !== 1 ? "es" : ""}
+      </Text>
 
       <View style={styles.infoBox}>
-        <Text style={styles.muted}>
-          Table selection is optional. You can create a booking without choosing a table.
+        <Text style={styles.infoText}>
+          Table selection is optional — you can create a booking without choosing a table.
         </Text>
       </View>
 
-      <PrimaryButton
-        title="Create booking"
+      <Button
+        title="Book a table"
         onPress={() => navigation.navigate("CreateBooking", { restaurantSlug: slug })}
       />
 
@@ -74,44 +82,41 @@ export function RestaurantDetailsScreen({ route, navigation }: Props) {
           <Text style={styles.muted}>No active branches.</Text>
         ) : (
           branches.map((b) => (
-            <View key={b.id} style={styles.card}>
+            <Card key={b.id} style={styles.branchCard}>
               <Text style={styles.cardTitle}>{b.name}</Text>
-              <Text style={styles.muted}>Code: {b.code}</Text>
-              <View style={styles.availabilityBlock}>
-                {formatBookingAvailabilitySummary(b.booking_availability ?? null).map((line, idx) => (
+
+              {formatBookingAvailabilitySummary(b.booking_availability ?? null).map(
+                (line, idx) => (
                   <Text key={idx} style={styles.muted}>
                     {line}
                   </Text>
-                ))}
-              </View>
+                )
+              )}
 
-              <View style={styles.subsection}>
-                <Text style={styles.subTitle}>Seating areas</Text>
-                {(b.seating_areas ?? []).length === 0 ? (
-                  <Text style={styles.muted}>No seating areas.</Text>
-                ) : (
-                  b.seating_areas.map((sa) => (
+              {(b.seating_areas ?? []).length > 0 && (
+                <View style={styles.subsection}>
+                  <Text style={styles.subTitle}>Seating areas</Text>
+                  {b.seating_areas.map((sa) => (
                     <View key={sa.id} style={styles.subcard}>
                       <Text style={styles.cardTitle}>
                         {sa.name}
-                        {sa.type ? ` (${sa.type})` : ""}
+                        {sa.type ? ` · ${sa.type}` : ""}
                       </Text>
-                      <Text style={styles.muted}>Tables</Text>
                       {(sa.tables ?? []).length === 0 ? (
                         <Text style={styles.muted}>No active tables.</Text>
                       ) : (
                         (sa.tables ?? []).map((t) => (
                           <View key={t.id} style={styles.tableRow}>
                             <Text style={styles.tableLabel}>{t.label}</Text>
-                            <Text style={styles.tableCap}>cap {t.capacity}</Text>
+                            <Text style={styles.muted}>capacity {t.capacity}</Text>
                           </View>
                         ))
                       )}
                     </View>
-                  ))
-                )}
-              </View>
-            </View>
+                  ))}
+                </View>
+              )}
+            </Card>
           ))
         )}
       </View>
@@ -120,41 +125,33 @@ export function RestaurantDetailsScreen({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, gap: 12 },
-  title: { fontSize: 20, fontWeight: "800", color: "#111827" },
-  subtitle: { color: "#4B5563" },
-  section: { marginTop: 8, gap: 10 },
-  subsection: { marginTop: 10, gap: 10 },
-  availabilityBlock: { marginTop: 8, gap: 4 },
-  sectionTitle: { fontSize: 16, fontWeight: "700", color: "#111827" },
-  subTitle: { fontSize: 14, fontWeight: "700", color: "#111827" },
+  scroll: { flex: 1, backgroundColor: colors.surface },
+  container: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
+  title: { ...typography.xl, fontWeight: "800", color: colors.text },
+  subtitle: { ...typography.base, color: colors.textSecondary },
   infoBox: {
-    backgroundColor: "#EFF6FF",
-    borderColor: "#BFDBFE",
+    backgroundColor: colors.infoBg,
+    borderColor: colors.infoBorder,
     borderWidth: 1,
-    padding: 12,
-    borderRadius: 12,
+    padding: spacing.md,
+    borderRadius: radii.input,
   },
-  card: {
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 12,
-    padding: 12,
-    backgroundColor: "white",
-    gap: 6,
-  },
+  infoText: { ...typography.sm, color: colors.info },
+  section: { gap: spacing.sm },
+  subsection: { marginTop: spacing.sm, gap: spacing.sm },
+  sectionTitle: { ...typography.md, fontWeight: "700", color: colors.text },
+  subTitle: { ...typography.sm, fontWeight: "700", color: colors.text },
+  branchCard: { gap: spacing.sm },
   subcard: {
     borderWidth: 1,
-    borderColor: "#F3F4F6",
-    borderRadius: 12,
-    padding: 10,
-    backgroundColor: "#FAFAFA",
+    borderColor: colors.surface,
+    borderRadius: radii.sm,
+    padding: spacing.sm,
+    backgroundColor: colors.surface,
     gap: 4,
   },
-  cardTitle: { fontWeight: "700", color: "#111827" },
-  muted: { color: "#4B5563" },
-  tableRow: { flexDirection: "row", justifyContent: "space-between" },
-  tableLabel: { color: "#111827", fontWeight: "600" },
-  tableCap: { color: "#4B5563" },
+  cardTitle: { ...typography.base, fontWeight: "700", color: colors.text },
+  muted: { ...typography.sm, color: colors.textSecondary },
+  tableRow: { flexDirection: "row", justifyContent: "space-between", gap: spacing.sm },
+  tableLabel: { ...typography.sm, fontWeight: "600", color: colors.text },
 });
-

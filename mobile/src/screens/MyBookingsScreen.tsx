@@ -4,26 +4,21 @@ import {
   RefreshControl,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "../navigation/AppNavigator";
+import type { BookingsStackParamList } from "../navigation/AppNavigator";
 import { useAuth } from "../auth/AuthContext";
-import { ErrorBanner } from "../components/ErrorBanner";
+import { Card } from "../components/Card";
 import { EmptyState } from "../components/EmptyState";
+import { ErrorBanner } from "../components/ErrorBanner";
 import { LoadingState } from "../components/LoadingState";
 import { StatusBadge } from "../components/StatusBadge";
 import { listMyBookings } from "../api/endpoints";
 import { getErrorMessage, isAuthError } from "../api/errors";
 import type { MobileBooking } from "../api/types";
-
-function formatBookingRow(b: MobileBooking): string {
-  const r = b.restaurant?.name ?? "Restaurant";
-  const br = b.branch?.name ?? "Branch";
-  return `${r} — ${br}`;
-}
+import { colors, spacing, typography } from "../theme/tokens";
 
 function parseMs(iso: string | null): number | null {
   if (!iso) return null;
@@ -32,7 +27,7 @@ function parseMs(iso: string | null): number | null {
 }
 
 export function MyBookingsScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<BookingsStackParamList>>();
   const { token, logout } = useAuth();
 
   const [items, setItems] = useState<MobileBooking[]>([]);
@@ -68,40 +63,35 @@ export function MyBookingsScreen() {
     void load();
   }, [load]);
 
-  const renderItem = ({ item }: { item: MobileBooking }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => navigation.navigate("BookingDetails", { bookingId: item.id })}
-    >
-      <View style={styles.rowTop}>
-        <Text style={styles.name}>{formatBookingRow(item)}</Text>
-        <StatusBadge status={item.status} />
-      </View>
-      <Text style={styles.meta}>
-        Starts at: {item.starts_at ? new Date(item.starts_at).toLocaleString() : "-"}
-      </Text>
-      <Text style={styles.meta}>Party size: {item.party_size}</Text>
-    </TouchableOpacity>
-  );
-
-  const empty = useMemo(() => items.length === 0, [items.length]);
-
   const sorted = useMemo(() => {
     const now = Date.now();
-    const arr = [...items];
-    arr.sort((a, b) => {
+    return [...items].sort((a, b) => {
       const ams = parseMs(a.starts_at);
       const bms = parseMs(b.starts_at);
       if (ams === null || bms === null) return 0;
-
-      const aUpcoming = ams >= now;
-      const bUpcoming = bms >= now;
-
-      if (aUpcoming !== bUpcoming) return aUpcoming ? -1 : 1;
-      return aUpcoming ? ams - bms : bms - ams;
+      const aUp = ams >= now;
+      const bUp = bms >= now;
+      if (aUp !== bUp) return aUp ? -1 : 1;
+      return aUp ? ams - bms : bms - ams;
     });
-    return arr;
   }, [items]);
+
+  const renderItem = ({ item }: { item: MobileBooking }) => (
+    <Card onPress={() => navigation.navigate("BookingDetails", { bookingId: item.id })}>
+      <View style={styles.rowTop}>
+        <View style={styles.flex}>
+          <Text style={styles.name}>
+            {item.restaurant?.name ?? "Restaurant"} — {item.branch?.name ?? "Branch"}
+          </Text>
+          <Text style={styles.meta}>
+            {item.starts_at ? new Date(item.starts_at).toLocaleString() : "—"}
+          </Text>
+          <Text style={styles.meta}>Party of {item.party_size}</Text>
+        </View>
+        <StatusBadge status={item.status} />
+      </View>
+    </Card>
+  );
 
   if (isLoading) {
     return <LoadingState message="Loading bookings…" />;
@@ -111,8 +101,11 @@ export function MyBookingsScreen() {
     <View style={styles.container}>
       <ErrorBanner message={error} />
 
-      {empty ? (
-        <EmptyState title="No bookings yet" subtitle="Create your first booking from Restaurants." />
+      {sorted.length === 0 ? (
+        <EmptyState
+          title="No bookings yet"
+          subtitle="Head to the Explore tab to find a restaurant and book a table."
+        />
       ) : (
         <FlatList
           data={sorted}
@@ -129,18 +122,10 @@ export function MyBookingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, gap: 12 },
-  list: { paddingBottom: 24, gap: 10 },
-  card: {
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 12,
-    padding: 12,
-    backgroundColor: "white",
-    gap: 6,
-  },
-  rowTop: { flexDirection: "row", justifyContent: "space-between", gap: 10, alignItems: "flex-start" },
-  name: { fontSize: 14, fontWeight: "700", color: "#111827", flex: 1 },
-  meta: { color: "#4B5563" },
+  container: { flex: 1, backgroundColor: colors.surface },
+  list: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.sm },
+  rowTop: { flexDirection: "row", gap: spacing.sm, alignItems: "flex-start" },
+  flex: { flex: 1, gap: 4 },
+  name: { ...typography.base, fontWeight: "700", color: colors.text },
+  meta: { ...typography.sm, color: colors.textSecondary },
 });
-

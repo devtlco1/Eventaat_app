@@ -5,13 +5,13 @@ import { ApiErrorResponse } from "../api/client";
 import { requestOtp } from "../api/endpoints";
 import { AuthScreenLayout } from "../components/auth/AuthScreenLayout";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { PrimaryButton } from "../components/PrimaryButton";
+import { Button } from "../components/Button";
 import { TextField } from "../components/TextField";
-import type { RootStackParamList } from "../navigation/AppNavigator";
+import type { AuthStackParamList } from "../navigation/AppNavigator";
 import { useAuth } from "../auth/AuthContext";
-import { colors } from "../theme/tokens";
+import { colors, typography } from "../theme/tokens";
 
-type Props = NativeStackScreenProps<RootStackParamList, "OtpVerify">;
+type Props = NativeStackScreenProps<AuthStackParamList, "OtpVerify">;
 
 export function OtpVerifyScreen({ route }: Props) {
   const { phone, name: nameFromSignup } = route.params;
@@ -91,10 +91,11 @@ export function OtpVerifyScreen({ route }: Props) {
         />
       ) : null}
 
-      <PrimaryButton
+      <Button
         title={loading ? "Verifying..." : "Verify and continue"}
         onPress={submit}
-        disabled={loading || otp.trim().length < 4}
+        loading={loading}
+        disabled={otp.trim().length < 4}
       />
     </AuthScreenLayout>
   );
@@ -102,7 +103,7 @@ export function OtpVerifyScreen({ route }: Props) {
 
 const styles = StyleSheet.create({
   resend: {
-    fontSize: 15,
+    ...typography.base,
     fontWeight: "600",
     color: colors.accent,
   },

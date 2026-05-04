@@ -1,14 +1,15 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useAuth } from "../auth/AuthContext";
 import { needsName } from "../auth/profile";
+import { colors } from "../theme/tokens";
 import { SplashScreen } from "../screens/SplashScreen";
 import { PhoneEntryScreen } from "../screens/PhoneEntryScreen";
 import { SignUpScreen } from "../screens/SignUpScreen";
 import { OtpVerifyScreen } from "../screens/OtpVerifyScreen";
 import { CompleteProfileScreen } from "../screens/CompleteProfileScreen";
-import { HomeScreen } from "../screens/HomeScreen";
 import { RestaurantListScreen } from "../screens/RestaurantListScreen";
 import { RestaurantDetailsScreen } from "../screens/RestaurantDetailsScreen";
 import { CreateBookingScreen } from "../screens/CreateBookingScreen";
@@ -16,21 +17,142 @@ import { MyBookingsScreen } from "../screens/MyBookingsScreen";
 import { BookingDetailsScreen } from "../screens/BookingDetailsScreen";
 import { ProfileScreen } from "../screens/ProfileScreen";
 
-export type RootStackParamList = {
+// ---- Param lists ----
+
+export type AuthStackParamList = {
   PhoneEntry: undefined;
   SignUp: undefined;
   OtpVerify: { phone: string; name?: string };
-  CompleteProfile: undefined;
-  Home: undefined;
-  Restaurants: undefined;
+};
+
+export type ExploreStackParamList = {
+  RestaurantList: undefined;
   RestaurantDetails: { slug: string };
   CreateBooking: { restaurantSlug?: string };
+  BookingDetails: { bookingId: number };
+};
+
+export type BookingsStackParamList = {
   MyBookings: undefined;
   BookingDetails: { bookingId: number };
+};
+
+export type ProfileStackParamList = {
   Profile: undefined;
 };
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+export type TabParamList = {
+  Explore: undefined;
+  Bookings: undefined;
+  ProfileTab: undefined;
+};
+
+/** Legacy union kept for screen files that import this type. */
+export type RootStackParamList = AuthStackParamList &
+  ExploreStackParamList &
+  BookingsStackParamList &
+  ProfileStackParamList & {
+    CompleteProfile: undefined;
+    Home: undefined;
+    Restaurants: undefined;
+  };
+
+// ---- Navigators ----
+
+const AuthStack = createNativeStackNavigator<AuthStackParamList>();
+const ExploreStack = createNativeStackNavigator<ExploreStackParamList>();
+const BookingsStack = createNativeStackNavigator<BookingsStackParamList>();
+const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
+const Tab = createBottomTabNavigator<TabParamList>();
+const RootStack = createNativeStackNavigator();
+
+function ExploreNavigator() {
+  return (
+    <ExploreStack.Navigator screenOptions={{ headerTintColor: colors.text }}>
+      <ExploreStack.Screen
+        name="RestaurantList"
+        component={RestaurantListScreen}
+        options={{ title: "Explore" }}
+      />
+      <ExploreStack.Screen
+        name="RestaurantDetails"
+        component={RestaurantDetailsScreen}
+        options={{ title: "Restaurant" }}
+      />
+      <ExploreStack.Screen
+        name="CreateBooking"
+        component={CreateBookingScreen}
+        options={{ title: "New booking" }}
+      />
+      <ExploreStack.Screen
+        name="BookingDetails"
+        component={BookingDetailsScreen}
+        options={{ title: "Booking" }}
+      />
+    </ExploreStack.Navigator>
+  );
+}
+
+function BookingsNavigator() {
+  return (
+    <BookingsStack.Navigator screenOptions={{ headerTintColor: colors.text }}>
+      <BookingsStack.Screen
+        name="MyBookings"
+        component={MyBookingsScreen}
+        options={{ title: "My bookings" }}
+      />
+      <BookingsStack.Screen
+        name="BookingDetails"
+        component={BookingDetailsScreen}
+        options={{ title: "Booking" }}
+      />
+    </BookingsStack.Navigator>
+  );
+}
+
+function ProfileNavigator() {
+  return (
+    <ProfileStack.Navigator screenOptions={{ headerTintColor: colors.text }}>
+      <ProfileStack.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ title: "Profile" }}
+      />
+    </ProfileStack.Navigator>
+  );
+}
+
+function MainTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
+        tabBarStyle: {
+          borderTopColor: colors.border,
+          backgroundColor: colors.background,
+        },
+      }}
+    >
+      <Tab.Screen
+        name="Explore"
+        component={ExploreNavigator}
+        options={{ title: "Explore" }}
+      />
+      <Tab.Screen
+        name="Bookings"
+        component={BookingsNavigator}
+        options={{ title: "Bookings" }}
+      />
+      <Tab.Screen
+        name="ProfileTab"
+        component={ProfileNavigator}
+        options={{ title: "Profile" }}
+      />
+    </Tab.Navigator>
+  );
+}
 
 export function AppNavigator() {
   const { token, me, isBootstrapping } = useAuth();
@@ -44,71 +166,19 @@ export function AppNavigator() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        {!authed ? (
-          <>
-            <Stack.Screen
-              name="PhoneEntry"
-              component={PhoneEntryScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="SignUp"
-              component={SignUpScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="OtpVerify"
-              component={OtpVerifyScreen}
-              options={{ headerShown: false }}
-            />
-          </>
-        ) : needProfile ? (
-          <Stack.Screen
-            name="CompleteProfile"
-            component={CompleteProfileScreen}
-            options={{ headerShown: false }}
-          />
-        ) : (
-          <>
-            <Stack.Screen
-              name="Home"
-              component={HomeScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="Restaurants"
-              component={RestaurantListScreen}
-              options={{ title: "Restaurants" }}
-            />
-            <Stack.Screen
-              name="RestaurantDetails"
-              component={RestaurantDetailsScreen}
-              options={{ title: "Restaurant details" }}
-            />
-            <Stack.Screen
-              name="CreateBooking"
-              component={CreateBookingScreen}
-              options={{ title: "Create booking" }}
-            />
-            <Stack.Screen
-              name="MyBookings"
-              component={MyBookingsScreen}
-              options={{ title: "My bookings" }}
-            />
-            <Stack.Screen
-              name="BookingDetails"
-              component={BookingDetailsScreen}
-              options={{ title: "Booking" }}
-            />
-            <Stack.Screen
-              name="Profile"
-              component={ProfileScreen}
-              options={{ title: "Profile" }}
-            />
-          </>
-        )}
-      </Stack.Navigator>
+      {!authed ? (
+        <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+          <AuthStack.Screen name="PhoneEntry" component={PhoneEntryScreen} />
+          <AuthStack.Screen name="SignUp" component={SignUpScreen} />
+          <AuthStack.Screen name="OtpVerify" component={OtpVerifyScreen} />
+        </AuthStack.Navigator>
+      ) : needProfile ? (
+        <RootStack.Navigator screenOptions={{ headerShown: false }}>
+          <RootStack.Screen name="CompleteProfile" component={CompleteProfileScreen} />
+        </RootStack.Navigator>
+      ) : (
+        <MainTabs />
+      )}
     </NavigationContainer>
   );
 }

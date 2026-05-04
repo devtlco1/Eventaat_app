@@ -1,25 +1,47 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { colors, radii, spacing, typography } from "../theme/tokens";
+import { Button } from "./Button";
 
-export function ErrorBanner({ message }: { message: string | null }) {
+type Props = {
+  message: string | null;
+  onRetry?: () => void;
+};
+
+export function ErrorBanner({ message, onRetry }: Props) {
   if (!message) return null;
   return (
     <View style={styles.box}>
       <Text style={styles.text}>{message}</Text>
+      {onRetry ? (
+        <Button
+          title="Retry"
+          onPress={onRetry}
+          variant="danger"
+          style={styles.retryBtn}
+        />
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   box: {
-    backgroundColor: "#FEE2E2",
-    borderColor: "#FCA5A5",
+    backgroundColor: colors.dangerBg,
+    borderColor: colors.dangerBorder,
     borderWidth: 1,
-    padding: 12,
-    borderRadius: 10,
+    padding: spacing.md,
+    borderRadius: radii.sm,
+    gap: spacing.sm,
   },
   text: {
-    color: "#991B1B",
+    ...typography.base,
+    color: colors.danger,
+  },
+  retryBtn: {
+    alignSelf: "flex-start",
+    minHeight: 36,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
   },
 });
-

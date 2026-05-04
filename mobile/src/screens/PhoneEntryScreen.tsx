@@ -5,11 +5,11 @@ import { ApiErrorResponse } from "../api/client";
 import { AuthFooterLink } from "../components/auth/AuthFooterLink";
 import { AuthScreenLayout } from "../components/auth/AuthScreenLayout";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { PrimaryButton } from "../components/PrimaryButton";
+import { Button } from "../components/Button";
 import { TextField } from "../components/TextField";
-import type { RootStackParamList } from "../navigation/AppNavigator";
+import type { AuthStackParamList } from "../navigation/AppNavigator";
 
-type Props = NativeStackScreenProps<RootStackParamList, "PhoneEntry">;
+type Props = NativeStackScreenProps<AuthStackParamList, "PhoneEntry">;
 
 export function PhoneEntryScreen({ navigation }: Props) {
   const [phone, setPhone] = useState("");
@@ -53,10 +53,11 @@ export function PhoneEntryScreen({ navigation }: Props) {
         keyboardType="phone-pad"
       />
 
-      <PrimaryButton
+      <Button
         title={loading ? "Sending..." : "Continue"}
         onPress={submit}
-        disabled={loading || phone.trim().length < 6}
+        loading={loading}
+        disabled={phone.trim().length < 6}
       />
     </AuthScreenLayout>
   );

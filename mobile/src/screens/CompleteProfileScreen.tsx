@@ -3,7 +3,7 @@ import { ApiErrorResponse } from "../api/client";
 import { updateMe } from "../api/endpoints";
 import { AuthScreenLayout } from "../components/auth/AuthScreenLayout";
 import { ErrorBanner } from "../components/ErrorBanner";
-import { PrimaryButton } from "../components/PrimaryButton";
+import { Button } from "../components/Button";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../auth/AuthContext";
 
@@ -43,10 +43,11 @@ export function CompleteProfileScreen() {
         autoCapitalize="words"
       />
 
-      <PrimaryButton
+      <Button
         title={loading ? "Saving..." : "Save and continue"}
         onPress={submit}
-        disabled={loading || name.trim().length < 2}
+        loading={loading}
+        disabled={name.trim().length < 2}
       />
     </AuthScreenLayout>
   );

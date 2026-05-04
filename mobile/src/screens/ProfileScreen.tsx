@@ -1,24 +1,27 @@
 import React, { useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
-import { PrimaryButton } from "../components/PrimaryButton";
-import { TextField } from "../components/TextField";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Button } from "../components/Button";
+import { Divider } from "../components/Divider";
 import { ErrorBanner } from "../components/ErrorBanner";
+import { TextField } from "../components/TextField";
 import { useAuth } from "../auth/AuthContext";
 import { isAuthError, getErrorMessage, getValidationErrors } from "../api/errors";
 import { updateMe } from "../api/endpoints";
+import { colors, spacing, typography } from "../theme/tokens";
 
 export function ProfileScreen() {
   const { me, token, refreshMe, logout } = useAuth();
   const [name, setName] = useState(me?.name ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [fieldError, setFieldError] = useState<string | null>(null);
+  const [nameError, setNameError] = useState<string | null>(null);
 
   const onSave = async () => {
     if (!token) return;
     setIsSaving(true);
     setError(null);
-    setFieldError(null);
+    setNameError(null);
     try {
       await updateMe(token, { name });
       await refreshMe();
@@ -30,7 +33,7 @@ export function ProfileScreen() {
       }
       const errors = getValidationErrors(e);
       const nameErr = errors?.name?.[0] ?? null;
-      if (nameErr) setFieldError(nameErr);
+      if (nameErr) setNameError(nameErr);
       setError(getErrorMessage(e));
     } finally {
       setIsSaving(false);
@@ -38,29 +41,42 @@ export function ProfileScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Your profile</Text>
-      <Text style={styles.subtitle}>Phone: {me?.phone ?? "-"}</Text>
+    <SafeAreaView style={styles.safe} edges={["bottom"]}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Profile</Text>
+          <Text style={styles.phone}>{me?.phone ?? "—"}</Text>
+        </View>
 
-      <ErrorBanner message={error} />
+        <ErrorBanner message={error} />
 
-      <TextField label="Name" value={name} onChangeText={setName} placeholder="Your name" autoCapitalize="words" />
-      {fieldError ? <Text style={styles.fieldError}>{fieldError}</Text> : null}
+        <TextField
+          label="Name"
+          value={name}
+          onChangeText={setName}
+          placeholder="Your name"
+          autoCapitalize="words"
+          error={nameError}
+        />
 
-      <PrimaryButton title={isSaving ? "Saving..." : "Save"} onPress={onSave} disabled={isSaving} />
+        <Button
+          title={isSaving ? "Saving…" : "Save"}
+          onPress={onSave}
+          loading={isSaving}
+        />
 
-      <View style={styles.divider} />
+        <Divider />
 
-      <PrimaryButton title="Logout" onPress={logout} />
-    </View>
+        <Button title="Log out" onPress={logout} variant="ghost" />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, gap: 12 },
-  title: { fontSize: 20, fontWeight: "700", color: "#111827" },
-  subtitle: { color: "#4B5563" },
-  fieldError: { color: "#991B1B" },
-  divider: { height: 1, backgroundColor: "#E5E7EB", marginVertical: 8 },
+  safe: { flex: 1, backgroundColor: colors.background },
+  container: { flex: 1, padding: spacing.xl, gap: spacing.md },
+  header: { gap: 4, marginBottom: spacing.sm },
+  title: { ...typography.xl, fontWeight: "700", color: colors.text },
+  phone: { ...typography.base, color: colors.textSecondary },
 });
-
