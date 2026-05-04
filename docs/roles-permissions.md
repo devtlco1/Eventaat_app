@@ -196,6 +196,18 @@ Phase 8E adds **Call logs** under **`/platform`** (`call_center_calls`):
 
 No mobile/API routes expose call log rows in Phase 8E.
 
+## Platform messaging settings (Phase 7L)
+
+Phase **7L** adds a native Filament page **Messaging settings** under **`/platform`** (`/platform/messaging-settings`):
+
+- **`super_admin`**: full read + edit (Save button visible); can toggle external messaging, change OTP/notification drivers, enable WhatsApp OTP guard, add notes.
+- **`operations_admin`**: read-only view (all fields disabled, no Save button); can observe current effective drivers and Twilio credential presence.
+- Denied for all restaurant-panel roles and **`customer`**.
+
+WhatsApp OTP (`twilio_whatsapp`) cannot be saved as the OTP driver unless `whatsapp_otp_enabled` is also set to `true` — enforced at save time with a Filament danger notification.
+
+Twilio credential values are **never displayed** in the UI — only ✓/✗ presence indicators.
+
 ## Platform operations polish (Phase 8F)
 
 Phase **8F** does not introduce new roles or weaken gates — it aligns **`BookingResource`** and **`RestaurantEventResource`** with the explicit **`super_admin` / `operations_admin`** checks already used by subscriptions, invoices, support tickets, call logs, menus, offers, stories, reviews, booking notifications, and notification templates.

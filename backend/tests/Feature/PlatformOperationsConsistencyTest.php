@@ -37,6 +37,7 @@ class PlatformOperationsConsistencyTest extends TestCase
             '/platform/restaurant-subscriptions',
             '/platform/restaurant-invoices',
             '/platform/call-center-calls',
+            '/platform/messaging-settings',
         ];
     }
 

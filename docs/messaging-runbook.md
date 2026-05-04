@@ -1,11 +1,12 @@
 # Messaging Operations Runbook
 
-> **Phase 7K** — safe toggle reference for OTP and booking notification drivers.
-> All toggle decisions are made via environment variables only. No code changes are required to switch modes.
+> **Phase 7K / 7L** — safe toggle reference for OTP and booking notification drivers.
+> As of Phase 7L, drivers can also be changed from the platform dashboard at `/platform/messaging-settings`
+> without editing `.env` files. The DB setting takes priority over env; null DB value falls back to env.
 
 ## Overview
 
-Eventaat messaging is controlled by two env-driven driver toggles:
+Eventaat messaging is controlled by two driver toggles:
 
 | Toggle | Config key | Default | Controls |
 |---|---|---|---|
@@ -13,6 +14,23 @@ Eventaat messaging is controlled by two env-driven driver toggles:
 | `NOTIFICATION_DRIVER` | `eventaat-notifications.booking_notifications.driver` | `dry_run` | Booking lifecycle SMS dispatch |
 
 Both defaults are intentionally safe: no real SMS or WhatsApp is sent unless you explicitly opt in.
+
+### Driver resolution order (Phase 7L)
+
+1. **Kill-switch** (`external_messaging_enabled = false` in DB) → forces OTP to `log` and notifications to `dry_run`.
+2. **DB setting** (`messaging_settings` singleton row, id = 1) — set from `/platform/messaging-settings`.
+3. **Env / config** (`OTP_DRIVER`, `NOTIFICATION_DRIVER`) — used when DB value is null.
+
+---
+
+## Platform dashboard (Phase 7L)
+
+Super-admins can change drivers at `/platform/messaging-settings` without SSH/`.env` edits:
+
+- **Operations admin** role can view the page (read-only, no Save button).
+- **External messaging** toggle is the master kill-switch — turning it off immediately forces log/dry_run.
+- **WhatsApp OTP** requires the "WhatsApp OTP approved" toggle to be on before `twilio_whatsapp` can be saved.
+- Twilio credential presence is shown as ✓/✗ — actual values are never displayed in the UI.
 
 ---
 
@@ -188,8 +206,11 @@ NOTIFICATION_DRIVER=dry_run
 
 ## Related
 
+- **Platform dashboard**: `/platform/messaging-settings` (Phase 7L)
 - Config: `backend/config/eventaat-notifications.php`
 - Env template: `backend/.env.example`
+- Model: `backend/app/Models/MessagingSettings.php`
+- Service: `backend/app/Services/Notifications/MessagingSettingsService.php`
 - API reference (OTP + webhook): `docs/api-reference.md`
-- Implementation history: `docs/implementation-plan.md` (Phases 7B–7K)
+- Implementation history: `docs/implementation-plan.md` (Phases 7B–7L)
 - Product blueprint: `docs/product-blueprint.md`

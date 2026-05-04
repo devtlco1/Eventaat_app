@@ -8,6 +8,7 @@ use App\Http\Middleware\EnsureValidSanctumToken;
 use App\Http\Responses\FilamentLogoutResponse;
 use App\Models\SupportTicket;
 use App\Observers\SupportTicketObserver;
+use App\Services\Notifications\MessagingSettingsService;
 use App\Services\Notifications\Providers\NotificationProvider;
 use App\Services\Otp\OtpSender;
 use App\Support\EventaatNotifications\BookingNotificationProviderFactory;
@@ -23,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Singleton: one MessagingSettingsService per request; reads DB row once.
+        $this->app->singleton(MessagingSettingsService::class);
+
         $this->app->bind(OtpSender::class, fn (): OtpSender => OtpSenderFactory::make());
 
         $this->app->bind(

@@ -111,6 +111,12 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - **`POST /api/webhooks/twilio/otp-status`** (no mobile auth): Twilio delivery status callbacks update existing rows by **`MessageSid`** (**`delivered`** / **`undelivered`** terminal states, **`metadata.provider_status`**, safe errors). Validates **`X-Twilio-Signature`** with **`TWILIO_AUTH_TOKEN`** when set; optional dev fallback **`TWILIO_WEBHOOK_SECRET`** + **`X-Eventaat-Webhook-Secret`** when the auth token is empty. Configure this URL under Twilio **Status callback** for the OTP Messaging Service / sender. **`To`/`From`/`Body` are never persisted.**
 - **Messaging operations runbook (Phase 7K)**:
   - `docs/messaging-runbook.md` — safe toggle reference for `OTP_DRIVER` and `NOTIFICATION_DRIVER`; covers local safe mode, SMS OTP test mode, full booking SMS mode, WhatsApp OTP mode (blocked until template approved), webhook setup, and safety checklist. No new API or migration changes.
+- **Platform messaging settings dashboard (Phase 7L)**:
+  - New Filament page `/platform/messaging-settings` — platform admins can change OTP and booking notification drivers from the dashboard without editing `.env`.
+  - `messaging_settings` DB table (singleton, id = 1) with `external_messaging_enabled` kill-switch, `otp_driver`, `notification_driver`, `whatsapp_otp_enabled` guard, `notes`, `updated_by`.
+  - `MessagingSettingsService` resolves effective driver: DB → env/config; Twilio credential presence shown as ✓/✗ (actual values never displayed).
+  - `OtpSenderFactory` and `BookingNotificationProviderFactory` now route through the service (DB setting takes priority over env).
+  - `super_admin` editable, `operations_admin` view-only; WhatsApp driver blocked until `whatsapp_otp_enabled = true`.
 - **Event nights dashboard foundation (Phase 11A)**:
   - Model `RestaurantEvent` (`restaurant_events`) to represent restaurant-hosted event nights (dashboard-only in this phase)
   - Platform panel can manage all event nights

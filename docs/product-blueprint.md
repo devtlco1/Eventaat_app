@@ -162,6 +162,13 @@ Current source of truth: `docs/eventaat_blueprint_v1.md`.
 - Safe operations runbook: `docs/messaging-runbook.md` — toggle modes, Twilio webhook setup, and safety checklist.
 - Config defaults confirmed: `OTP_DRIVER=log`, `NOTIFICATION_DRIVER=dry_run`. No API or migration changes.
 
+### Platform messaging settings dashboard (Phase 7L)
+
+- Native Filament page `/platform/messaging-settings` — platform admins change OTP and notification drivers without `.env` edits.
+- `messaging_settings` singleton table: `external_messaging_enabled` kill-switch, `otp_driver`, `notification_driver`, `whatsapp_otp_enabled` guard.
+- `MessagingSettingsService` resolves effective driver (DB → env/config). Twilio credential presence shown as ✓/✗ only — actual values never displayed in UI.
+- `super_admin` editable, `operations_admin` view-only. WhatsApp driver blocked until `whatsapp_otp_enabled = true`.
+
 ### Booking arrival reminder command (Phase 7C)
 
 - **`eventaat:booking-reminders`** creates at most one **`booking_arrival_reminder`** row per booking when status is **`accepted`** and **`starts_at`** falls within the configured upcoming window (see **`BOOKING_REMINDER_HOURS`** / **`config/eventaat-notifications.php`**).

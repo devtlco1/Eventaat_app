@@ -540,6 +540,22 @@ Documentation and safety audit pass — no new code modules, no API changes, no 
 
 - No mobile changes, no public/mobile API changes, no new SMS/WhatsApp providers, no new env keys
 
+### Phase 7L: platform messaging settings dashboard
+
+Adds a native Filament page at `/platform/messaging-settings` so platform admins can change OTP and booking notification drivers from the dashboard without editing `.env` files.
+
+- **DB**: `messaging_settings` table (singleton, id = 1) with `external_messaging_enabled` kill-switch, `otp_driver` (nullable → env fallback), `notification_driver` (nullable → env fallback), `whatsapp_otp_enabled` guard, `notes`, `updated_by` FK.
+- **Model**: `App\Models\MessagingSettings` — constants (`OTP_DRIVER_LOG`, `OTP_DRIVER_TWILIO_SMS`, `OTP_DRIVER_TWILIO_WHATSAPP`, `NOTIFICATION_DRIVER_DRY_RUN`, `NOTIFICATION_DRIVER_TWILIO_SMS`), `getInstance()` / `getOrCreate()` helpers.
+- **Service**: `App\Services\Notifications\MessagingSettingsService` — `effectiveOtpDriver()` and `effectiveNotificationDriver()` resolve DB → env/config; `hasTwilioSmsConfig()` / `hasTwilioWhatsAppConfig()` for yes/no presence display (never show actual credential values).
+- **Factories updated**: `OtpSenderFactory::make()` and `BookingNotificationProviderFactory::make()` now resolve the effective driver through `MessagingSettingsService` when no explicit driver is passed; explicit driver param preserved for test isolation.
+- **AppServiceProvider**: `MessagingSettingsService` bound as singleton.
+- **Filament page**: `app/Filament/Platform/Pages/MessagingSettingsPage.php` — auto-discovered; `Operations` group, sort 15; `super_admin` editable, `operations_admin` view-only; WhatsApp `twilio_whatsapp` driver blocked at save when `whatsapp_otp_enabled = false`; Twilio credentials shown as ✓/✗ presence only; kill-switch forces log/dry_run regardless of other settings.
+- **Tests**: `MessagingSettingsServiceTest` (12 assertions covering kill-switch, WhatsApp guard, DB null fallback, credential presence); `MessagingSettingsPlatformPageTest` (page access by role, singleton seeding on mount).
+
+### Explicit non-goals (Phase 7L)
+
+- No mobile/API changes, no new Twilio provider drivers, no WhatsApp booking notifications
+
 ### Phase 11A: event nights dashboard foundation
 
 Adds dashboard-only event nights management using native Filament resources:
