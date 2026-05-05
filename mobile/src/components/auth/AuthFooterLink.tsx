@@ -33,6 +33,6 @@ const styles = StyleSheet.create({
   link: {
     fontSize: 15,
     fontWeight: "600",
-    color: colors.accent,
+    color: colors.primary,
   },
 });

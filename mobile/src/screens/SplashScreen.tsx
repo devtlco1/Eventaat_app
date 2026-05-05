@@ -1,76 +1,44 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { colors } from "../theme/tokens";
+import { Ionicons } from "@expo/vector-icons";
+
+const PURPLE = "#5B4CBD";
 
 /**
- * Shown during Auth bootstrap only. Decorative blobs inspired by Figma Splash (1:2011).
+ * Shown while auth bootstraps. Full-purple screen with logo circle.
+ * Matches Figma Splash frame (node-id 0-1).
  */
 export function SplashScreen() {
   return (
-    <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
-      <View style={styles.blobTopLeft} />
-      <View style={styles.blobTopRight} />
-      <View style={styles.blobBottom} />
-      <View style={styles.center}>
-        <Text style={styles.wordmark}>Eventaat</Text>
-        <Text style={styles.tagline}>Discover · Reserve · Enjoy</Text>
+    <View style={styles.container}>
+      <View style={styles.logoCircle}>
+        <Ionicons name="restaurant" size={40} color={PURPLE} />
       </View>
-    </SafeAreaView>
+      <Text style={styles.title}>Table Reservation</Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: {
+  container: {
     flex: 1,
-    backgroundColor: colors.background,
-    overflow: "hidden",
-  },
-  blobTopLeft: {
-    position: "absolute",
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: colors.splashMuted,
-    opacity: 0.85,
-    top: -40,
-    left: -80,
-  },
-  blobTopRight: {
-    position: "absolute",
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: "#FFFBEB",
-    top: 120,
-    right: -30,
-  },
-  blobBottom: {
-    position: "absolute",
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    backgroundColor: colors.splashMuted,
-    opacity: 0.5,
-    bottom: -120,
-    right: -60,
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
+    backgroundColor: PURPLE,
     alignItems: "center",
-    paddingHorizontal: 32,
+    justifyContent: "center",
+    gap: 16,
   },
-  wordmark: {
-    fontSize: 44,
-    fontWeight: "800",
-    color: colors.text,
-    letterSpacing: -1,
-    marginBottom: 12,
+  logoCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  tagline: {
-    fontSize: 17,
-    color: colors.textSecondary,
-    fontWeight: "500",
+  title: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    letterSpacing: -0.3,
   },
 });

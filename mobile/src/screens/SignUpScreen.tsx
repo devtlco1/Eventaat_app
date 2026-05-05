@@ -47,12 +47,12 @@ export function SignUpScreen({ navigation }: Props) {
 
   return (
     <AuthScreenLayout
-      title="Create account"
-      subtitle="Add your name and phone number. We'll send a code to verify it's you."
+      title="Create Account"
+      subtitle="Fill your information below to get started."
       footer={
         <AuthFooterLink
           label="Already have an account?"
-          linkLabel="Log in"
+          linkLabel="Sign In"
           onPress={() => navigation.navigate("PhoneEntry")}
         />
       }
@@ -63,17 +63,20 @@ export function SignUpScreen({ navigation }: Props) {
         label="Name"
         value={name}
         onChangeText={setName}
-        placeholder="Your full name"
+        placeholder="John Doe"
         autoCapitalize="words"
+        variant="filled"
       />
 
       <IraqPhoneInput
+        label="Phone Number"
         value={localNumber}
         onChangeText={setLocalNumber}
+        variant="filled"
       />
 
       <Button
-        title={loading ? "Sending..." : "Continue"}
+        title={loading ? "Sending code…" : "Sign Up"}
         onPress={submit}
         loading={loading}
         disabled={!canSubmit}

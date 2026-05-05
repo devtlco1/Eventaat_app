@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { requestOtp } from "../api/endpoints";
 import { ApiErrorResponse } from "../api/client";
-import { AuthFooterLink } from "../components/auth/AuthFooterLink";
+import { requestOtp } from "../api/endpoints";
 import { AuthScreenLayout } from "../components/auth/AuthScreenLayout";
+import { AuthFooterLink } from "../components/auth/AuthFooterLink";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { Button } from "../components/Button";
 import { IraqPhoneInput } from "../components/IraqPhoneInput";
@@ -39,12 +39,12 @@ export function PhoneEntryScreen({ navigation }: Props) {
 
   return (
     <AuthScreenLayout
-      title="Log in"
-      subtitle="Enter your phone number and we'll send you a one-time code."
+      title="Sign In"
+      subtitle="Hi! Welcome back, you've been missed"
       footer={
         <AuthFooterLink
-          label="New to Eventaat?"
-          linkLabel="Sign up"
+          label="Don't have an account?"
+          linkLabel="Sign Up"
           onPress={() => navigation.navigate("SignUp")}
         />
       }
@@ -52,15 +52,17 @@ export function PhoneEntryScreen({ navigation }: Props) {
       <ErrorBanner message={error} />
 
       <IraqPhoneInput
+        label="Phone Number"
         value={localNumber}
         onChangeText={setLocalNumber}
+        variant="filled"
       />
 
       <Button
-        title={loading ? "Sending..." : "Continue"}
+        title={loading ? "Sending code…" : "Sign In"}
         onPress={submit}
         loading={loading}
-        disabled={localNumber.trim().length < 7}
+        disabled={localNumber.trim().length < 7 || loading}
       />
     </AuthScreenLayout>
   );

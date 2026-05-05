@@ -7,6 +7,8 @@ import { useAuth } from "../auth/AuthContext";
 import { needsName } from "../auth/profile";
 import { colors } from "../theme/tokens";
 import { SplashScreen } from "../screens/SplashScreen";
+import { WelcomeScreen } from "../screens/WelcomeScreen";
+import { OnboardingScreen } from "../screens/OnboardingScreen";
 import { PhoneEntryScreen } from "../screens/PhoneEntryScreen";
 import { SignUpScreen } from "../screens/SignUpScreen";
 import { OtpVerifyScreen } from "../screens/OtpVerifyScreen";
@@ -21,6 +23,8 @@ import { ProfileScreen } from "../screens/ProfileScreen";
 // ---- Param lists ----
 
 export type AuthStackParamList = {
+  Welcome: undefined;
+  Onboarding: undefined;
   PhoneEntry: undefined;
   SignUp: undefined;
   /** mode: 'login' → never show name field; 'signup' → may show name field */
@@ -185,6 +189,8 @@ export function AppNavigator() {
     <NavigationContainer>
       {!authed ? (
         <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+          <AuthStack.Screen name="Welcome" component={WelcomeScreen} />
+          <AuthStack.Screen name="Onboarding" component={OnboardingScreen} />
           <AuthStack.Screen name="PhoneEntry" component={PhoneEntryScreen} />
           <AuthStack.Screen name="SignUp" component={SignUpScreen} />
           <AuthStack.Screen name="OtpVerify" component={OtpVerifyScreen} />

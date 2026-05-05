@@ -7,46 +7,82 @@ type Props = {
   onChangeText: (text: string) => void;
   error?: string | null;
   label?: string;
+  /**
+   * "outline" (default) — bordered style used in app-wide contexts.
+   * "filled"            — filled gray style used on auth screens.
+   */
+  variant?: "outline" | "filled";
 };
 
 /**
- * A phone input row for Iraqi numbers.
- * Shows a fixed 🇮🇶 +964 prefix badge aligned exactly with the text input.
- * The caller is responsible for normalizing the value before submitting.
+ * Phone input row for Iraqi numbers with a fixed 🇮🇶 +964 prefix.
+ * Supports "outline" (default, bordered) and "filled" (auth-screen style) variants.
  */
-export function IraqPhoneInput({ value, onChangeText, error, label = "Phone" }: Props) {
+export function IraqPhoneInput({
+  value,
+  onChangeText,
+  error,
+  label = "Phone",
+  variant = "outline",
+}: Props) {
   const [focused, setFocused] = useState(false);
+  const filled = variant === "filled";
 
   return (
     <View style={styles.wrapper}>
       <Text style={styles.label}>{label}</Text>
-      <View style={styles.row}>
-        <View style={styles.prefix}>
-          <Text style={styles.prefixFlag}>🇮🇶</Text>
-          <Text style={styles.prefixText}>+964</Text>
+
+      {filled ? (
+        /* ── Filled variant: single pill row ── */
+        <View style={[styles.filledRow, error ? styles.filledRowError : null]}>
+          <View style={styles.filledPrefix}>
+            <Text style={styles.prefixFlag}>🇮🇶</Text>
+            <Text style={styles.prefixText}>+964</Text>
+          </View>
+          <View style={styles.filledDivider} />
+          <TextInput
+            style={styles.filledInput}
+            value={value}
+            onChangeText={onChangeText}
+            placeholder="0770 000 1781"
+            placeholderTextColor={colors.textMuted}
+            keyboardType="phone-pad"
+            autoCapitalize="none"
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+          />
         </View>
-        <TextInput
-          style={[
-            styles.input,
-            focused && styles.inputFocused,
-            error ? styles.inputError : null,
-          ]}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder="0770 000 1781"
-          placeholderTextColor={colors.textMuted}
-          keyboardType="phone-pad"
-          autoCapitalize="none"
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-        />
-      </View>
+      ) : (
+        /* ── Outline variant: separate badge + input ── */
+        <View style={styles.outlineRow}>
+          <View style={styles.outlinePrefix}>
+            <Text style={styles.prefixFlag}>🇮🇶</Text>
+            <Text style={styles.prefixText}>+964</Text>
+          </View>
+          <TextInput
+            style={[
+              styles.outlineInput,
+              focused && styles.outlineInputFocused,
+              error ? styles.outlineInputError : null,
+            ]}
+            value={value}
+            onChangeText={onChangeText}
+            placeholder="0770 000 1781"
+            placeholderTextColor={colors.textMuted}
+            keyboardType="phone-pad"
+            autoCapitalize="none"
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+          />
+        </View>
+      )}
+
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 }
 
-const INPUT_HEIGHT = 48;
+const INPUT_H = 52;
 
 const styles = StyleSheet.create({
   wrapper: { gap: 6 },
@@ -55,31 +91,66 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontWeight: "600",
   },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  prefix: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.xs,
-    height: INPUT_HEIGHT,
-    paddingHorizontal: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.borderInput,
-    borderRadius: radii.input,
-    backgroundColor: colors.surface,
-  },
   prefixFlag: { fontSize: 16 },
   prefixText: {
     ...typography.base,
     fontWeight: "600",
     color: colors.text,
   },
-  input: {
+
+  // ── Filled variant ────────────────────────────────────────────────────────
+  filledRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: INPUT_H,
+    backgroundColor: colors.inputBg,
+    borderRadius: radii.input,
+    overflow: "hidden",
+  },
+  filledRowError: {
+    borderWidth: 1.5,
+    borderColor: colors.dangerBorder,
+  },
+  filledPrefix: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    paddingHorizontal: 14,
+    height: INPUT_H,
+  },
+  filledDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: colors.border,
+  },
+  filledInput: {
     flex: 1,
-    height: INPUT_HEIGHT,
+    height: INPUT_H,
+    paddingHorizontal: 14,
+    ...typography.md,
+    color: colors.text,
+  },
+
+  // ── Outline variant ───────────────────────────────────────────────────────
+  outlineRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  outlinePrefix: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    height: INPUT_H,
+    paddingHorizontal: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.borderInput,
+    borderRadius: radii.input,
+    backgroundColor: colors.surface,
+  },
+  outlineInput: {
+    flex: 1,
+    height: INPUT_H,
     borderWidth: 1,
     borderColor: colors.borderInput,
     borderRadius: radii.input,
@@ -88,14 +159,15 @@ const styles = StyleSheet.create({
     color: colors.text,
     backgroundColor: colors.background,
   },
-  inputFocused: {
+  outlineInputFocused: {
     borderColor: colors.borderFocus,
     borderWidth: 1.5,
   },
-  inputError: {
+  outlineInputError: {
     borderColor: colors.dangerBorder,
     borderWidth: 1.5,
   },
+
   errorText: {
     ...typography.sm,
     color: colors.danger,

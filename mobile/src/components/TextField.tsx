@@ -12,6 +12,11 @@ type Props = {
   secureTextEntry?: boolean;
   error?: string | null;
   helperText?: string;
+  /**
+   * "outline" (default) — bordered input matching app-wide style.
+   * "filled"            — filled gray background used on auth screens.
+   */
+  variant?: "outline" | "filled";
 };
 
 export function TextField({
@@ -24,8 +29,10 @@ export function TextField({
   secureTextEntry,
   error,
   helperText,
+  variant = "outline",
 }: Props) {
   const [focused, setFocused] = useState(false);
+  const filled = variant === "filled";
 
   return (
     <View style={styles.wrapper}>
@@ -33,7 +40,8 @@ export function TextField({
       <TextInput
         style={[
           styles.input,
-          focused && styles.inputFocused,
+          filled ? styles.inputFilled : styles.inputOutline,
+          !filled && focused && styles.inputFocused,
           error ? styles.inputError : null,
         ]}
         value={value}
@@ -65,15 +73,21 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   input: {
-    borderWidth: 1,
-    borderColor: colors.borderInput,
     borderRadius: radii.input,
     paddingHorizontal: 14,
     paddingVertical: 12,
     ...typography.md,
     color: colors.text,
+    minHeight: 52,
+  },
+  inputOutline: {
+    borderWidth: 1,
+    borderColor: colors.borderInput,
     backgroundColor: colors.background,
-    minHeight: 48,
+  },
+  inputFilled: {
+    borderWidth: 0,
+    backgroundColor: colors.inputBg,
   },
   inputFocused: {
     borderColor: colors.borderFocus,

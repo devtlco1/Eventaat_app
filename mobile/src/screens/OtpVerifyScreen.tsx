@@ -1,42 +1,56 @@
-import React, { useState } from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import React, { useRef, useState } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ApiErrorResponse } from "../api/client";
 import { requestOtp } from "../api/endpoints";
 import { AuthScreenLayout } from "../components/auth/AuthScreenLayout";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { Button } from "../components/Button";
-import { TextField } from "../components/TextField";
 import type { AuthStackParamList } from "../navigation/AppNavigator";
 import { useAuth } from "../auth/AuthContext";
-import { colors, typography } from "../theme/tokens";
+import { colors } from "../theme/tokens";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "OtpVerify">;
 
-export function OtpVerifyScreen({ route }: Props) {
+const OTP_LENGTH = 6;
+const PURPLE = "#5B4CBD";
+
+export function OtpVerifyScreen({ route, navigation }: Props) {
   const { phone, name: nameParam, mode } = route.params;
 
-  // Name from signup params (non-empty only)
   const signupName =
     typeof nameParam === "string" && nameParam.trim().length > 0
       ? nameParam.trim()
       : undefined;
 
   const { verifyOtp } = useAuth();
+  const hiddenRef = useRef<TextInput>(null);
 
   const [otp, setOtp] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
 
+  const handleOtpChange = (text: string) => {
+    // Allow only digits, cap at OTP_LENGTH
+    const digits = text.replace(/\D/g, "").slice(0, OTP_LENGTH);
+    setOtp(digits);
+  };
+
   const submit = async () => {
+    if (otp.length < OTP_LENGTH) return;
     setLoading(true);
     setError(null);
     try {
       await verifyOtp({
         phone,
         otp: otp.trim(),
-        // Only forward name on signup flow and only if meaningful
         name: mode === "signup" ? signupName : undefined,
       });
     } catch (e) {
@@ -61,42 +75,136 @@ export function OtpVerifyScreen({ route }: Props) {
     }
   };
 
+  // ── OTP box display ─────────────────────────────────────────────────────────
+
+  const focusHidden = () => hiddenRef.current?.focus();
+
   return (
     <AuthScreenLayout
-      title="Verify code"
-      subtitle={`Enter the code we sent to ${phone}`}
+      title="Verify Code"
+      subtitle={
+        <Text style={styles.subtitleText}>
+          {"Please enter the code we just sent to\n"}
+          <Text style={styles.phoneHighlight}>{phone}</Text>
+        </Text>
+      }
+      onBack={() => navigation.goBack()}
       footer={
-        <Pressable onPress={resend} disabled={resendLoading} hitSlop={8}>
-          <Text style={styles.resend}>
-            {resendLoading ? "Sending..." : "Resend code"}
-          </Text>
-        </Pressable>
+        <View style={styles.resendContainer}>
+          <Text style={styles.resendMuted}>Didn't receive OTP?</Text>
+          <Pressable onPress={resend} disabled={resendLoading} hitSlop={8}>
+            <Text style={styles.resendLink}>
+              {resendLoading ? "Sending…" : "Resend code"}
+            </Text>
+          </Pressable>
+        </View>
       }
     >
       <ErrorBanner message={error} />
 
-      <TextField
-        label="One-time code"
+      {/* Hidden TextInput captures actual keyboard input */}
+      <TextInput
+        ref={hiddenRef}
+        style={styles.hiddenInput}
         value={otp}
-        onChangeText={setOtp}
-        placeholder="123456"
+        onChangeText={handleOtpChange}
         keyboardType="number-pad"
+        maxLength={OTP_LENGTH}
+        caretHidden
       />
 
+      {/* Visible OTP boxes */}
+      <Pressable style={styles.boxRow} onPress={focusHidden}>
+        {Array.from({ length: OTP_LENGTH }, (_, i) => {
+          const char = otp[i];
+          const isCurrent = i === otp.length;
+          return (
+            <View
+              key={i}
+              style={[
+                styles.box,
+                char ? styles.boxFilled : null,
+                isCurrent && styles.boxActive,
+              ]}
+            >
+              <Text style={styles.boxText}>{char ?? "–"}</Text>
+            </View>
+          );
+        })}
+      </Pressable>
+
       <Button
-        title={loading ? "Verifying..." : "Verify and continue"}
+        title={loading ? "Verifying…" : "Verify"}
         onPress={submit}
         loading={loading}
-        disabled={otp.trim().length < 4}
+        disabled={otp.length < OTP_LENGTH || loading}
       />
     </AuthScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  resend: {
-    ...typography.base,
+  subtitleText: {
+    fontSize: 14,
+    lineHeight: 22,
+    color: colors.textSecondary,
+    textAlign: "left",
+  },
+  phoneHighlight: {
+    color: PURPLE,
     fontWeight: "600",
-    color: colors.accent,
+  },
+
+  // Hidden input
+  hiddenInput: {
+    position: "absolute",
+    opacity: 0,
+    width: 1,
+    height: 1,
+  },
+
+  // OTP boxes
+  boxRow: {
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "center",
+    marginVertical: 8,
+  },
+  box: {
+    flex: 1,
+    maxWidth: 52,
+    height: 60,
+    borderRadius: 12,
+    backgroundColor: colors.inputBg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  boxFilled: {
+    backgroundColor: "#EDE9FA",
+  },
+  boxActive: {
+    borderWidth: 1.5,
+    borderColor: PURPLE,
+  },
+  boxText: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: colors.text,
+  },
+
+  // Resend
+  resendContainer: {
+    alignItems: "center",
+    gap: 4,
+  },
+  resendMuted: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  resendLink: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: colors.text,
+    textDecorationLine: "underline",
   },
 });
