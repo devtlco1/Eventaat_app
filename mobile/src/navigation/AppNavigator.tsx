@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -178,7 +178,14 @@ function MainTabs() {
 export function AppNavigator() {
   const { token, me, isBootstrapping } = useAuth();
 
-  if (isBootstrapping) {
+  // Guarantee splash is visible for at least 1200 ms even when bootstrap is instant
+  const [splashVisible, setSplashVisible] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setSplashVisible(false), 1200);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (isBootstrapping || splashVisible) {
     return <SplashScreen />;
   }
 

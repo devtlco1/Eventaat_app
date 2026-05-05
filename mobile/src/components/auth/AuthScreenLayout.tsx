@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "space-between",
     paddingHorizontal: spacing.screenHorizontal + 4,
-    paddingTop: 8,
+    paddingTop: 48,
     paddingBottom: spacing.sectionGap,
   },
   backBtn: {

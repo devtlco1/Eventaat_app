@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   // OTP boxes
   boxRow: {
     flexDirection: "row",
-    gap: 10,
+    gap: 8,
     justifyContent: "center",
     marginVertical: 8,
   },

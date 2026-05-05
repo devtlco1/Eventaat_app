@@ -56,38 +56,61 @@ const SLIDES: Slide[] = [
 
 // ── Phone mockup ──────────────────────────────────────────────────────────────
 
+const PHONE_W = W * 0.54;
+const PHONE_H = PHONE_W * 2.10;
+const CORNER_R = PHONE_W * 0.14;
+const SIDE_BTN_W = 4;
+const SIDE_BTN_COLOR = "#3A3A3C";
+
+/**
+ * iPhone 14 Pro-style phone mockup.
+ * Side buttons are rendered as absolutely-positioned siblings so they sit
+ * outside the overflow:hidden chassis — prevents clipping.
+ */
 function PhoneMockup() {
   return (
-    <View style={mockup.outer}>
-      <View style={mockup.dynamicIsland} />
-      <View style={mockup.screen} />
+    <View style={mockup.wrapper}>
+      {/* Right-side power button */}
+      <View style={[mockup.sideBtn, mockup.powerBtn]} />
+      {/* Left-side volume up */}
+      <View style={[mockup.sideBtn, mockup.volUp]} />
+      {/* Left-side volume down */}
+      <View style={[mockup.sideBtn, mockup.volDown]} />
+      {/* Left-side silent toggle */}
+      <View style={[mockup.sideBtn, mockup.silent]} />
+
+      {/* Main chassis */}
+      <View style={mockup.chassis}>
+        <View style={mockup.dynamicIsland} />
+        <View style={mockup.screen} />
+      </View>
     </View>
   );
 }
 
-const PHONE_W = W * 0.56;
-const PHONE_H = PHONE_W * 2.05;
-
 const mockup = StyleSheet.create({
-  outer: {
+  wrapper: {
+    width: PHONE_W + SIDE_BTN_W * 2,
+    height: PHONE_H,
+    alignItems: "center",
+  },
+  chassis: {
     width: PHONE_W,
     height: PHONE_H,
-    borderRadius: PHONE_W * 0.14,
+    borderRadius: CORNER_R,
     backgroundColor: "#2C2C2E",
     alignItems: "center",
     paddingTop: PHONE_W * 0.06,
     overflow: "hidden",
-    ...{
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.18,
-      shadowRadius: 24,
-      elevation: 10,
-    },
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.22,
+    shadowRadius: 28,
+    elevation: 12,
   },
   dynamicIsland: {
-    width: PHONE_W * 0.35,
-    height: PHONE_W * 0.07,
+    width: PHONE_W * 0.34,
+    height: PHONE_W * 0.068,
     borderRadius: 999,
     backgroundColor: "#1A1A1A",
     marginBottom: PHONE_W * 0.04,
@@ -96,7 +119,38 @@ const mockup = StyleSheet.create({
     flex: 1,
     width: PHONE_W - 6,
     borderRadius: PHONE_W * 0.12,
-    backgroundColor: "#E8E8E8",
+    backgroundColor: "#E4E4E6",
+  },
+  // Side buttons — positioned relative to wrapper
+  sideBtn: {
+    position: "absolute",
+    width: SIDE_BTN_W,
+    borderRadius: 2,
+    backgroundColor: SIDE_BTN_COLOR,
+  },
+  // Power button — right side, mid-height
+  powerBtn: {
+    right: 0,
+    top: PHONE_H * 0.30,
+    height: PHONE_H * 0.12,
+  },
+  // Volume up — left side
+  volUp: {
+    left: 0,
+    top: PHONE_H * 0.22,
+    height: PHONE_H * 0.08,
+  },
+  // Volume down — left side
+  volDown: {
+    left: 0,
+    top: PHONE_H * 0.32,
+    height: PHONE_H * 0.08,
+  },
+  // Silent toggle — left side
+  silent: {
+    left: 0,
+    top: PHONE_H * 0.14,
+    height: PHONE_H * 0.045,
   },
 });
 
@@ -121,6 +175,11 @@ const dots = StyleSheet.create({
   dotActive: { backgroundColor: PURPLE },
   dotInactive: { backgroundColor: "#D1D5DB" },
 });
+
+// ── Illustration height & curve ───────────────────────────────────────────────
+
+const ILLUS_H = H * 0.54;
+const ILLUS_CURVE = W * 0.22;
 
 // ── Main screen ───────────────────────────────────────────────────────────────
 
@@ -151,7 +210,7 @@ export function OnboardingScreen({ navigation }: Props) {
 
   const renderItem: ListRenderItem<Slide> = ({ item }) => (
     <View style={slide.container}>
-      {/* ── Illustration area ── */}
+      {/* ── Illustration area — gray rounded panel ── */}
       <View style={slide.illustrationArea}>
         <PhoneMockup />
       </View>
@@ -216,19 +275,17 @@ export function OnboardingScreen({ navigation }: Props) {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const ILLUS_H = H * 0.50;
-
 const slide = StyleSheet.create({
   container: { width: W },
   illustrationArea: {
     height: ILLUS_H,
     backgroundColor: "#F5F5F5",
     alignItems: "center",
-    justifyContent: "flex-end",
-    paddingBottom: 0,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    overflow: "hidden",
+    justifyContent: "flex-start",
+    paddingTop: 20,
+    borderBottomLeftRadius: ILLUS_CURVE,
+    borderBottomRightRadius: ILLUS_CURVE,
+    // Note: no overflow:hidden so phone side buttons are not clipped
   },
   textArea: {
     paddingHorizontal: 28,

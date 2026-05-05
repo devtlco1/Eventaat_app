@@ -11,7 +11,9 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../navigation/AppNavigator";
 
 const { width: W, height: H } = Dimensions.get("window");
-const BLOB_H = H * 0.52;
+
+/** Height of the decorative illustration area — top ~60 % of screen */
+const BLOB_H = H * 0.60;
 const BLOB_COLOR = "#DEDEDE";
 const PURPLE = "#5B4CBD";
 const ORANGE = "#EA580C";
@@ -27,20 +29,64 @@ export function WelcomeScreen({ navigation }: Props) {
     <SafeAreaView style={styles.safe} edges={["top", "bottom"]}>
       {/* ── Decorative blob area ── */}
       <View style={styles.blobArea}>
-        {/* Large blob — bottom-left */}
-        <View style={[styles.blob, { width: 260, height: 260, borderRadius: 130, left: -80, bottom: -40 }]} />
-        {/* Large blob — top-right */}
-        <View style={[styles.blob, { width: 200, height: 200, borderRadius: 100, right: -60, top: -20 }]} />
-        {/* Medium blob — top-left (slight overlap with top edge) */}
-        <View style={[styles.blob, { width: 180, height: 180, borderRadius: 90, left: -30, top: 20 }]} />
-        {/* Large blob — bottom-right */}
-        <View style={[styles.blob, { width: 220, height: 220, borderRadius: 110, right: -40, bottom: 10 }]} />
+        {/* Large blob — wraps off left edge, vertical centre */}
+        <View
+          style={[
+            styles.blob,
+            {
+              width: W * 1.25,
+              height: W * 1.25,
+              borderRadius: W * 0.625,
+              left: -W * 0.65,
+              top: BLOB_H * 0.1,
+            },
+          ]}
+        />
+        {/* Medium blob — top-right overflow */}
+        <View
+          style={[
+            styles.blob,
+            {
+              width: W * 0.44,
+              height: W * 0.44,
+              borderRadius: W * 0.22,
+              right: -W * 0.1,
+              top: -W * 0.06,
+            },
+          ]}
+        />
+        {/* Large blob — right-centre overflow */}
+        <View
+          style={[
+            styles.blob,
+            {
+              width: W * 1.05,
+              height: W * 1.05,
+              borderRadius: W * 0.525,
+              right: -W * 0.58,
+              top: BLOB_H * 0.22,
+            },
+          ]}
+        />
+        {/* Medium blob — bottom-left */}
+        <View
+          style={[
+            styles.blob,
+            {
+              width: W * 0.60,
+              height: W * 0.60,
+              borderRadius: W * 0.30,
+              left: -W * 0.14,
+              bottom: -W * 0.16,
+            },
+          ]}
+        />
 
-        {/* Floating hashtag pills */}
-        <View style={[styles.pill, styles.pillPurple, { top: BLOB_H * 0.42, left: W * 0.26 }]}>
+        {/* Floating hashtag pills — centred in blob area */}
+        <View style={[styles.pill, styles.pillPurple, { top: H * 0.34, left: W * 0.43 }]}>
           <Text style={styles.pillText}>#Restaurant</Text>
         </View>
-        <View style={[styles.pill, styles.pillOrange, { top: BLOB_H * 0.68, left: W * 0.20 }]}>
+        <View style={[styles.pill, styles.pillOrange, { top: H * 0.48, left: W * 0.28 }]}>
           <Text style={styles.pillText}>#Food</Text>
         </View>
       </View>
@@ -79,11 +125,11 @@ export function WelcomeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#FFFFFF" },
 
-  // Blob area
+  // Blob area — absolutely-positioned blobs float inside a clipped container
   blobArea: {
     height: BLOB_H,
-    backgroundColor: "#FFFFFF",
     overflow: "hidden",
+    backgroundColor: "#FFFFFF",
   },
   blob: {
     position: "absolute",
@@ -103,8 +149,8 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 24,
-    gap: 16,
+    paddingTop: 20,
+    gap: 14,
   },
   heading: {
     fontSize: 28,
@@ -122,7 +168,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   primaryBtn: {
-    marginTop: 8,
+    marginTop: 4,
     height: 52,
     borderRadius: 999,
     backgroundColor: PURPLE,
@@ -138,7 +184,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 4,
   },
   footerMuted: { fontSize: 15, color: "#6B7280" },
   footerLink: { fontSize: 15, fontWeight: "600", color: PURPLE },
