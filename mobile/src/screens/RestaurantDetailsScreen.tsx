@@ -9,11 +9,28 @@ import { Button } from "../components/Button";
 import { LoadingState } from "../components/LoadingState";
 import { getRestaurant } from "../api/endpoints";
 import { getErrorMessage, isAuthError } from "../api/errors";
-import type { MobileRestaurantDetails } from "../api/types";
-import { formatBookingAvailabilitySummary } from "../booking/availabilityChecks";
+import type { MobileBranch, MobileRestaurantDetails } from "../api/types";
 import { colors, radii, spacing, typography } from "../theme/tokens";
 
 type Props = NativeStackScreenProps<ExploreStackParamList, "RestaurantDetails">;
+
+/** Returns a human-friendly booking hours string, or null if not available. */
+function bookingHours(branch: MobileBranch): string | null {
+  const avail = branch.booking_availability;
+  if (!avail || !avail.is_booking_enabled) return null;
+  const { open_time, close_time } = avail;
+  if (!open_time && !close_time) return null;
+  const o = open_time ? open_time.slice(0, 5) : "—";
+  const c = close_time ? close_time.slice(0, 5) : "—";
+  return `${o} – ${c}`;
+}
+
+function tableCount(branch: MobileBranch): number {
+  return (branch.seating_areas ?? []).reduce(
+    (sum, sa) => sum + (sa.tables ?? []).length,
+    0,
+  );
+}
 
 export function RestaurantDetailsScreen({ route, navigation }: Props) {
   const { slug } = route.params;
@@ -60,15 +77,13 @@ export function RestaurantDetailsScreen({ route, navigation }: Props) {
     >
       <ErrorBanner message={error} />
 
-      <Text style={styles.title}>{data?.name ?? "Restaurant"}</Text>
-      <Text style={styles.subtitle}>
-        {branches.length} active branch{branches.length !== 1 ? "es" : ""}
-      </Text>
-
-      <View style={styles.infoBox}>
-        <Text style={styles.infoText}>
-          Table selection is optional — you can create a booking without choosing a table.
-        </Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>{data?.name ?? "Restaurant"}</Text>
+        {branches.length > 0 && (
+          <Text style={styles.subtitle}>
+            {branches.length} location{branches.length !== 1 ? "s" : ""}
+          </Text>
+        )}
       </View>
 
       <Button
@@ -76,82 +91,95 @@ export function RestaurantDetailsScreen({ route, navigation }: Props) {
         onPress={() => navigation.navigate("CreateBooking", { restaurantSlug: slug })}
       />
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Branches</Text>
-        {branches.length === 0 ? (
-          <Text style={styles.muted}>No active branches.</Text>
-        ) : (
-          branches.map((b) => (
-            <Card key={b.id} style={styles.branchCard}>
-              <Text style={styles.cardTitle}>{b.name}</Text>
+      {branches.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Locations</Text>
+          {branches.map((b) => {
+            const hours = bookingHours(b);
+            const tables = tableCount(b);
+            const unavailable =
+              b.booking_availability !== null &&
+              b.booking_availability?.is_booking_enabled === false;
 
-              {formatBookingAvailabilitySummary(b.booking_availability ?? null).map(
-                (line, idx) => (
-                  <Text key={idx} style={styles.muted}>
-                    {line}
-                  </Text>
-                )
-              )}
+            return (
+              <Card key={b.id} style={styles.branchCard}>
+                <Text style={styles.cardTitle}>{b.name}</Text>
 
-              {(b.seating_areas ?? []).length > 0 && (
-                <View style={styles.subsection}>
-                  <Text style={styles.subTitle}>Seating areas</Text>
-                  {b.seating_areas.map((sa) => (
-                    <View key={sa.id} style={styles.subcard}>
-                      <Text style={styles.cardTitle}>
+                {unavailable ? (
+                  <View style={styles.tag}>
+                    <Text style={styles.tagText}>Booking unavailable</Text>
+                  </View>
+                ) : (
+                  <View style={styles.metaRow}>
+                    {hours ? (
+                      <View style={styles.pill}>
+                        <Text style={styles.pillText}>🕐 {hours}</Text>
+                      </View>
+                    ) : null}
+                    {tables > 0 ? (
+                      <View style={styles.pill}>
+                        <Text style={styles.pillText}>
+                          🪑 {tables} table{tables !== 1 ? "s" : ""}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+                )}
+
+                {(b.seating_areas ?? []).length > 0 && (
+                  <View style={styles.areas}>
+                    {b.seating_areas.map((sa) => (
+                      <Text key={sa.id} style={styles.areaChip}>
                         {sa.name}
                         {sa.type ? ` · ${sa.type}` : ""}
                       </Text>
-                      {(sa.tables ?? []).length === 0 ? (
-                        <Text style={styles.muted}>No active tables.</Text>
-                      ) : (
-                        (sa.tables ?? []).map((t) => (
-                          <View key={t.id} style={styles.tableRow}>
-                            <Text style={styles.tableLabel}>{t.label}</Text>
-                            <Text style={styles.muted}>capacity {t.capacity}</Text>
-                          </View>
-                        ))
-                      )}
-                    </View>
-                  ))}
-                </View>
-              )}
-            </Card>
-          ))
-        )}
-      </View>
+                    ))}
+                  </View>
+                )}
+              </Card>
+            );
+          })}
+        </View>
+      )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: colors.surface },
-  container: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
-  title: { ...typography.xl, fontWeight: "800", color: colors.text },
+  container: { padding: spacing.lg, gap: spacing.lg, paddingBottom: 100 },
+  header: { gap: 4 },
+  title: { ...typography.xxl, fontWeight: "800", color: colors.text },
   subtitle: { ...typography.base, color: colors.textSecondary },
-  infoBox: {
-    backgroundColor: colors.infoBg,
-    borderColor: colors.infoBorder,
-    borderWidth: 1,
-    padding: spacing.md,
-    borderRadius: radii.input,
-  },
-  infoText: { ...typography.sm, color: colors.info },
   section: { gap: spacing.sm },
-  subsection: { marginTop: spacing.sm, gap: spacing.sm },
   sectionTitle: { ...typography.md, fontWeight: "700", color: colors.text },
-  subTitle: { ...typography.sm, fontWeight: "700", color: colors.text },
   branchCard: { gap: spacing.sm },
-  subcard: {
-    borderWidth: 1,
-    borderColor: colors.surface,
-    borderRadius: radii.sm,
-    padding: spacing.sm,
-    backgroundColor: colors.surface,
-    gap: 4,
-  },
   cardTitle: { ...typography.base, fontWeight: "700", color: colors.text },
-  muted: { ...typography.sm, color: colors.textSecondary },
-  tableRow: { flexDirection: "row", justifyContent: "space-between", gap: spacing.sm },
-  tableLabel: { ...typography.sm, fontWeight: "600", color: colors.text },
+  metaRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs },
+  pill: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    backgroundColor: colors.surface,
+    borderRadius: radii.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  pillText: { ...typography.xs, color: colors.textSecondary },
+  tag: {
+    alignSelf: "flex-start",
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    backgroundColor: colors.warningBg,
+    borderRadius: radii.xs,
+  },
+  tagText: { ...typography.xs, color: colors.warning, fontWeight: "600" },
+  areas: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs },
+  areaChip: {
+    ...typography.xs,
+    color: colors.textSecondary,
+    backgroundColor: colors.neutralBg,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: radii.full,
+  },
 });

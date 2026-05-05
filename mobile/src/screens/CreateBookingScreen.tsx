@@ -383,7 +383,7 @@ export function CreateBookingScreen({ route, navigation }: Props) {
 
 const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: colors.surface },
-  container: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
+  container: { padding: spacing.lg, gap: spacing.md, paddingBottom: 120 },
   sectionTitle: { ...typography.md, fontWeight: "700", color: colors.text },
   subTitle: { ...typography.sm, fontWeight: "700", color: colors.text },
   restaurantCard: { gap: 4 },
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
   },
   choiceSelected: {
     borderColor: colors.primary,
-    borderWidth: 1.5,
+    backgroundColor: colors.surface,
   },
   choiceTitle: { ...typography.base, fontWeight: "700", color: colors.text },
   availabilityCard: { gap: 6 },

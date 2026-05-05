@@ -26,6 +26,22 @@ function parseMs(iso: string | null): number | null {
   return Number.isFinite(ms) ? ms : null;
 }
 
+const STATUS_RANK: Record<string, number> = {
+  pending: 1,
+  accepted: 2,
+  arrived: 3,
+  seated: 4,
+  completed: 5,
+  no_show: 6,
+  cancelled: 7,
+  rejected: 8,
+};
+
+function statusRank(status: string | null): number {
+  if (!status) return 99;
+  return STATUS_RANK[status] ?? 50;
+}
+
 export function MyBookingsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<BookingsStackParamList>>();
   const { token, logout } = useAuth();
@@ -66,15 +82,14 @@ export function MyBookingsScreen() {
   );
 
   const sorted = useMemo(() => {
-    const now = Date.now();
     return [...items].sort((a, b) => {
-      const ams = parseMs(a.starts_at);
-      const bms = parseMs(b.starts_at);
-      if (ams === null || bms === null) return 0;
-      const aUp = ams >= now;
-      const bUp = bms >= now;
-      if (aUp !== bUp) return aUp ? -1 : 1;
-      return aUp ? ams - bms : bms - ams;
+      // Primary: status priority
+      const rankDiff = statusRank(a.status) - statusRank(b.status);
+      if (rankDiff !== 0) return rankDiff;
+      // Secondary: starts_at ascending (upcoming first within same status)
+      const ams = parseMs(a.starts_at) ?? 0;
+      const bms = parseMs(b.starts_at) ?? 0;
+      return ams - bms;
     });
   }, [items]);
 
@@ -125,7 +140,7 @@ export function MyBookingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
-  list: { padding: spacing.lg, paddingBottom: spacing.xxl, gap: spacing.sm },
+  list: { padding: spacing.lg, paddingBottom: 100, gap: spacing.sm },
   rowTop: { flexDirection: "row", gap: spacing.sm, alignItems: "flex-start" },
   flex: { flex: 1, gap: 4 },
   name: { ...typography.base, fontWeight: "700", color: colors.text },

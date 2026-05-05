@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Pressable, StyleSheet, Text } from "react-native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ApiErrorResponse } from "../api/client";
 import { requestOtp } from "../api/endpoints";
 import { AuthScreenLayout } from "../components/auth/AuthScreenLayout";
@@ -14,16 +14,17 @@ import { colors, typography } from "../theme/tokens";
 type Props = NativeStackScreenProps<AuthStackParamList, "OtpVerify">;
 
 export function OtpVerifyScreen({ route }: Props) {
-  const { phone, name: nameFromSignup } = route.params;
+  const { phone, name: nameParam, mode } = route.params;
+
+  // Name from signup params (non-empty only)
   const signupName =
-    typeof nameFromSignup === "string" && nameFromSignup.trim().length > 0
-      ? nameFromSignup.trim()
+    typeof nameParam === "string" && nameParam.trim().length > 0
+      ? nameParam.trim()
       : undefined;
 
   const { verifyOtp } = useAuth();
 
   const [otp, setOtp] = useState("");
-  const [optionalName, setOptionalName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
@@ -35,7 +36,8 @@ export function OtpVerifyScreen({ route }: Props) {
       await verifyOtp({
         phone,
         otp: otp.trim(),
-        name: signupName ?? (optionalName.trim() ? optionalName.trim() : undefined),
+        // Only forward name on signup flow and only if meaningful
+        name: mode === "signup" ? signupName : undefined,
       });
     } catch (e) {
       const msg = e instanceof ApiErrorResponse ? e.message : "Verify failed.";
@@ -49,7 +51,7 @@ export function OtpVerifyScreen({ route }: Props) {
     setResendLoading(true);
     setError(null);
     try {
-      await requestOtp(phone.trim());
+      await requestOtp(phone);
     } catch (e) {
       const msg =
         e instanceof ApiErrorResponse ? e.message : "Could not resend code.";
@@ -80,16 +82,6 @@ export function OtpVerifyScreen({ route }: Props) {
         placeholder="123456"
         keyboardType="number-pad"
       />
-
-      {!signupName ? (
-        <TextField
-          label="Name (optional)"
-          value={optionalName}
-          onChangeText={setOptionalName}
-          placeholder="Your name"
-          autoCapitalize="words"
-        />
-      ) : null}
 
       <Button
         title={loading ? "Verifying..." : "Verify and continue"}

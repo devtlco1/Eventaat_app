@@ -23,7 +23,8 @@ import { ProfileScreen } from "../screens/ProfileScreen";
 export type AuthStackParamList = {
   PhoneEntry: undefined;
   SignUp: undefined;
-  OtpVerify: { phone: string; name?: string };
+  /** mode: 'login' → never show name field; 'signup' → may show name field */
+  OtpVerify: { phone: string; name?: string; mode: "login" | "signup" };
 };
 
 export type ExploreStackParamList = {
