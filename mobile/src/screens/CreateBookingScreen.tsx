@@ -8,27 +8,25 @@ import {
   View,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { Ionicons } from "@expo/vector-icons";
 import type { ExploreStackParamList } from "../navigation/AppNavigator";
 import { useAuth } from "../auth/AuthContext";
-import { Card } from "../components/Card";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { Button } from "../components/Button";
 import { LoadingState } from "../components/LoadingState";
 import { TextField } from "../components/TextField";
+import { DateTimeField, formatStartsAt } from "../components/DateTimeField";
 import { createBooking, getRestaurant, listRestaurants } from "../api/endpoints";
 import { getErrorMessage, getValidationErrors, isAuthError } from "../api/errors";
-import { DateTimeField, formatStartsAt } from "../components/DateTimeField";
+import { validateClientBranchAvailability } from "../booking/availabilityChecks";
 import type {
   MobileBranch,
+  MobileBranchBookingAvailability,
   MobileRestaurantDetails,
   MobileRestaurantListItem,
   MobileRestaurantTable,
   MobileSeatingArea,
 } from "../api/types";
-import {
-  formatBookingAvailabilitySummary,
-  validateClientBranchAvailability,
-} from "../booking/availabilityChecks";
 import { colors, radii, spacing, typography } from "../theme/tokens";
 
 type Props = NativeStackScreenProps<ExploreStackParamList, "CreateBooking">;
@@ -37,27 +35,79 @@ function pickFirst<T>(arr: T[]): T | null {
   return arr.length ? arr[0] : null;
 }
 
-function ChoiceTile({
-  title,
-  subtitle,
+function bookingHoursLabel(avail: MobileBranchBookingAvailability | null): string | null {
+  if (!avail?.open_time && !avail?.close_time) return null;
+  const o = avail?.open_time ? avail.open_time.slice(0, 5) : "—";
+  const c = avail?.close_time ? avail.close_time.slice(0, 5) : "—";
+  return `${o} – ${c}`;
+}
+
+// ── Small chip component ──────────────────────────────────────────────────────
+
+function Chip({
+  label,
   selected,
   onPress,
+  small,
 }: {
-  title: string;
-  subtitle?: string;
+  label: string;
   selected: boolean;
   onPress: () => void;
+  small?: boolean;
 }) {
   return (
     <Pressable
-      style={[styles.choice, selected && styles.choiceSelected]}
+      style={[styles.chip, selected && styles.chipSelected, small && styles.chipSmall]}
       onPress={onPress}
+      android_ripple={{ color: colors.surface }}
     >
-      <Text style={styles.choiceTitle}>{title}</Text>
-      {subtitle ? <Text style={styles.muted}>{subtitle}</Text> : null}
+      <Text style={[styles.chipText, selected && styles.chipTextSelected, small && styles.chipTextSmall]}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
+
+// ── Party size stepper ────────────────────────────────────────────────────────
+
+function PartyStepper({
+  value,
+  onChange,
+  error,
+}: {
+  value: number;
+  onChange: (n: number) => void;
+  error?: string | null;
+}) {
+  const decrement = () => onChange(Math.max(1, value - 1));
+  const increment = () => onChange(Math.min(20, value + 1));
+
+  return (
+    <View style={styles.stepperWrapper}>
+      <Text style={styles.stepperLabel}>Party size</Text>
+      <View style={styles.stepperRow}>
+        <Pressable
+          style={[styles.stepBtn, value <= 1 && styles.stepBtnDisabled]}
+          onPress={decrement}
+          disabled={value <= 1}
+        >
+          <Ionicons name="remove" size={20} color={value <= 1 ? colors.textMuted : colors.text} />
+        </Pressable>
+        <Text style={styles.stepValue}>{value}</Text>
+        <Pressable
+          style={[styles.stepBtn, value >= 20 && styles.stepBtnDisabled]}
+          onPress={increment}
+          disabled={value >= 20}
+        >
+          <Ionicons name="add" size={20} color={value >= 20 ? colors.textMuted : colors.text} />
+        </Pressable>
+      </View>
+      {error ? <Text style={styles.fieldError}>{error}</Text> : null}
+    </View>
+  );
+}
+
+// ── Main screen ───────────────────────────────────────────────────────────────
 
 export function CreateBookingScreen({ route, navigation }: Props) {
   const { token, logout } = useAuth();
@@ -72,8 +122,8 @@ export function CreateBookingScreen({ route, navigation }: Props) {
   const [seatingArea, setSeatingArea] = useState<MobileSeatingArea | null>(null);
   const [table, setTable] = useState<MobileRestaurantTable | null>(null);
 
-  const [startsAtDate, setStartsAtDate] = useState<Date | null>(null);
-  const [partySize, setPartySize] = useState("2");
+  const [startsAt, setStartsAt] = useState<Date | null>(null);
+  const [partySize, setPartySize] = useState(2);
   const [customerNote, setCustomerNote] = useState("");
 
   const [isLoading, setIsLoading] = useState(true);
@@ -84,6 +134,9 @@ export function CreateBookingScreen({ route, navigation }: Props) {
   const branches = useMemo(() => details?.branches ?? [], [details]);
   const seatingAreas = useMemo(() => branch?.seating_areas ?? [], [branch]);
   const tables = useMemo(() => seatingArea?.tables ?? [], [seatingArea]);
+  const multipleBranches = branches.length > 1;
+
+  // ── Loaders ───────────────────────────────────────────────────────────────
 
   const loadRestaurantDetails = useCallback(
     async (slug: string) => {
@@ -93,22 +146,18 @@ export function CreateBookingScreen({ route, navigation }: Props) {
       try {
         const res = await getRestaurant(token, slug);
         setDetails(res);
-
-        const firstBranch = pickFirst(res.branches ?? []);
-        setBranch(firstBranch);
-        setSeatingArea(firstBranch ? pickFirst(firstBranch.seating_areas ?? []) : null);
+        const first = pickFirst(res.branches ?? []);
+        setBranch(first);
+        setSeatingArea(null); // no preference by default
         setTable(null);
       } catch (e) {
-        if (isAuthError(e)) {
-          await logout();
-          return;
-        }
+        if (isAuthError(e)) { await logout(); return; }
         setError(getErrorMessage(e));
       } finally {
         setIsLoading(false);
       }
     },
-    [logout, token]
+    [logout, token],
   );
 
   const loadRestaurants = useCallback(async () => {
@@ -119,116 +168,98 @@ export function CreateBookingScreen({ route, navigation }: Props) {
       const res = await listRestaurants(token);
       const list = res.data ?? [];
       setRestaurants(list);
-      const first = pickFirst(list);
-      setRestaurant(first);
+      setRestaurant(pickFirst(list));
     } catch (e) {
-      if (isAuthError(e)) {
-        await logout();
-        return;
-      }
+      if (isAuthError(e)) { await logout(); return; }
       setError(getErrorMessage(e));
     } finally {
       setIsLoading(false);
     }
   }, [logout, token]);
 
-  // If restaurantSlug provided, load details directly; otherwise load the selector list.
   useEffect(() => {
-    if (preselected) {
-      void loadRestaurantDetails(restaurantSlug!);
-    } else {
-      void loadRestaurants();
-    }
+    if (preselected) void loadRestaurantDetails(restaurantSlug!);
+    else void loadRestaurants();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // When user picks a restaurant from the selector, load its details.
+  // When user picks from selector (non-preselected), load that restaurant's details
   useEffect(() => {
-    if (preselected) return;
-    if (!restaurant?.slug) return;
-    setDetails(null);
-    setBranch(null);
-    setSeatingArea(null);
-    setTable(null);
+    if (preselected || !restaurant?.slug) return;
+    setDetails(null); setBranch(null); setSeatingArea(null); setTable(null);
     void loadRestaurantDetails(restaurant.slug);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restaurant?.slug]);
 
+  // ── Branch / seating handlers ─────────────────────────────────────────────
+
   const onSelectBranch = (b: MobileBranch) => {
     setBranch(b);
-    setSeatingArea(pickFirst(b.seating_areas ?? []));
+    setSeatingArea(null);
     setTable(null);
   };
 
-  const validateLocal = (): boolean => {
+  const onSelectSeatingArea = (sa: MobileSeatingArea | null) => {
+    setSeatingArea(sa);
+    setTable(null);
+  };
+
+  // ── Validation ────────────────────────────────────────────────────────────
+
+  const validate = (): boolean => {
     const errs: Record<string, string> = {};
-    if (!preselected && !restaurant) errs.restaurant_id = "Restaurant is required.";
+    if (!preselected && !restaurant) errs.restaurant_id = "Select a restaurant.";
     if (!branch) errs.branch_id = "Branch is required.";
     if (branch?.booking_availability && !branch.booking_availability.is_booking_enabled) {
       errs.branch_id = "Booking is currently disabled for this branch.";
     }
-    if (!startsAtDate) errs.starts_at = "Please pick a date and time.";
-    if (startsAtDate && branch?.booking_availability?.is_booking_enabled) {
-      const r = validateClientBranchAvailability(branch.booking_availability, startsAtDate);
+    if (!startsAt) {
+      errs.starts_at = "Select date and time.";
+    } else if (branch?.booking_availability?.is_booking_enabled) {
+      const r = validateClientBranchAvailability(branch.booking_availability, startsAt);
       if (!r.ok) errs.starts_at = r.message;
     }
-    const ps = Number(partySize);
-    if (!partySize.trim() || Number.isNaN(ps) || ps < 1) {
-      errs.party_size = "Party size must be at least 1.";
-    }
+    if (partySize < 1) errs.party_size = "Party size must be at least 1.";
     setFieldErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  const resolvedRestaurantId = preselected
-    ? details?.id ?? null
-    : restaurant?.id ?? null;
+  // ── Submit ────────────────────────────────────────────────────────────────
 
-  const resolvedRestaurantName = preselected
-    ? details?.name ?? restaurantSlug
-    : restaurant?.name ?? null;
+  const resolvedId = preselected ? (details?.id ?? null) : (restaurant?.id ?? null);
+  const resolvedName = preselected ? (details?.name ?? restaurantSlug) : (restaurant?.name ?? null);
 
   const onSubmit = async () => {
     if (!token) return;
     setError(null);
     setFieldErrors({});
-    if (!validateLocal()) return;
-    if (!resolvedRestaurantId || !branch || !startsAtDate) return;
+    if (!validate() || !resolvedId || !branch || !startsAt) return;
 
     setIsSubmitting(true);
     try {
       const res = await createBooking(token, {
-        restaurant_id: resolvedRestaurantId,
+        restaurant_id: resolvedId,
         branch_id: branch.id,
         seating_area_id: seatingArea?.id ?? null,
         restaurant_table_id: table?.id ?? null,
-        starts_at: formatStartsAt(startsAtDate),
-        party_size: Number(partySize),
-        customer_note: customerNote.trim() ? customerNote.trim() : null,
+        starts_at: formatStartsAt(startsAt),
+        party_size: partySize,
+        customer_note: customerNote.trim() || null,
       });
-
-      Alert.alert("Booking created", "Your booking has been submitted.");
+      Alert.alert("Booking submitted", "Your booking has been created.");
       navigation.replace("BookingDetails", { bookingId: res.booking.id });
     } catch (e) {
-      if (isAuthError(e)) {
-        await logout();
-        return;
-      }
-      const errors = getValidationErrors(e);
-      if (errors) {
+      if (isAuthError(e)) { await logout(); return; }
+      const errs = getValidationErrors(e);
+      if (errs) {
         const mapped: Record<string, string> = {};
-        for (const [k, v] of Object.entries(errors)) {
-          mapped[k] = v?.[0] ?? "Invalid value.";
-        }
+        for (const [k, v] of Object.entries(errs)) mapped[k] = v?.[0] ?? "Invalid.";
         setFieldErrors(mapped);
-        const top =
-          mapped.restaurant_table_id ??
-          mapped.party_size ??
-          mapped.starts_at ??
-          mapped.branch_id ??
-          mapped.restaurant_id ??
-          null;
-        setError(top ?? "Please fix the highlighted fields.");
+        setError(
+          mapped.restaurant_table_id ?? mapped.party_size ??
+          mapped.starts_at ?? mapped.branch_id ??
+          mapped.restaurant_id ?? "Please fix the highlighted fields.",
+        );
       } else {
         setError(getErrorMessage(e));
       }
@@ -237,132 +268,150 @@ export function CreateBookingScreen({ route, navigation }: Props) {
     }
   };
 
+  // ── Loading state ─────────────────────────────────────────────────────────
+
   if (isLoading) {
     return <LoadingState message={preselected ? "Loading restaurant…" : "Loading restaurants…"} />;
   }
+
+  // ── Render helpers ────────────────────────────────────────────────────────
+
+  const hours = branch ? bookingHoursLabel(branch.booking_availability ?? null) : null;
+  const bookingUnavailable =
+    branch?.booking_availability?.is_booking_enabled === false;
+
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <ScrollView
       style={styles.scroll}
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
     >
       <ErrorBanner message={error} />
 
+      {/* ── Restaurant summary ── */}
       {preselected ? (
-        // Read-only restaurant card when navigated from RestaurantDetails
-        <Card style={styles.restaurantCard}>
-          <Text style={styles.cardLabel}>Restaurant</Text>
-          <Text style={styles.cardValue}>{resolvedRestaurantName}</Text>
-        </Card>
+        <View style={styles.restaurantHeader}>
+          <Text style={styles.restaurantName}>{resolvedName}</Text>
+          {branch && (
+            <Text style={styles.restaurantMeta}>
+              {branch.name}
+              {hours ? ` · ${hours}` : ""}
+            </Text>
+          )}
+          {bookingUnavailable ? (
+            <View style={styles.unavailableTag}>
+              <Text style={styles.unavailableText}>Booking unavailable for this branch</Text>
+            </View>
+          ) : null}
+        </View>
       ) : (
-        <>
-          <Text style={styles.sectionTitle}>Restaurant</Text>
+        /* Restaurant selector (non-preselected path) */
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Restaurant</Text>
           {restaurants.length === 0 ? (
             <Text style={styles.muted}>No restaurants available.</Text>
           ) : (
-            restaurants.map((r) => (
-              <ChoiceTile
-                key={r.id}
-                title={r.name}
-                subtitle={`${r.active_branches_count} branch${r.active_branches_count !== 1 ? "es" : ""}`}
-                selected={restaurant?.id === r.id}
-                onPress={() => setRestaurant(r)}
-              />
-            ))
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+              {restaurants.map((r) => (
+                <Chip
+                  key={r.id}
+                  label={r.name}
+                  selected={restaurant?.id === r.id}
+                  onPress={() => setRestaurant(r)}
+                />
+              ))}
+            </ScrollView>
           )}
           {fieldErrors.restaurant_id ? (
             <Text style={styles.fieldError}>{fieldErrors.restaurant_id}</Text>
           ) : null}
-        </>
+        </View>
       )}
 
-      <Text style={styles.sectionTitle}>Branch</Text>
-      {branches.length === 0 ? (
-        <Text style={styles.muted}>
-          {details ? "No active branches." : "Loading branches…"}
-        </Text>
-      ) : (
-        branches.map((b) => (
-          <ChoiceTile
-            key={b.id}
-            title={b.name}
-            selected={branch?.id === b.id}
-            onPress={() => onSelectBranch(b)}
-          />
-        ))
-      )}
-      {fieldErrors.branch_id ? (
-        <Text style={styles.fieldError}>{fieldErrors.branch_id}</Text>
-      ) : null}
-
-      {branch ? (
-        <Card style={styles.availabilityCard}>
-          <Text style={styles.subTitle}>Availability</Text>
-          {formatBookingAvailabilitySummary(branch.booking_availability ?? null).map((line, idx) => (
-            <Text key={idx} style={styles.muted}>
-              {line}
+      {/* ── Branch selector (only when multiple) ── */}
+      {multipleBranches && (
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Branch</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+            {branches.map((b) => (
+              <Chip
+                key={b.id}
+                label={b.name}
+                selected={branch?.id === b.id}
+                onPress={() => onSelectBranch(b)}
+              />
+            ))}
+          </ScrollView>
+          {fieldErrors.branch_id ? (
+            <Text style={styles.fieldError}>{fieldErrors.branch_id}</Text>
+          ) : null}
+          {branch && hours && (
+            <Text style={styles.hoursLine}>
+              <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
+              {" "}Booking hours: {hours}
             </Text>
-          ))}
-        </Card>
-      ) : null}
+          )}
+        </View>
+      )}
 
-      <Text style={styles.sectionTitle}>Seating area (optional)</Text>
-      <ChoiceTile
-        title="No preference"
-        selected={!seatingArea}
-        onPress={() => {
-          setSeatingArea(null);
-          setTable(null);
-        }}
-      />
-      {seatingAreas.map((sa) => (
-        <ChoiceTile
-          key={sa.id}
-          title={sa.name + (sa.type ? ` · ${sa.type}` : "")}
-          subtitle={`${(sa.tables ?? []).length} table${(sa.tables ?? []).length !== 1 ? "s" : ""}`}
-          selected={seatingArea?.id === sa.id}
-          onPress={() => {
-            setSeatingArea(sa);
-            setTable(null);
-          }}
-        />
-      ))}
-
-      <Text style={styles.sectionTitle}>Table (optional)</Text>
-      <ChoiceTile
-        title="No specific table"
-        selected={!table}
-        onPress={() => setTable(null)}
-      />
-      {tables.map((t) => (
-        <ChoiceTile
-          key={t.id}
-          title={`${t.label} · capacity ${t.capacity}`}
-          selected={table?.id === t.id}
-          onPress={() => setTable(t)}
-        />
-      ))}
-      {fieldErrors.restaurant_table_id ? (
-        <Text style={styles.fieldError}>{fieldErrors.restaurant_table_id}</Text>
-      ) : null}
-
+      {/* ── Date & time ── */}
       <DateTimeField
-        label="Date & time"
-        value={startsAtDate}
-        onChange={setStartsAtDate}
+        value={startsAt}
+        onChange={setStartsAt}
         error={fieldErrors.starts_at ?? null}
       />
 
-      <TextField
-        label="Party size"
+      {/* ── Party size stepper ── */}
+      <PartyStepper
         value={partySize}
-        onChangeText={setPartySize}
-        keyboardType="number-pad"
-        placeholder="2"
-        error={fieldErrors.party_size}
+        onChange={setPartySize}
+        error={fieldErrors.party_size ?? null}
       />
 
+      {/* ── Seating area chips ── */}
+      {seatingAreas.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Seating area <Text style={styles.optionalTag}>(optional)</Text></Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+            <Chip label="No preference" selected={!seatingArea} onPress={() => onSelectSeatingArea(null)} />
+            {seatingAreas.map((sa) => (
+              <Chip
+                key={sa.id}
+                label={sa.name + (sa.type ? ` · ${sa.type}` : "")}
+                selected={seatingArea?.id === sa.id}
+                onPress={() => onSelectSeatingArea(sa)}
+              />
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
+      {/* ── Table chips (only if seating area selected and has tables) ── */}
+      {seatingArea && tables.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Table <Text style={styles.optionalTag}>(optional)</Text></Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll}>
+            <Chip label="No specific table" selected={!table} onPress={() => setTable(null)} small />
+            {tables.map((t) => (
+              <Chip
+                key={t.id}
+                label={`${t.label} (${t.capacity})`}
+                selected={table?.id === t.id}
+                onPress={() => setTable(t)}
+                small
+              />
+            ))}
+          </ScrollView>
+          {fieldErrors.restaurant_table_id ? (
+            <Text style={styles.fieldError}>{fieldErrors.restaurant_table_id}</Text>
+          ) : null}
+        </View>
+      )}
+
+      {/* ── Note ── */}
       <TextField
         label="Note (optional)"
         value={customerNote}
@@ -371,6 +420,7 @@ export function CreateBookingScreen({ route, navigation }: Props) {
         autoCapitalize="sentences"
       />
 
+      {/* ── Submit ── */}
       <Button
         title="Create booking"
         onPress={onSubmit}
@@ -381,28 +431,84 @@ export function CreateBookingScreen({ route, navigation }: Props) {
   );
 }
 
+// ── Styles ────────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: colors.surface },
-  container: { padding: spacing.lg, gap: spacing.md, paddingBottom: 120 },
-  sectionTitle: { ...typography.md, fontWeight: "700", color: colors.text },
-  subTitle: { ...typography.sm, fontWeight: "700", color: colors.text },
-  restaurantCard: { gap: 4 },
-  cardLabel: { ...typography.xs, fontWeight: "600", color: colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5 },
-  cardValue: { ...typography.md, fontWeight: "700", color: colors.text },
-  choice: {
+  container: {
+    padding: spacing.lg,
+    gap: spacing.lg,
+    paddingBottom: 120,
+  },
+
+  // Restaurant header
+  restaurantHeader: { gap: 3 },
+  restaurantName: { ...typography.xl, fontWeight: "800", color: colors.text },
+  restaurantMeta: { ...typography.sm, color: colors.textSecondary },
+  unavailableTag: {
+    marginTop: spacing.xs,
+    alignSelf: "flex-start",
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    backgroundColor: colors.warningBg,
+    borderRadius: radii.xs,
+  },
+  unavailableText: { ...typography.xs, color: colors.warning, fontWeight: "600" },
+
+  // Sections
+  section: { gap: spacing.xs },
+  sectionLabel: { ...typography.base, fontWeight: "600", color: colors.text },
+  optionalTag: { fontWeight: "400", color: colors.textMuted },
+  hoursLine: { ...typography.xs, color: colors.textSecondary, marginTop: 2 },
+
+  // Chips
+  chipScroll: { marginTop: 2 },
+  chip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radii.full,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radii.input,
-    padding: spacing.md,
     backgroundColor: colors.background,
-    gap: 4,
+    marginRight: spacing.xs,
   },
-  choiceSelected: {
+  chipSelected: {
     borderColor: colors.primary,
+    backgroundColor: colors.primary,
+  },
+  chipSmall: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 5,
+  },
+  chipText: { ...typography.sm, color: colors.text, fontWeight: "500" },
+  chipTextSelected: { color: colors.onPrimary, fontWeight: "600" },
+  chipTextSmall: { ...typography.xs },
+
+  // Party stepper
+  stepperWrapper: { gap: 6 },
+  stepperLabel: { ...typography.base, fontWeight: "600", color: colors.text },
+  stepperRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  stepBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.background,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepBtnDisabled: {
+    borderColor: colors.border,
     backgroundColor: colors.surface,
   },
-  choiceTitle: { ...typography.base, fontWeight: "700", color: colors.text },
-  availabilityCard: { gap: 6 },
-  muted: { ...typography.sm, color: colors.textSecondary },
+  stepValue: { ...typography.xl, fontWeight: "700", color: colors.text, minWidth: 32, textAlign: "center" },
+
+  // Errors
   fieldError: { ...typography.sm, color: colors.danger },
+  muted: { ...typography.sm, color: colors.textSecondary },
 });
