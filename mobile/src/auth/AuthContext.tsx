@@ -18,6 +18,14 @@ type AuthContextValue = AuthState & {
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
+async function safeClearToken(): Promise<void> {
+  try {
+    await clearToken();
+  } catch {
+    // SecureStore errors during cleanup are non-fatal
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const [token, setTokenState] = useState<string | null>(null);
@@ -26,20 +34,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const bootstrap = useCallback(async () => {
     setIsBootstrapping(true);
     try {
-      const existing = await getToken();
+      let existing: string | null = null;
+      try {
+        existing = await getToken();
+      } catch {
+        // SecureStore unavailable — treat as no token
+      }
+
       if (!existing) {
         setTokenState(null);
         setMeState(null);
         return;
       }
-      setTokenState(existing);
-      const profile = await getMe(existing);
-      setMeState(profile);
-    } catch {
-      await clearToken();
-      setTokenState(null);
-      setMeState(null);
+
+      try {
+        const profile = await getMe(existing);
+        setTokenState(existing);
+        setMeState(profile);
+      } catch {
+        // Token invalid, expired, or network error (including timeout from apiRequest)
+        await safeClearToken();
+        setTokenState(null);
+        setMeState(null);
+      }
     } finally {
+      // Always unblock the navigator — even if every await above hangs or throws
       setIsBootstrapping(false);
     }
   }, []);
@@ -72,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // ignore
       }
     }
-    await clearToken();
+    await safeClearToken();
     setTokenState(null);
     setMeState(null);
   }, [token]);
@@ -98,4 +117,3 @@ export function useAuth(): AuthContextValue {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }
-

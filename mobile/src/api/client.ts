@@ -13,8 +13,11 @@ export class ApiErrorResponse extends Error {
   }
 }
 
+const DEFAULT_TIMEOUT_MS = 10_000;
+
 type ClientOptions = {
   token?: string | null;
+  timeoutMs?: number;
 };
 
 export async function apiRequest<T>(
@@ -38,7 +41,24 @@ export async function apiRequest<T>(
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const res = await fetch(url, { ...init, headers });
+  const controller = new AbortController();
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  let res: Response;
+  try {
+    res = await fetch(url, { ...init, headers, signal: controller.signal });
+  } catch (e) {
+    if (controller.signal.aborted) {
+      throw new ApiErrorResponse({
+        status: 0,
+        message: "Request timed out. Check your network connection.",
+      });
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   const text = await res.text();
   const json = text ? safeJsonParse(text) : null;
@@ -67,4 +87,3 @@ function safeJsonParse(input: string): unknown {
     return null;
   }
 }
-

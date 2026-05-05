@@ -2,8 +2,6 @@
  * Visual reference: Figma file rnmu585nuu0fVUBOe6pWpQ (Dinevia community copy)
  * — adapted for Eventaat; values are approximate from frame metadata.
  */
-import { I18nManager } from "react-native";
-
 export const colors = {
   background: "#FFFFFF",
   surface: "#F9FAFB",
@@ -97,12 +95,3 @@ export const shadows = {
   },
 };
 
-export const isRTL = I18nManager.isRTL;
-export const rtl = {
-  flexDirection: (isRTL ? "row-reverse" : "row") as "row" | "row-reverse",
-  textAlign: (isRTL ? "right" : "left") as "left" | "right",
-  marginStart: (value: number) => ({ marginStart: value }),
-  marginEnd: (value: number) => ({ marginEnd: value }),
-  paddingStart: (value: number) => ({ paddingStart: value }),
-  paddingEnd: (value: number) => ({ paddingEnd: value }),
-};
