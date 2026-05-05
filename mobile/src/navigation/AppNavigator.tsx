@@ -2,6 +2,7 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../auth/AuthContext";
 import { needsName } from "../auth/profile";
 import { colors } from "../theme/tokens";
@@ -138,17 +139,32 @@ function MainTabs() {
       <Tab.Screen
         name="Explore"
         component={ExploreNavigator}
-        options={{ title: "Explore" }}
+        options={{
+          title: "Explore",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="compass-outline" color={color} size={size} />
+          ),
+        }}
       />
       <Tab.Screen
         name="Bookings"
         component={BookingsNavigator}
-        options={{ title: "Bookings" }}
+        options={{
+          title: "Bookings",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="calendar-outline" color={color} size={size} />
+          ),
+        }}
       />
       <Tab.Screen
         name="ProfileTab"
         component={ProfileNavigator}
-        options={{ title: "Profile" }}
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person-outline" color={color} size={size} />
+          ),
+        }}
       />
     </Tab.Navigator>
   );

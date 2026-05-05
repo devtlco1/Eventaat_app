@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   FlatList,
   RefreshControl,
@@ -6,7 +6,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { BookingsStackParamList } from "../navigation/AppNavigator";
 import { useAuth } from "../auth/AuthContext";
@@ -59,9 +59,11 @@ export function MyBookingsScreen() {
     [logout, token]
   );
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  useFocusEffect(
+    useCallback(() => {
+      void load();
+    }, [load])
+  );
 
   const sorted = useMemo(() => {
     const now = Date.now();

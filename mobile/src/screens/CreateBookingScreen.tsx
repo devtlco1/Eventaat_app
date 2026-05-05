@@ -62,6 +62,7 @@ function ChoiceTile({
 export function CreateBookingScreen({ route, navigation }: Props) {
   const { token, logout } = useAuth();
   const restaurantSlug = route.params.restaurantSlug;
+  const preselected = !!restaurantSlug;
 
   const [restaurants, setRestaurants] = useState<MobileRestaurantListItem[]>([]);
   const [restaurant, setRestaurant] = useState<MobileRestaurantListItem | null>(null);
@@ -83,32 +84,6 @@ export function CreateBookingScreen({ route, navigation }: Props) {
   const branches = useMemo(() => details?.branches ?? [], [details]);
   const seatingAreas = useMemo(() => branch?.seating_areas ?? [], [branch]);
   const tables = useMemo(() => seatingArea?.tables ?? [], [seatingArea]);
-
-  const loadRestaurants = useCallback(async () => {
-    if (!token) return;
-    setIsLoading(true);
-    setError(null);
-    try {
-      const res = await listRestaurants(token);
-      const list = res.data ?? [];
-      setRestaurants(list);
-
-      let selected = restaurant;
-      if (!selected && restaurantSlug) {
-        selected = list.find((r) => r.slug === restaurantSlug) ?? null;
-      }
-      if (!selected) selected = pickFirst(list);
-      setRestaurant(selected);
-    } catch (e) {
-      if (isAuthError(e)) {
-        await logout();
-        return;
-      }
-      setError(getErrorMessage(e));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [logout, restaurant, restaurantSlug, token]);
 
   const loadRestaurantDetails = useCallback(
     async (slug: string) => {
@@ -136,11 +111,40 @@ export function CreateBookingScreen({ route, navigation }: Props) {
     [logout, token]
   );
 
-  useEffect(() => {
-    void loadRestaurants();
-  }, [loadRestaurants]);
+  const loadRestaurants = useCallback(async () => {
+    if (!token) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await listRestaurants(token);
+      const list = res.data ?? [];
+      setRestaurants(list);
+      const first = pickFirst(list);
+      setRestaurant(first);
+    } catch (e) {
+      if (isAuthError(e)) {
+        await logout();
+        return;
+      }
+      setError(getErrorMessage(e));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [logout, token]);
 
+  // If restaurantSlug provided, load details directly; otherwise load the selector list.
   useEffect(() => {
+    if (preselected) {
+      void loadRestaurantDetails(restaurantSlug!);
+    } else {
+      void loadRestaurants();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // When user picks a restaurant from the selector, load its details.
+  useEffect(() => {
+    if (preselected) return;
     if (!restaurant?.slug) return;
     setDetails(null);
     setBranch(null);
@@ -158,7 +162,7 @@ export function CreateBookingScreen({ route, navigation }: Props) {
 
   const validateLocal = (): boolean => {
     const errs: Record<string, string> = {};
-    if (!restaurant) errs.restaurant_id = "Restaurant is required.";
+    if (!preselected && !restaurant) errs.restaurant_id = "Restaurant is required.";
     if (!branch) errs.branch_id = "Branch is required.";
     if (branch?.booking_availability && !branch.booking_availability.is_booking_enabled) {
       errs.branch_id = "Booking is currently disabled for this branch.";
@@ -176,17 +180,25 @@ export function CreateBookingScreen({ route, navigation }: Props) {
     return Object.keys(errs).length === 0;
   };
 
+  const resolvedRestaurantId = preselected
+    ? details?.id ?? null
+    : restaurant?.id ?? null;
+
+  const resolvedRestaurantName = preselected
+    ? details?.name ?? restaurantSlug
+    : restaurant?.name ?? null;
+
   const onSubmit = async () => {
     if (!token) return;
     setError(null);
     setFieldErrors({});
     if (!validateLocal()) return;
-    if (!restaurant || !branch || !startsAtDate) return;
+    if (!resolvedRestaurantId || !branch || !startsAtDate) return;
 
     setIsSubmitting(true);
     try {
       const res = await createBooking(token, {
-        restaurant_id: restaurant.id,
+        restaurant_id: resolvedRestaurantId,
         branch_id: branch.id,
         seating_area_id: seatingArea?.id ?? null,
         restaurant_table_id: table?.id ?? null,
@@ -225,8 +237,8 @@ export function CreateBookingScreen({ route, navigation }: Props) {
     }
   };
 
-  if (isLoading && restaurants.length === 0) {
-    return <LoadingState message="Loading restaurants…" />;
+  if (isLoading) {
+    return <LoadingState message={preselected ? "Loading restaurant…" : "Loading restaurants…"} />;
   }
 
   return (
@@ -237,23 +249,33 @@ export function CreateBookingScreen({ route, navigation }: Props) {
     >
       <ErrorBanner message={error} />
 
-      <Text style={styles.sectionTitle}>Restaurant</Text>
-      {restaurants.length === 0 ? (
-        <Text style={styles.muted}>No restaurants available.</Text>
+      {preselected ? (
+        // Read-only restaurant card when navigated from RestaurantDetails
+        <Card style={styles.restaurantCard}>
+          <Text style={styles.cardLabel}>Restaurant</Text>
+          <Text style={styles.cardValue}>{resolvedRestaurantName}</Text>
+        </Card>
       ) : (
-        restaurants.map((r) => (
-          <ChoiceTile
-            key={r.id}
-            title={r.name}
-            subtitle={`${r.active_branches_count} branch${r.active_branches_count !== 1 ? "es" : ""}`}
-            selected={restaurant?.id === r.id}
-            onPress={() => setRestaurant(r)}
-          />
-        ))
+        <>
+          <Text style={styles.sectionTitle}>Restaurant</Text>
+          {restaurants.length === 0 ? (
+            <Text style={styles.muted}>No restaurants available.</Text>
+          ) : (
+            restaurants.map((r) => (
+              <ChoiceTile
+                key={r.id}
+                title={r.name}
+                subtitle={`${r.active_branches_count} branch${r.active_branches_count !== 1 ? "es" : ""}`}
+                selected={restaurant?.id === r.id}
+                onPress={() => setRestaurant(r)}
+              />
+            ))
+          )}
+          {fieldErrors.restaurant_id ? (
+            <Text style={styles.fieldError}>{fieldErrors.restaurant_id}</Text>
+          ) : null}
+        </>
       )}
-      {fieldErrors.restaurant_id ? (
-        <Text style={styles.fieldError}>{fieldErrors.restaurant_id}</Text>
-      ) : null}
 
       <Text style={styles.sectionTitle}>Branch</Text>
       {branches.length === 0 ? (
@@ -364,6 +386,9 @@ const styles = StyleSheet.create({
   container: { padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxl },
   sectionTitle: { ...typography.md, fontWeight: "700", color: colors.text },
   subTitle: { ...typography.sm, fontWeight: "700", color: colors.text },
+  restaurantCard: { gap: 4 },
+  cardLabel: { ...typography.xs, fontWeight: "600", color: colors.textMuted, textTransform: "uppercase", letterSpacing: 0.5 },
+  cardValue: { ...typography.md, fontWeight: "700", color: colors.text },
   choice: {
     borderWidth: 1,
     borderColor: colors.border,
