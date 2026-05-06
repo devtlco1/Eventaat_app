@@ -20,8 +20,10 @@ const sY = H / 812;
 const PURPLE = "#5B4CBD";
 const ORANGE = "#EA580C";
 
-/** Physical-screen y-coordinate where the hero ends and content begins. */
+/** Physical-screen y-coordinate where the hero ends. */
 const HERO_H = 450 * sY;
+/** Extra gap between hero bottom and content top — pulls text down ~30 logical px. */
+const CONTENT_EXTRA_GAP = 30;
 
 // ── SVG asset path data (inlined from /assets/*.svg) ─────────────────────────
 
@@ -41,9 +43,9 @@ type Props = NativeStackScreenProps<AuthStackParamList, "Welcome">;
 
 export function WelcomeScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
-  // Within SafeAreaView (which starts at insets.top from physical top),
-  // push content down so it appears at HERO_H from the physical screen top.
-  const contentPaddingTop = Math.max(0, HERO_H - insets.top);
+  // Content starts at (HERO_H + CONTENT_EXTRA_GAP) from physical top.
+  // CONTENT_EXTRA_GAP adds breathing room between the #Food pill and the headline.
+  const contentPaddingTop = Math.max(0, HERO_H + CONTENT_EXTRA_GAP - insets.top);
 
   return (
     <View style={styles.root}>
@@ -86,16 +88,17 @@ export function WelcomeScreen({ navigation }: Props) {
           <Path d={BLOB_LARGE} fill="#DCDCDC" />
         </Svg>
 
-        {/* Shape 4 — frameInner: small circle straddling hero/content boundary */}
+        {/* Shape 4 — frameInner: decorative circle near hero/content boundary */}
         <View
           style={{
             position: "absolute",
-            width: 135 * sX,
-            height: 135 * sX,
+            width: 112 * sX,
+            height: 112 * sX,
             borderRadius: 9999,
             backgroundColor: "#D1D5DB",
-            top: 445 * sY,
-            left: 138 * sX,
+            opacity: 0.75,
+            top: 455 * sY,
+            left: 130 * sX,
           }}
         />
 
@@ -231,8 +234,8 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingBottom: 12,
-    gap: 14,
+    paddingBottom: 28,
+    gap: 16,
   },
 
   heading: {

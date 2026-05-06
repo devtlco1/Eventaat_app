@@ -179,13 +179,15 @@ function MainTabs() {
 export function AppNavigator() {
   const { token, me, isBootstrapping } = useAuth();
 
-  // Guarantee splash is visible for at least 1200 ms even when bootstrap is instant
+  // TODO: reduce SPLASH_DURATION to ~800ms once splash is confirmed working;
+  //       2000ms is temporarily extended for visual QA.
+  const SPLASH_DURATION = 2000;
   const [splashVisible, setSplashVisible] = useState(true);
   useEffect(() => {
     const t = setTimeout(() => {
       setSplashVisible(false);
       ExpoSplashScreen.hideAsync().catch(() => {});
-    }, 1500);
+    }, SPLASH_DURATION);
     return () => clearTimeout(t);
   }, []);
 
