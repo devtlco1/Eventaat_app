@@ -64,7 +64,7 @@ export function OnboardingScreen({ navigation }: Props) {
       {/* Skip — top-right; hidden on last slide (slide 3 has no Skip text) */}
       {!isLast && (
         <Pressable
-          style={ab.rect(299, 49, 76, 40)}
+          style={ab.rect(299, 5, 76, 44)}
           onPress={onSkip}
           hitSlop={12}
           accessibilityRole="button"
@@ -75,7 +75,7 @@ export function OnboardingScreen({ navigation }: Props) {
       {/* Back circle — bottom-left; hidden on first slide */}
       {!isFirst && (
         <Pressable
-          style={ab.rect(0, 718, 76, 60)}
+          style={ab.rect(0, 674, 76, 60)}
           onPress={onBack}
           accessibilityRole="button"
           accessibilityLabel="Back"
@@ -84,7 +84,7 @@ export function OnboardingScreen({ navigation }: Props) {
 
       {/* Next / Get Started circle — bottom-right; always visible */}
       <Pressable
-        style={ab.rect(299, 718, 76, 60)}
+        style={ab.rect(299, 674, 76, 60)}
         onPress={onNext}
         accessibilityRole="button"
         accessibilityLabel={isLast ? "Get Started" : "Next"}

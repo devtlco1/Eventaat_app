@@ -34,7 +34,7 @@ export function WelcomeScreen({ navigation }: Props) {
 
       {/* Transparent hit area — "Let's Get Started" */}
       <Pressable
-        style={ab.rect(24, 585, 327, 52)}
+        style={ab.rect(24, 541, 327, 52)}
         onPress={() => navigation.navigate("Onboarding")}
         accessibilityRole="button"
         accessibilityLabel="Let's Get Started"
@@ -42,7 +42,7 @@ export function WelcomeScreen({ navigation }: Props) {
 
       {/* Transparent hit area — "Already have an account? Sign In" */}
       <Pressable
-        style={ab.rect(40, 652, 295, 36)}
+        style={ab.rect(40, 608, 295, 36)}
         onPress={() => navigation.navigate("PhoneEntry")}
         accessibilityRole="button"
         accessibilityLabel="Sign In"
