@@ -13,14 +13,22 @@ import { artboard } from "../utils/artboard";
  * the button positions using artboard-space coordinates (375×812), converted
  * to real screen pixels via artboard().rect().
  *
- * Design coordinates (375×812 artboard, measured from PNG):
- *   "Let's Get Started" button  → y=585, h=52, x=24, w=327
- *   "Sign In" row               → y=652, h=36, x=40, w=295
+ * Design coordinates (375×812 artboard, measured from welcome.png pixel data):
+ *   "Let's Get Started" button  → x=24, y=651, w=327, h=48
+ *   "Sign In" row               → x=40, y=716, w=295, h=36
  */
+
+// Set to true to show semi-transparent overlays on Pressables for visual QA.
+const DEBUG_TOUCH_AREAS = false;
+
 type Props = NativeStackScreenProps<AuthStackParamList, "Welcome">;
 
 export function WelcomeScreen({ navigation }: Props) {
   const ab = artboard();
+
+  const debugStyle = DEBUG_TOUCH_AREAS
+    ? { backgroundColor: "rgba(255,0,0,0.3)", borderWidth: 2, borderColor: "red" }
+    : undefined;
 
   return (
     <View style={styles.root}>
@@ -34,7 +42,7 @@ export function WelcomeScreen({ navigation }: Props) {
 
       {/* Transparent hit area — "Let's Get Started" */}
       <Pressable
-        style={ab.rect(24, 541, 327, 52)}
+        style={[ab.rect(24, 651, 327, 48), debugStyle]}
         onPress={() => navigation.navigate("Onboarding")}
         accessibilityRole="button"
         accessibilityLabel="Let's Get Started"
@@ -42,7 +50,7 @@ export function WelcomeScreen({ navigation }: Props) {
 
       {/* Transparent hit area — "Already have an account? Sign In" */}
       <Pressable
-        style={ab.rect(40, 608, 295, 36)}
+        style={[ab.rect(40, 716, 295, 36), debugStyle]}
         onPress={() => navigation.navigate("PhoneEntry")}
         accessibilityRole="button"
         accessibilityLabel="Sign In"

@@ -179,9 +179,8 @@ function MainTabs() {
 export function AppNavigator() {
   const { token, me, isBootstrapping } = useAuth();
 
-  // TODO: reduce SPLASH_DURATION to ~800ms once splash is confirmed working;
-  //       2000ms is temporarily extended for visual QA.
-  const SPLASH_DURATION = 2000;
+  // TODO: Temporary 8s QA duration; reduce later to ~800ms.
+  const SPLASH_DURATION = 8000;
   const [splashVisible, setSplashVisible] = useState(true);
   useEffect(() => {
     const t = setTimeout(() => {
