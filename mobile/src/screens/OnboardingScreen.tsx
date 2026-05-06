@@ -3,26 +3,23 @@ import { Image, Pressable, StyleSheet, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { AuthStackParamList } from "../navigation/AppNavigator";
+import { artboard } from "../utils/artboard";
 
 /**
- * Image-based Onboarding screens (slides 1–3).
+ * Image-based Onboarding screen (3 slides).
  *
- * Each slide is a full-screen PNG (375×812 @3x) that includes the phone
- * mockup, heading, subtitle, dot indicators, and nav-button visuals.
- * Transparent Pressable hit-areas are overlaid at the interactive element
- * positions, using percentage-based positioning so they scale correctly
- * with the image under resizeMode="cover" across iPhone sizes.
+ * Each slide PNG encodes all visual elements (mockup, heading, subtitle,
+ * dot indicators, button graphics). Transparent Pressables are overlaid at
+ * interactive positions using artboard-space coordinates (375×812).
  *
- * Slide 1 — "Discover Dining Delights"               (onboarding-1.png)
- *   Interactive: Skip (top-right), Next (bottom-right)
- * Slide 2 — "Build Your Favourite Restaurant Collection" (onboarding-2.png)
- *   Interactive: Skip (top-right), Back (bottom-left), Next (bottom-right)
- * Slide 3 — "Connect Instantly: Chat & Call with Owners" (onboarding-3.png)
- *   Interactive: Back (bottom-left), Next→SignUp (bottom-right)
+ * Design coordinates (375×812 artboard, measured from PNGs):
+ *   Skip text   → y=49,  h=40, x=299, w=76  (slides 1+2 only)
+ *   Back circle → y=718, h=60, x=0,   w=76  (slides 2+3 only)
+ *   Next circle → y=718, h=60, x=299, w=76  (all slides)
  *
- * Calibrated from the 375×812 Figma/Locofy exports:
- *   Skip text:         ~9–12 % from top, right edge
- *   Back/Next circles: ~88–94 % from top, left/right edges
+ * Slide 1 (onboarding-1): Skip + Next
+ * Slide 2 (onboarding-2): Skip + Back + Next
+ * Slide 3 (onboarding-3): Back + Next → navigates to SignUp
  */
 
 const SLIDES = [
@@ -35,6 +32,8 @@ type Props = NativeStackScreenProps<AuthStackParamList, "Onboarding">;
 
 export function OnboardingScreen({ navigation }: Props) {
   const [index, setIndex] = useState(0);
+  const ab = artboard();
+
   const isFirst = index === 0;
   const isLast = index === SLIDES.length - 1;
 
@@ -58,34 +57,34 @@ export function OnboardingScreen({ navigation }: Props) {
 
       <Image
         source={SLIDES[index]}
-        style={StyleSheet.absoluteFill}
-        resizeMode="cover"
+        style={ab.imageStyle}
+        resizeMode="stretch"
       />
 
-      {/* Skip — shown on slides 1 and 2; slide 3 image has no Skip text */}
+      {/* Skip — top-right; hidden on last slide (slide 3 has no Skip text) */}
       {!isLast && (
         <Pressable
-          style={styles.skipArea}
+          style={ab.rect(299, 49, 76, 40)}
           onPress={onSkip}
-          hitSlop={16}
+          hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel="Skip"
         />
       )}
 
-      {/* Back circle — shown on slides 2 and 3 */}
+      {/* Back circle — bottom-left; hidden on first slide */}
       {!isFirst && (
         <Pressable
-          style={styles.backBtn}
+          style={ab.rect(0, 718, 76, 60)}
           onPress={onBack}
           accessibilityRole="button"
           accessibilityLabel="Back"
         />
       )}
 
-      {/* Next / Get Started circle — always visible */}
+      {/* Next / Get Started circle — bottom-right; always visible */}
       <Pressable
-        style={styles.nextBtn}
+        style={ab.rect(299, 718, 76, 60)}
         onPress={onNext}
         accessibilityRole="button"
         accessibilityLabel={isLast ? "Get Started" : "Next"}
@@ -98,32 +97,5 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: "#F5F5F5",
-  },
-
-  // "Skip" text — top-right corner of slide image
-  skipArea: {
-    position: "absolute",
-    top: "9%",
-    right: 12,
-    width: 64,
-    height: 36,
-  },
-
-  // Back arrow circle — bottom-left of slide image
-  backBtn: {
-    position: "absolute",
-    bottom: "6%",
-    left: 16,
-    width: 60,
-    height: 60,
-  },
-
-  // Next / Get Started arrow circle — bottom-right of slide image
-  nextBtn: {
-    position: "absolute",
-    bottom: "6%",
-    right: 16,
-    width: 60,
-    height: 60,
   },
 });
