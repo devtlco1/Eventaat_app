@@ -6,7 +6,11 @@ use App\Http\Controllers\Api\Mobile\BookingReviewController;
 use App\Http\Controllers\Api\Mobile\MeController;
 use App\Http\Controllers\Api\Mobile\MyReviewsController;
 use App\Http\Controllers\Api\Mobile\RestaurantDiscoveryController;
+use App\Http\Controllers\Api\Mobile\RestaurantEventsController;
+use App\Http\Controllers\Api\Mobile\RestaurantMenusController;
+use App\Http\Controllers\Api\Mobile\RestaurantOffersController;
 use App\Http\Controllers\Api\Mobile\RestaurantReviewController;
+use App\Http\Controllers\Api\Mobile\RestaurantStoriesController;
 use App\Http\Controllers\Api\Webhooks\TwilioOtpStatusWebhookController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +38,14 @@ Route::prefix('mobile')
         Route::get('restaurants', [RestaurantDiscoveryController::class, 'index'])
             ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);
         Route::get('restaurants/{restaurant:slug}/reviews', [RestaurantReviewController::class, 'index'])
+            ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);
+        Route::get('restaurants/{restaurant:slug}/menus', [RestaurantMenusController::class, 'index'])
+            ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);
+        Route::get('restaurants/{restaurant:slug}/offers', [RestaurantOffersController::class, 'index'])
+            ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);
+        Route::get('restaurants/{restaurant:slug}/stories', [RestaurantStoriesController::class, 'index'])
+            ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);
+        Route::get('restaurants/{restaurant:slug}/event-nights', [RestaurantEventsController::class, 'index'])
             ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);
         Route::get('restaurants/{restaurant:slug}', [RestaurantDiscoveryController::class, 'show'])
             ->middleware(['auth:sanctum', 'mobile.token', 'mobile.customer']);

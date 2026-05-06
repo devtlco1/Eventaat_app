@@ -530,3 +530,163 @@ Each item in `data` contains **only**:
 
 Does **not** include: `customer_phone`, `phone`, `admin_notes`, `status`, `source`, `booking_id`, or nested restaurant/branch objects.
 
+
+---
+
+## Phase API-1: mobile restaurant content APIs
+
+Read-only endpoints exposing restaurant content (menus, offers, stories, event nights) managed in Filament to the mobile app. All endpoints require customer authentication and return only published/approved/active content. Internal admin fields are never exposed.
+
+**Auth:** `Authorization: Bearer <token>` (Sanctum personal access token with customer role)
+
+---
+
+### GET `/api/mobile/restaurants/{restaurant:slug}/menus`
+
+Lists published menus for an active restaurant. Supports all three menu modes.
+
+**Rules:**
+- Restaurant must be active → `404` otherwise
+- Only `status=published` menus returned
+- Structured menus: include active categories (ordered) with available items (ordered)
+- PDF menus: `pdf_url` is a public storage URL; `categories` is `[]`
+- External link menus: `external_url` is the stored URL; `categories` is `[]`
+- `image_path` is never exposed; `image_url` is the public Storage URL
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "Lunch Menu",
+      "slug": "lunch-menu",
+      "mode": "structured",
+      "status": "published",
+      "display_order": 0,
+      "pdf_url": null,
+      "external_url": null,
+      "categories": [
+        {
+          "id": 1,
+          "name": "Starters",
+          "display_order": 0,
+          "items": [
+            {
+              "id": 1,
+              "name": "Spring Rolls",
+              "description": "Crispy veggie rolls",
+              "price": "5.50",
+              "currency": "IQD",
+              "image_url": "http://example.com/storage/menus/items/spring-roll.png",
+              "is_available": true,
+              "is_featured": false,
+              "display_order": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+### GET `/api/mobile/restaurants/{restaurant:slug}/offers`
+
+Lists customer-visible offers for an active restaurant.
+
+**Rules:**
+- Restaurant must be active → `404` otherwise
+- Only `status=published` offers returned
+- Offers with `ends_at < now` are excluded
+- Admin fields (`notes`, `slug`) are not exposed
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "Weekend Special",
+      "description": "...",
+      "offer_type": "percentage",
+      "discount_value": "15.00",
+      "status": "published",
+      "starts_at": "2026-05-01T00:00:00+00:00",
+      "ends_at": "2026-05-31T23:59:59+00:00",
+      "image_url": null,
+      "terms": "..."
+    }
+  ]
+}
+```
+
+---
+
+### GET `/api/mobile/restaurants/{restaurant:slug}/stories`
+
+Lists active stories for an active restaurant.
+
+**Rules:**
+- Restaurant must be active → `404` otherwise
+- Only `status=published` stories returned
+- Stories with `ends_at < now` are excluded (lifetime window respected)
+- Ordered by `display_order` then newest first
+- Admin fields (`notes`, `slug`, `lifetime_mode`, `lifetime_hours`) are not exposed
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "New Dish Launch",
+      "story_type": "image",
+      "status": "published",
+      "media_url": "http://example.com/storage/stories/launch.jpg",
+      "thumbnail_url": "http://example.com/storage/stories/launch.jpg",
+      "display_order": 0
+    }
+  ]
+}
+```
+
+---
+
+### GET `/api/mobile/restaurants/{restaurant:slug}/event-nights`
+
+Lists upcoming published event nights for an active restaurant.
+
+**Rules:**
+- Restaurant must be active → `404` otherwise
+- Only `status=published` events returned
+- Only events with `starts_at >= now` (upcoming only)
+- Ordered by `starts_at` ascending
+- `capacity`, `active_reserved_seats`, `remaining_seats` included for capacity-aware UI
+- Admin fields (`notes`) are not exposed
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "title": "Jazz Night",
+      "slug": "jazz-night",
+      "restaurant": { "id": 1, "name": "Test Restaurant" },
+      "branch": { "id": 1, "name": "Main Branch" },
+      "status": "published",
+      "booking_mode": "normal_booking",
+      "starts_at": "2026-06-01T20:00:00+00:00",
+      "ends_at": "2026-06-01T23:00:00+00:00",
+      "price_label": "IQD 10,000 per person",
+      "capacity": 30,
+      "active_reserved_seats": 5,
+      "remaining_seats": 25,
+      "description": "..."
+    }
+  ]
+}
+```

@@ -901,3 +901,31 @@ Stabilization pass for **`/restaurant`** Filament (native UI only):
 - Filament **`LogoutResponse`** is bound app-wide so logout from either panel redirects to **`route('dashboard.login')`** (`/login`) instead of the panel-local login URL
 - No Sanctum, mobile OTP, or API route changes
 
+
+---
+
+### Phase API-1: mobile restaurant content APIs (backend-only)
+
+Read-only mobile API phase exposing restaurant content already managed in Filament:
+
+- **Menus** (`GET /api/mobile/restaurants/{slug}/menus`): all three modes (structured, pdf_upload, external_link); active categories + available items for structured; public Storage URL for PDF; external URL for link mode. Internal fields (`notes`, `menu_file_path`) not exposed.
+- **Offers** (`GET /api/mobile/restaurants/{slug}/offers`): published offers with valid date window; excludes draft/pending/rejected/expired; admin-only fields not exposed.
+- **Stories** (`GET /api/mobile/restaurants/{slug}/stories`): published stories with valid lifetime window (`ends_at >= now` or null); ordered by display_order then newest; admin fields not exposed.
+- **Event nights** (`GET /api/mobile/restaurants/{slug}/event-nights`): published upcoming events (`starts_at >= now`); includes capacity summary (`capacity`, `active_reserved_seats`, `remaining_seats`); admin fields not exposed.
+
+**Common rules:** auth required (same `auth:sanctum` + `mobile.token` + `mobile.customer` as existing mobile routes); inactive restaurant → 404; all responses are read-only collections.
+
+**Files added:**
+- `app/Http/Controllers/Api/Mobile/RestaurantMenusController.php`
+- `app/Http/Controllers/Api/Mobile/RestaurantOffersController.php`
+- `app/Http/Controllers/Api/Mobile/RestaurantStoriesController.php`
+- `app/Http/Controllers/Api/Mobile/RestaurantEventsController.php`
+- `app/Http/Resources/Mobile/MobileMenuResource.php`
+- `app/Http/Resources/Mobile/MobileMenuCategoryResource.php`
+- `app/Http/Resources/Mobile/MobileMenuItemResource.php`
+- `app/Http/Resources/Mobile/MobileOfferResource.php`
+- `app/Http/Resources/Mobile/MobileStoryResource.php`
+- `app/Http/Resources/Mobile/MobileEventResource.php`
+- `tests/Feature/MobileRestaurantContentApiTest.php` (17 tests)
+
+**No migrations, no Filament UI changes, no mobile app changes.**
