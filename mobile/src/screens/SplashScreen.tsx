@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 
 const PURPLE = "#5B4CBD";
@@ -11,6 +12,7 @@ const PURPLE = "#5B4CBD";
 export function SplashScreen() {
   return (
     <View style={styles.container}>
+      <StatusBar style="light" />
       <View style={styles.logoCircle}>
         <Ionicons name="restaurant" size={40} color={PURPLE} />
       </View>
