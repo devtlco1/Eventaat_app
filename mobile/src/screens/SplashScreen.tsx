@@ -1,46 +1,25 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
-import { Ionicons } from "@expo/vector-icons";
 
-const PURPLE = "#5B4CBD";
-
-/**
- * Shown while auth bootstraps. Full-purple screen with logo circle.
- * Matches Figma Splash frame (node-id 0-1).
- */
+// TODO: Temporary long splash duration (2000ms) for visual QA.
+//       Reduce later to ~800ms or replace with persisted onboarding/auth state check.
 export function SplashScreen() {
   return (
-    <View style={styles.container}>
+    <View style={styles.root}>
       <StatusBar style="light" />
-      <View style={styles.logoCircle}>
-        <Ionicons name="restaurant" size={40} color={PURPLE} />
-      </View>
-      <Text style={styles.title}>Table Reservation</Text>
+      <Image
+        source={require("../../assets/onboarding/splash.png")}
+        style={StyleSheet.absoluteFill}
+        resizeMode="cover"
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: PURPLE,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 16,
-  },
-  logoCircle: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: "#FFFFFF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#FFFFFF",
-    letterSpacing: -0.3,
+    backgroundColor: "#5B4CBD",
   },
 });
