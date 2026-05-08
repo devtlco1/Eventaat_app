@@ -13,10 +13,12 @@ Source of truth: `docs/eventaat_blueprint_v1.md`.
   - **Platform panel**: `/platform` (also `/platform/login`)
   - **Restaurant panel**: `/restaurant` (also `/restaurant/login`)
 - **Docs**: implementation plan and role rules in `docs/`
-- **Mobile**: Expo React Native app in `mobile/` (Phase 4B auth UI foundation)
+- **Mobile**: Expo React Native app in `mobile/` (Phase M4 restaurant detail complete)
 - **Mobile UI (customer)**:
-  - Restaurant discovery UI (list + details)
+  - Restaurant discovery UI (list + details) with avg rating and review count
+  - Restaurant detail: branches, offers, events, menus (structured/PDF/external), public reviews
   - Booking UI (create + my bookings + booking details + cancel)
+  - Review submission form on completed bookings
   - Date/time picker for booking start time (no manual typing required)
 - **Bookings (Phases 5–6)**:
   - Booking model + statuses: `pending|accepted|rejected|cancelled|arrived|seated|completed|no_show`

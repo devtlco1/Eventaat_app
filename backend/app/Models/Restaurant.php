@@ -47,4 +47,9 @@ class Restaurant extends Model
     {
         return $this->hasMany(CallCenterCall::class)->orderByDesc('created_at');
     }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(RestaurantReview::class);
+    }
 }
