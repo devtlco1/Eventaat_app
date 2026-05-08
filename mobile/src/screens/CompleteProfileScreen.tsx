@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 import {
-  ActivityIndicator,
-  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -9,25 +7,20 @@ import {
   View,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
+import { ApiErrorResponse } from "../api/client";
+import { updateMe } from "../api/endpoints";
 import { useAuth } from "../auth/AuthContext";
-import { artboard } from "../utils/artboard";
+import { AuthScreenLayout } from "../components/auth/AuthScreenLayout";
+import { Button } from "../components/Button";
+import { radii } from "../theme/tokens";
 
 /**
- * Complete Your Profile screen — hybrid image + native controls.
+ * Complete Your Profile screen — native implementation.
  *
- * PNG provides all visual chrome. Native controls overlay interactive areas
- * measured from complete-profile.png (375×812 @3x):
- *
- *   Age field      x=24  y=452  w=326  h=48   — display-only, TODO: backend schema
- *   Gender field   x=24  y=545  w=326  h=48   — display-only, TODO: backend schema
- *   Complete btn   x=24  y=643  w=326  h=52
- *
- * Neither Age nor Gender are submitted. The button calls refreshMe() to re-evaluate
- * auth state. TODO: submit age and gender when backend profile schema is extended.
+ * Name is submitted to the backend via updateMe (required to clear the
+ * profile_completed gate). Age and Gender are collected locally only;
+ * TODO: submit when backend profile schema is extended.
  */
-
-// Set true to show coloured borders on every overlay for QA alignment.
-const DEBUG_TOUCH_AREAS = false;
 
 const PURPLE = "#5B4CBD";
 const INPUT_BG = "#F5F5F5";
@@ -37,124 +30,138 @@ const TEXT = "#111827";
 const GENDER_OPTIONS = ["Male", "Female", "Prefer not to say"] as const;
 
 export function CompleteProfileScreen() {
-  const { refreshMe } = useAuth();
-  const ab = artboard();
+  const { token, refreshMe } = useAuth();
 
-  // TODO: submit age and gender to backend when profile schema supports them.
+  const [name, setName] = useState("");
+  // TODO: submit age and gender when backend profile schema supports them.
   const [age, setAge] = useState("");
   const [genderIndex, setGenderIndex] = useState(-1);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const canSubmit = name.trim().length >= 2 && !loading;
   const selectedGender = genderIndex >= 0 ? GENDER_OPTIONS[genderIndex] : null;
 
-  const cycleGender = () => {
+  const cycleGender = () =>
     setGenderIndex((prev) => (prev + 1) % GENDER_OPTIONS.length);
-  };
 
   const submit = async () => {
+    if (!token) return;
     setLoading(true);
+    setError(null);
     try {
+      await updateMe(token, { name: name.trim() });
+      // TODO: also persist age and gender when backend supports them.
       await refreshMe();
+    } catch (e) {
+      const msg = e instanceof ApiErrorResponse ? e.message : "Update failed.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.root}>
+    <AuthScreenLayout
+      title="Complete Your Profile"
+      subtitle="Don't worry, only you can see your personal data."
+    >
       <StatusBar style="dark" />
 
-      <Image
-        source={require("../../assets/auth-final/complete-profile.png")}
-        style={ab.imageStyle}
-        resizeMode="stretch"
-      />
+      {error ? (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorText} numberOfLines={2}>{error}</Text>
+        </View>
+      ) : null}
 
-      {/* ── Age field — display only, not submitted ── */}
-      <TextInput
-        style={[ab.rect(24, 452, 326, 48), styles.input, DEBUG_TOUCH_AREAS && styles.debug]}
-        value={age}
-        onChangeText={setAge}
-        placeholder="Ex.28"
-        placeholderTextColor={PLACEHOLDER}
-        keyboardType="number-pad"
-        returnKeyType="done"
-      />
+      {/* Name field — functional, submitted to backend */}
+      <View style={styles.fieldGroup}>
+        <Text style={styles.label}>Full Name</Text>
+        <TextInput
+          style={styles.input}
+          value={name}
+          onChangeText={(t) => { setName(t); setError(null); }}
+          placeholder="Ex. John Doe"
+          placeholderTextColor={PLACEHOLDER}
+          autoCapitalize="words"
+          returnKeyType="done"
+          onSubmitEditing={submit}
+        />
+      </View>
 
-      {/* ── Gender selector — display only, not submitted ── */}
-      <Pressable
-        style={[
-          ab.rect(24, 545, 326, 48),
-          styles.genderRow,
-          DEBUG_TOUCH_AREAS && styles.debug,
-        ]}
-        onPress={cycleGender}
-        accessibilityRole="button"
-        accessibilityLabel={selectedGender ?? "Select gender"}
-        hitSlop={4}
-      >
-        <Text style={[styles.genderText, !selectedGender && styles.genderPlaceholder]}>
-          {selectedGender ?? "Select"}
-        </Text>
-        <Text style={styles.genderChevron}>▼</Text>
-      </Pressable>
+      {/* Age field — display only */}
+      <View style={styles.fieldGroup}>
+        <Text style={styles.label}>Age</Text>
+        <TextInput
+          style={styles.input}
+          value={age}
+          onChangeText={setAge}
+          placeholder="Ex. 28"
+          placeholderTextColor={PLACEHOLDER}
+          keyboardType="number-pad"
+          returnKeyType="done"
+        />
+      </View>
 
-      {/* ── Complete Profile button ── */}
-      <Pressable
-        style={[
-          ab.rect(24, 643, 326, 52),
-          styles.button,
-          loading && styles.buttonDisabled,
-          DEBUG_TOUCH_AREAS && styles.debug,
-        ]}
+      {/* Gender selector — display only */}
+      <View style={styles.fieldGroup}>
+        <Text style={styles.label}>Gender</Text>
+        <Pressable
+          style={styles.genderRow}
+          onPress={cycleGender}
+          accessibilityRole="button"
+          accessibilityLabel={selectedGender ?? "Select gender"}
+        >
+          <Text style={[styles.genderText, !selectedGender && styles.genderPlaceholder]}>
+            {selectedGender ?? "Select"}
+          </Text>
+          <Text style={styles.genderChevron}>▼</Text>
+        </Pressable>
+      </View>
+
+      <Button
+        title={loading ? "Saving…" : "Complete Profile"}
         onPress={submit}
-        disabled={loading}
-        accessibilityRole="button"
-        accessibilityLabel="Complete Profile"
-      >
-        {loading && (
-          <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 8 }} />
-        )}
-        <Text style={styles.buttonText}>
-          {loading ? "Saving…" : "Complete Profile"}
-        </Text>
-      </Pressable>
-    </View>
+        disabled={!canSubmit}
+        loading={loading}
+        style={styles.btn}
+      />
+    </AuthScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#FFFFFF" },
+  errorBanner: {
+    backgroundColor: "#FEE2E2",
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  errorText: { color: "#991B1B", fontSize: 13, lineHeight: 18 },
 
+  fieldGroup: { gap: 6 },
+  label: { fontSize: 15, fontWeight: "600", color: TEXT },
   input: {
+    height: 52,
     backgroundColor: INPUT_BG,
-    borderRadius: 12,
+    borderRadius: radii.input,
     paddingHorizontal: 16,
-    fontSize: 15,
+    fontSize: 16,
     color: TEXT,
   },
 
   genderRow: {
+    height: 52,
+    backgroundColor: INPUT_BG,
+    borderRadius: radii.input,
+    paddingHorizontal: 16,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: INPUT_BG,
-    borderRadius: 12,
-    paddingHorizontal: 16,
   },
-  genderText: { fontSize: 15, color: TEXT },
+  genderText: { fontSize: 16, color: TEXT },
   genderPlaceholder: { color: PLACEHOLDER },
   genderChevron: { fontSize: 12, color: "#6B7280" },
 
-  button: {
-    backgroundColor: PURPLE,
-    borderRadius: 999,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-  },
-  buttonDisabled: { backgroundColor: "#9D94D8" },
-  buttonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "700" },
-
-  debug: { borderWidth: 2, borderColor: "red", backgroundColor: "rgba(255,0,0,0.12)" },
+  btn: { marginTop: 4 },
 });

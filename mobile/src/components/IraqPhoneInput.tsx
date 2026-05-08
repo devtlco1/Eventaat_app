@@ -1,5 +1,11 @@
-import React, { useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import React, { forwardRef, useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  type TextInputProps,
+  View,
+} from "react-native";
 import { colors, radii, spacing, typography } from "../theme/tokens";
 
 type Props = {
@@ -12,75 +18,94 @@ type Props = {
    * "filled"            — filled gray style used on auth screens.
    */
   variant?: "outline" | "filled";
+  onSubmitEditing?: TextInputProps["onSubmitEditing"];
+  returnKeyType?: TextInputProps["returnKeyType"];
+  placeholder?: string;
 };
 
 /**
  * Phone input row for Iraqi numbers with a fixed 🇮🇶 +964 prefix.
  * Supports "outline" (default, bordered) and "filled" (auth-screen style) variants.
+ * Exposes TextInput ref via forwardRef for focus-chaining in forms.
  */
-export function IraqPhoneInput({
-  value,
-  onChangeText,
-  error,
-  label = "Phone",
-  variant = "outline",
-}: Props) {
-  const [focused, setFocused] = useState(false);
-  const filled = variant === "filled";
+export const IraqPhoneInput = forwardRef<TextInput, Props>(
+  function IraqPhoneInput(
+    {
+      value,
+      onChangeText,
+      error,
+      label = "Phone",
+      variant = "outline",
+      onSubmitEditing,
+      returnKeyType,
+      placeholder,
+    },
+    ref
+  ) {
+    const [focused, setFocused] = useState(false);
+    const filled = variant === "filled";
+    const defaultPlaceholder = placeholder ?? "0770 000 1781";
 
-  return (
-    <View style={styles.wrapper}>
-      <Text style={styles.label}>{label}</Text>
+    return (
+      <View style={styles.wrapper}>
+        <Text style={styles.label}>{label}</Text>
 
-      {filled ? (
-        /* ── Filled variant: single pill row ── */
-        <View style={[styles.filledRow, error ? styles.filledRowError : null]}>
-          <View style={styles.filledPrefix}>
-            <Text style={styles.prefixFlag}>🇮🇶</Text>
-            <Text style={styles.prefixText}>+964</Text>
+        {filled ? (
+          /* ── Filled variant: single pill row ── */
+          <View style={[styles.filledRow, error ? styles.filledRowError : null]}>
+            <View style={styles.filledPrefix}>
+              <Text style={styles.prefixFlag}>🇮🇶</Text>
+              <Text style={styles.prefixText}>+964</Text>
+            </View>
+            <View style={styles.filledDivider} />
+            <TextInput
+              ref={ref}
+              style={styles.filledInput}
+              value={value}
+              onChangeText={onChangeText}
+              placeholder={defaultPlaceholder}
+              placeholderTextColor={colors.textMuted}
+              keyboardType="phone-pad"
+              autoCapitalize="none"
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              onSubmitEditing={onSubmitEditing}
+              returnKeyType={returnKeyType}
+            />
           </View>
-          <View style={styles.filledDivider} />
-          <TextInput
-            style={styles.filledInput}
-            value={value}
-            onChangeText={onChangeText}
-            placeholder="0770 000 1781"
-            placeholderTextColor={colors.textMuted}
-            keyboardType="phone-pad"
-            autoCapitalize="none"
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-          />
-        </View>
-      ) : (
-        /* ── Outline variant: separate badge + input ── */
-        <View style={styles.outlineRow}>
-          <View style={styles.outlinePrefix}>
-            <Text style={styles.prefixFlag}>🇮🇶</Text>
-            <Text style={styles.prefixText}>+964</Text>
+        ) : (
+          /* ── Outline variant: separate badge + input ── */
+          <View style={styles.outlineRow}>
+            <View style={styles.outlinePrefix}>
+              <Text style={styles.prefixFlag}>🇮🇶</Text>
+              <Text style={styles.prefixText}>+964</Text>
+            </View>
+            <TextInput
+              ref={ref}
+              style={[
+                styles.outlineInput,
+                focused && styles.outlineInputFocused,
+                error ? styles.outlineInputError : null,
+              ]}
+              value={value}
+              onChangeText={onChangeText}
+              placeholder={defaultPlaceholder}
+              placeholderTextColor={colors.textMuted}
+              keyboardType="phone-pad"
+              autoCapitalize="none"
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              onSubmitEditing={onSubmitEditing}
+              returnKeyType={returnKeyType}
+            />
           </View>
-          <TextInput
-            style={[
-              styles.outlineInput,
-              focused && styles.outlineInputFocused,
-              error ? styles.outlineInputError : null,
-            ]}
-            value={value}
-            onChangeText={onChangeText}
-            placeholder="0770 000 1781"
-            placeholderTextColor={colors.textMuted}
-            keyboardType="phone-pad"
-            autoCapitalize="none"
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-          />
-        </View>
-      )}
+        )}
 
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-    </View>
-  );
-}
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      </View>
+    );
+  }
+);
 
 const INPUT_H = 52;
 

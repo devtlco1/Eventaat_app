@@ -12,7 +12,11 @@ export function AuthFooterLink({
   onPress: () => void;
 }) {
   return (
-    <Pressable style={styles.row} onPress={onPress} hitSlop={8}>
+    <Pressable
+      style={styles.row}
+      onPress={onPress}
+      hitSlop={{ top: 16, bottom: 16, left: 24, right: 24 }}
+    >
       <Text style={styles.muted}>{label} </Text>
       <Text style={styles.link}>{linkLabel}</Text>
     </Pressable>
@@ -25,6 +29,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "center",
     alignItems: "center",
+    paddingVertical: 4,
   },
   muted: {
     fontSize: 15,
