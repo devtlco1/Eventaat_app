@@ -2,6 +2,11 @@ import { apiRequest } from "./client";
 import type {
   MobileBooking,
   MobileMe,
+  MobileMenu,
+  MobileMyReview,
+  MobileEvent,
+  MobileOffer,
+  MobilePublicReview,
   MobileRestaurantDetails,
   MobileRestaurantListItem,
 } from "./types";
@@ -114,5 +119,71 @@ export async function cancelBooking(
     { method: "POST", body: JSON.stringify({}) },
     { token }
   );
+}
+
+export async function submitBookingReview(
+  token: string,
+  bookingId: number,
+  payload: { rating: number; comment?: string | null }
+): Promise<{ review: MobileMyReview }> {
+  return apiRequest(
+    `/api/mobile/bookings/${bookingId}/review`,
+    { method: "POST", body: JSON.stringify(payload) },
+    { token }
+  );
+}
+
+export async function listRestaurantReviews(
+  token: string,
+  slug: string,
+  params: { page?: number } = {}
+): Promise<{ data: MobilePublicReview[] }> {
+  const qs = new URLSearchParams();
+  if (params.page) qs.set("page", String(params.page));
+  const path = `/api/mobile/restaurants/${encodeURIComponent(slug)}/reviews${qs.toString() ? `?${qs.toString()}` : ""}`;
+  return apiRequest(path, { method: "GET" }, { token });
+}
+
+export async function listRestaurantOffers(
+  token: string,
+  slug: string
+): Promise<{ data: MobileOffer[] }> {
+  return apiRequest(
+    `/api/mobile/restaurants/${encodeURIComponent(slug)}/offers`,
+    { method: "GET" },
+    { token }
+  );
+}
+
+export async function listRestaurantEvents(
+  token: string,
+  slug: string
+): Promise<{ data: MobileEvent[] }> {
+  return apiRequest(
+    `/api/mobile/restaurants/${encodeURIComponent(slug)}/events`,
+    { method: "GET" },
+    { token }
+  );
+}
+
+export async function listRestaurantMenus(
+  token: string,
+  slug: string
+): Promise<{ data: MobileMenu[] }> {
+  return apiRequest(
+    `/api/mobile/restaurants/${encodeURIComponent(slug)}/menus`,
+    { method: "GET" },
+    { token }
+  );
+}
+
+export async function listMyReviews(
+  token: string,
+  params: { page?: number } = {}
+): Promise<{ data: MobileMyReview[] }> {
+  const qs = new URLSearchParams();
+  if (params.page) qs.set("page", String(params.page));
+  const path = `/api/mobile/reviews${qs.toString() ? `?${qs.toString()}` : ""}`;
+  return apiRequest(path, { method: "GET" }, { token });
 }
 

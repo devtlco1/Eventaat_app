@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { useAuth } from "../auth/AuthContext";
@@ -9,10 +9,10 @@ import { Divider } from "../components/Divider";
 import { ErrorBanner } from "../components/ErrorBanner";
 import { LoadingState } from "../components/LoadingState";
 import { StatusBadge } from "../components/StatusBadge";
-import { cancelBooking, getBooking } from "../api/endpoints";
+import { cancelBooking, getBooking, submitBookingReview } from "../api/endpoints";
 import { getErrorMessage, isAuthError, getValidationErrors } from "../api/errors";
 import type { MobileBooking } from "../api/types";
-import { colors, spacing, typography } from "../theme/tokens";
+import { colors, radii, spacing, typography } from "../theme/tokens";
 
 type BookingDetailsRoute = { BookingDetails: { bookingId: number } };
 type Props = NativeStackScreenProps<BookingDetailsRoute, "BookingDetails">;
@@ -31,6 +31,94 @@ function InfoRow({ label, value }: { label: string; value: string }) {
     <View style={styles.infoRow}>
       <Text style={styles.infoKey}>{label}</Text>
       <Text style={styles.infoVal}>{value}</Text>
+    </View>
+  );
+}
+
+function StarPicker({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (n: number) => void;
+}) {
+  return (
+    <View style={styles.starRow}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <TouchableOpacity key={n} onPress={() => onChange(n)} hitSlop={8}>
+          <Text style={[styles.star, n <= value && styles.starFilled]}>★</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
+function ReviewSection({
+  token,
+  bookingId,
+}: {
+  token: string;
+  bookingId: number;
+}) {
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const onSubmit = async () => {
+    if (rating === 0) {
+      setErr("Please select a star rating.");
+      return;
+    }
+    setSubmitting(true);
+    setErr(null);
+    try {
+      await submitBookingReview(token, bookingId, {
+        rating,
+        comment: comment.trim() || null,
+      });
+      setDone(true);
+    } catch (e) {
+      const valErrors = getValidationErrors(e);
+      const bookingErr = valErrors?.booking?.[0] ?? null;
+      setErr(bookingErr ?? getErrorMessage(e));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (done) {
+    return (
+      <View style={styles.reviewDone}>
+        <Text style={styles.reviewDoneTitle}>Review submitted!</Text>
+        <Text style={styles.reviewDoneText}>Thank you for your feedback.</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.reviewSection}>
+      <Text style={styles.sectionTitle}>Leave a review</Text>
+      <Card style={styles.reviewCard}>
+        {err ? <Text style={styles.reviewErr}>{err}</Text> : null}
+        <StarPicker value={rating} onChange={setRating} />
+        <TextInput
+          style={styles.reviewInput}
+          placeholder="Share your experience (optional)"
+          placeholderTextColor={colors.textSecondary}
+          multiline
+          numberOfLines={3}
+          value={comment}
+          onChangeText={setComment}
+        />
+        <Button
+          title={submitting ? "Submitting…" : "Submit review"}
+          onPress={onSubmit}
+          variant="primary"
+          loading={submitting}
+        />
+      </Card>
     </View>
   );
 }
@@ -167,6 +255,10 @@ export function BookingDetailsScreen({ route, navigation }: Props) {
       ) : (
         <Text style={styles.muted}>Cancellation is not available at this stage.</Text>
       )}
+
+      {data.status === "completed" && token ? (
+        <ReviewSection token={token} bookingId={data.id} />
+      ) : null}
     </ScrollView>
   );
 }
@@ -193,4 +285,29 @@ const styles = StyleSheet.create({
   infoVal: { ...typography.base, color: colors.textSecondary, flexShrink: 1, textAlign: "right" },
   muted: { ...typography.sm, color: colors.textSecondary },
   notFound: { flex: 1, padding: spacing.lg, justifyContent: "center" },
+  reviewSection: { gap: spacing.sm },
+  reviewCard: { gap: spacing.sm },
+  reviewErr: { ...typography.sm, color: colors.danger },
+  starRow: { flexDirection: "row", gap: spacing.sm },
+  star: { fontSize: 28, color: colors.neutralBg },
+  starFilled: { color: colors.accent },
+  reviewInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.sm,
+    padding: spacing.sm,
+    ...typography.base,
+    color: colors.text,
+    minHeight: 72,
+    textAlignVertical: "top",
+  },
+  reviewDone: {
+    backgroundColor: "#F0FDF4",
+    borderRadius: radii.card,
+    padding: spacing.lg,
+    gap: spacing.xs,
+    alignItems: "center",
+  },
+  reviewDoneTitle: { ...typography.md, fontWeight: "700", color: "#166534" },
+  reviewDoneText: { ...typography.sm, color: "#15803D" },
 });

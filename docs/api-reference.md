@@ -171,7 +171,9 @@ Response (paginated):
       "id": 1,
       "name": "Demo Restaurant A",
       "slug": "demo-restaurant-a",
-      "active_branches_count": 1
+      "active_branches_count": 1,
+      "avg_rating": 4.3,
+      "review_count": 12
     }
   ],
   "links": { },
@@ -189,6 +191,8 @@ Response:
     "id": 1,
     "name": "Demo Restaurant A",
     "slug": "demo-restaurant-a",
+    "avg_rating": 4.3,
+    "review_count": 12,
     "branches": [
       {
         "id": 10,

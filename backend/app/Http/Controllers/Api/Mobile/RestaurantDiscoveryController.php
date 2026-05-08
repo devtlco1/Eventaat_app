@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Mobile\MobileRestaurantDetailResource;
 use App\Http\Resources\Mobile\MobileRestaurantResource;
 use App\Models\Restaurant;
+use App\Models\RestaurantReview;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -20,11 +21,15 @@ class RestaurantDiscoveryController extends Controller
         $perPage = (int) $request->query('per_page', 15);
         $perPage = max(1, min($perPage, 50));
 
+        $publishedReviews = fn ($q) => $q->where('status', RestaurantReview::STATUS_PUBLISHED);
+
         $query = Restaurant::query()
             ->where('status', RestaurantStatus::Active->value)
             ->withCount([
                 'branches as active_branches_count' => fn ($q) => $q->where('status', BranchStatus::Active->value),
+                'reviews as review_count' => $publishedReviews,
             ])
+            ->withAvg(['reviews as avg_rating' => $publishedReviews], 'rating')
             ->orderBy('name');
 
         if ($q !== '') {
@@ -44,6 +49,10 @@ class RestaurantDiscoveryController extends Controller
         if ($restaurant->status?->value !== RestaurantStatus::Active->value) {
             abort(404);
         }
+
+        $publishedReviews = fn ($q) => $q->where('status', RestaurantReview::STATUS_PUBLISHED);
+        $restaurant->loadCount(['reviews as review_count' => $publishedReviews]);
+        $restaurant->loadAvg(['reviews as avg_rating' => $publishedReviews], 'rating');
 
         $restaurant->load([
             'branches' => function ($q) {

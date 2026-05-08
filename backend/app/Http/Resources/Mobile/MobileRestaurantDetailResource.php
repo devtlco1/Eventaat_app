@@ -19,6 +19,8 @@ class MobileRestaurantDetailResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
+            'avg_rating' => $this->avg_rating !== null ? round((float) $this->avg_rating, 1) : null,
+            'review_count' => (int) ($this->review_count ?? 0),
             'branches' => $this->whenLoaded('branches', function () {
                 return $this->branches->map(function (Branch $branch) {
                     return [

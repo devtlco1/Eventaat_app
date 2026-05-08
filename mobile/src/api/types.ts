@@ -18,6 +18,8 @@ export type MobileRestaurantListItem = {
   name: string;
   slug: string;
   active_branches_count: number;
+  avg_rating: number | null;
+  review_count: number;
 };
 
 export type MobileRestaurantTable = {
@@ -62,6 +64,8 @@ export type MobileRestaurantDetails = {
   id: number;
   name: string;
   slug: string;
+  avg_rating: number | null;
+  review_count: number;
   branches: MobileBranch[];
 };
 
@@ -90,5 +94,97 @@ export type MobileBooking = {
 export type LaravelValidationError = {
   message?: string;
   errors?: Record<string, string[]>;
+};
+
+export type MobilePublicReview = {
+  id: number;
+  customer_name: string;
+  rating: number;
+  comment: string | null;
+  created_at: string | null;
+};
+
+export type MobileOffer = {
+  id: number;
+  title: string;
+  description: string | null;
+  offer_type: string;
+  discount_value: string | null;
+  status: string;
+  starts_at: string | null;
+  ends_at: string | null;
+  image_url: string | null;
+  terms: string | null;
+};
+
+export type MobileStory = {
+  id: number;
+  title: string;
+  story_type: string;
+  status: string;
+  media_url: string | null;
+  thumbnail_url: string | null;
+  display_order: number;
+};
+
+export type MobileEvent = {
+  id: number;
+  title: string;
+  slug: string;
+  restaurant?: { id: number; name: string } | null;
+  branch?: { id: number; name: string } | null;
+  status: string;
+  booking_mode: string;
+  starts_at: string | null;
+  ends_at: string | null;
+  price_label: string | null;
+  capacity: number | null;
+  active_reserved_seats: number;
+  remaining_seats: number | null;
+  description: string | null;
+};
+
+export type MobileMenuItem = {
+  id: number;
+  name: string;
+  description: string | null;
+  price: string | null;
+  currency: string;
+  image_url: string | null;
+  is_available: boolean;
+  is_featured: boolean;
+  display_order: number;
+};
+
+export type MobileMenuCategory = {
+  id: number;
+  name: string;
+  display_order: number;
+  items: MobileMenuItem[];
+};
+
+export type MobileMenu = {
+  id: number;
+  title: string;
+  slug: string;
+  mode: string;
+  status: string;
+  display_order: number;
+  pdf_url: string | null;
+  external_url: string | null;
+  categories: MobileMenuCategory[];
+};
+
+export type MobileMyReview = {
+  id: number;
+  restaurant?: { id: number; name: string; slug: string } | null;
+  branch?: { id: number; name: string; code: string } | null;
+  booking_id: number | null;
+  rating: number;
+  comment: string | null;
+  status: string;
+  source: string;
+  created_at: string | null;
+  updated_at: string | null;
 };
 

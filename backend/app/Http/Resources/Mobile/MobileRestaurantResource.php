@@ -18,7 +18,8 @@ class MobileRestaurantResource extends JsonResource
             'name' => $this->name,
             'slug' => $this->slug,
             'active_branches_count' => (int) ($this->active_branches_count ?? 0),
+            'avg_rating' => $this->avg_rating !== null ? round((float) $this->avg_rating, 1) : null,
+            'review_count' => (int) ($this->review_count ?? 0),
         ];
     }
 }
-
