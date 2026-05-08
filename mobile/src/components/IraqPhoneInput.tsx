@@ -152,7 +152,12 @@ const styles = StyleSheet.create({
     flex: 1,
     height: INPUT_H,
     paddingHorizontal: 14,
-    ...typography.md,
+    paddingVertical: 0,
+    fontSize: 16,
+    lineHeight: 20,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore — RN Android prop, no-op on iOS
+    textAlignVertical: "center",
     color: colors.text,
   },
 
@@ -180,7 +185,11 @@ const styles = StyleSheet.create({
     borderColor: colors.borderInput,
     borderRadius: radii.input,
     paddingHorizontal: 14,
-    ...typography.md,
+    paddingVertical: 0,
+    fontSize: 16,
+    lineHeight: 20,
+    // @ts-ignore — RN Android prop, no-op on iOS
+    textAlignVertical: "center",
     color: colors.text,
     backgroundColor: colors.background,
   },

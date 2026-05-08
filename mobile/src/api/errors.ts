@@ -35,7 +35,7 @@ export function getOtpRequestError(e: unknown): string {
   if (!(e instanceof ApiErrorResponse)) return "Failed to request OTP.";
 
   if (e.status === 0) {
-    return "Could not reach the server. Check that the backend is running and your network connection is stable.";
+    return "Could not reach the server. Check that the backend is running and the API URL is correct.";
   }
 
   if (e.status === 429) {

@@ -384,3 +384,35 @@ npm install
 npm run start
 ```
 
+#### Local OTP testing (mobile ↔ backend on same LAN)
+
+The Laravel backend **is** the API — there is no separate API server.
+
+1. Start the backend so it listens on all interfaces:
+
+```bash
+cd backend
+php artisan serve --host=0.0.0.0 --port=8000
+```
+
+2. Find your Mac's LAN IP (e.g. `192.168.1.x`):
+
+```bash
+ipconfig getifaddr en0   # Wi-Fi on macOS
+```
+
+3. Start Expo with that IP as the API base URL:
+
+```bash
+cd mobile
+EXPO_PUBLIC_API_BASE_URL=http://<YOUR_MAC_IP>:8000 npx expo start -c
+```
+
+4. With `OTP_DRIVER=log` (the default), the OTP code is printed in `backend/storage/logs/laravel.log`:
+
+```
+[INFO] Mobile OTP (local/dev) {"phone_masked":"*******1781","otp":"123456"}
+```
+
+The OTP is **never** exposed in the API response, stored in the database, or logged in production (`APP_ENV=production`).
+
