@@ -14,6 +14,8 @@ import { PhoneEntryScreen } from "../screens/PhoneEntryScreen";
 import { SignUpScreen } from "../screens/SignUpScreen";
 import { OtpVerifyScreen } from "../screens/OtpVerifyScreen";
 import { CompleteProfileScreen } from "../screens/CompleteProfileScreen";
+import { LocationPermissionScreen } from "../screens/LocationPermissionScreen";
+import { NotificationPermissionScreen } from "../screens/NotificationPermissionScreen";
 import { RestaurantListScreen } from "../screens/RestaurantListScreen";
 import { RestaurantDetailsScreen } from "../screens/RestaurantDetailsScreen";
 import { CreateBookingScreen } from "../screens/CreateBookingScreen";
@@ -26,6 +28,8 @@ import { ProfileScreen } from "../screens/ProfileScreen";
 export type AuthStackParamList = {
   Welcome: undefined;
   Onboarding: undefined;
+  LocationPermission: undefined;
+  NotificationPermission: undefined;
   PhoneEntry: undefined;
   SignUp: undefined;
   /** mode: 'login' → never show name field; 'signup' → may show name field */
@@ -179,8 +183,7 @@ function MainTabs() {
 export function AppNavigator() {
   const { token, me, isBootstrapping } = useAuth();
 
-  // TODO: Temporary 8s QA duration; reduce later to ~800ms.
-  const SPLASH_DURATION = 8000;
+  const SPLASH_DURATION = 1000;
   const [splashVisible, setSplashVisible] = useState(true);
   useEffect(() => {
     const t = setTimeout(() => {
@@ -203,6 +206,8 @@ export function AppNavigator() {
         <AuthStack.Navigator screenOptions={{ headerShown: false }}>
           <AuthStack.Screen name="Welcome" component={WelcomeScreen} />
           <AuthStack.Screen name="Onboarding" component={OnboardingScreen} />
+          <AuthStack.Screen name="LocationPermission" component={LocationPermissionScreen} />
+          <AuthStack.Screen name="NotificationPermission" component={NotificationPermissionScreen} />
           <AuthStack.Screen name="PhoneEntry" component={PhoneEntryScreen} />
           <AuthStack.Screen name="SignUp" component={SignUpScreen} />
           <AuthStack.Screen name="OtpVerify" component={OtpVerifyScreen} />

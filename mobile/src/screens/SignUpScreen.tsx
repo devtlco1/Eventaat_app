@@ -90,7 +90,7 @@ export function SignUpScreen({ navigation }: Props) {
       <StatusBar style="dark" />
 
       <Image
-        source={require("../../assets/auth/create-account.png")}
+        source={require("../../assets/auth-final/create-account.png")}
         style={ab.imageStyle}
         resizeMode="stretch"
       />

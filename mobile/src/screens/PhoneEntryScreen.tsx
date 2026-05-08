@@ -76,7 +76,7 @@ export function PhoneEntryScreen({ navigation }: Props) {
       <StatusBar style="dark" />
 
       <Image
-        source={require("../../assets/auth/sign-in.png")}
+        source={require("../../assets/auth-final/sign-in.png")}
         style={ab.imageStyle}
         resizeMode="stretch"
       />

@@ -35,7 +35,7 @@ export function WelcomeScreen({ navigation }: Props) {
       <StatusBar style="dark" />
 
       <Image
-        source={require("../../assets/onboarding/welcome.png")}
+        source={require("../../assets/auth-final/welcome.png")}
         style={ab.imageStyle}
         resizeMode="stretch"
       />

@@ -23,19 +23,15 @@ import type { AuthStackParamList } from "../navigation/AppNavigator";
  * measured from verify-code.png (375×812 @3x):
  *
  *   Back button   x=16  y=44   w=44   h=44
- *   OTP boxes     x=51  y=230  w=264  h=42   (4 × 60pt boxes, 8pt gaps)
- *   Resend link   x=80  y=323  w=210  h=36
- *   Verify btn    x=20  y=374  w=326  h=47
- *
- * TODO: PNG shows 4 OTP digits. Existing backend (requestOtp) sends codes —
- *       confirm digit count with backend team before releasing.
+ *   OTP boxes     x=24  y=220  w=326  h=52   (6 × ~46pt boxes, 8pt gaps)
+ *   Resend link   x=60  y=345  w=255  h=36
+ *   Verify btn    x=24  y=415  w=326  h=50
  */
 
 // Set true to show coloured borders on every overlay for QA alignment.
 const DEBUG_TOUCH_AREAS = false;
 
-// TODO: Align with backend — PNG design shows 4 boxes.
-const OTP_LENGTH = 4;
+const OTP_LENGTH = 6;
 
 const PURPLE = "#5B4CBD";
 const INPUT_BG = "#F5F5F5";
@@ -109,7 +105,7 @@ export function OtpVerifyScreen({ route, navigation }: Props) {
       <StatusBar style="dark" />
 
       <Image
-        source={require("../../assets/auth/verify-code.png")}
+        source={require("../../assets/auth-final/verify-code.png")}
         style={ab.imageStyle}
         resizeMode="stretch"
       />
@@ -118,7 +114,7 @@ export function OtpVerifyScreen({ route, navigation }: Props) {
       {(error || resendMsg) ? (
         <View
           style={[
-            ab.rect(24, 200, 326, 28),
+            ab.rect(24, 185, 326, 28),
             error ? styles.errorBanner : styles.successBanner,
           ]}
         >
@@ -151,10 +147,10 @@ export function OtpVerifyScreen({ route, navigation }: Props) {
         caretHidden
       />
 
-      {/* ── OTP boxes (4 × 60pt, 8pt gaps, within x=51–315 y=230–272) ── */}
+      {/* ── OTP boxes (6 × ~46pt, 8pt gaps, within x=24–350 y=220–272) ── */}
       <Pressable
         style={[
-          ab.rect(51, 230, 264, 42),
+          ab.rect(24, 220, 326, 52),
           styles.otpRow,
           DEBUG_TOUCH_AREAS && styles.debug,
         ]}
@@ -180,7 +176,7 @@ export function OtpVerifyScreen({ route, navigation }: Props) {
 
       {/* ── Resend code link ── */}
       <Pressable
-        style={[ab.rect(80, 323, 210, 36), DEBUG_TOUCH_AREAS && styles.debug]}
+        style={[ab.rect(60, 345, 255, 36), DEBUG_TOUCH_AREAS && styles.debug]}
         onPress={resend}
         disabled={resendLoading}
         hitSlop={8}
@@ -195,7 +191,7 @@ export function OtpVerifyScreen({ route, navigation }: Props) {
       {/* ── Verify button ── */}
       <Pressable
         style={[
-          ab.rect(20, 374, 326, 47),
+          ab.rect(24, 415, 326, 50),
           styles.button,
           !canSubmit && styles.buttonDisabled,
           DEBUG_TOUCH_AREAS && styles.debug,
