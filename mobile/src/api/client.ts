@@ -55,7 +55,13 @@ export async function apiRequest<T>(
         message: "Request timed out. Check your network connection.",
       });
     }
-    throw e;
+    // Wrap raw network errors (e.g. wrong host, no connection) so callers
+    // always receive ApiErrorResponse and get the helpful status-0 message.
+    throw new ApiErrorResponse({
+      status: 0,
+      message:
+        e instanceof Error ? e.message : "Network request failed.",
+    });
   } finally {
     clearTimeout(timeoutId);
   }
