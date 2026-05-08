@@ -23,3 +23,29 @@ export function getErrorMessage(err: unknown): string {
   return "Something went wrong.";
 }
 
+/**
+ * Converts a requestOtp / signUp API error into a user-facing message.
+ *
+ * status 0   → network/timeout (server unreachable)
+ * status 422 → validation error; backend already provides a clear message
+ * status 429 → rate-limited; shows retry_after seconds when available
+ * other      → backend message or generic fallback
+ */
+export function getOtpRequestError(e: unknown): string {
+  if (!(e instanceof ApiErrorResponse)) return "Failed to request OTP.";
+
+  if (e.status === 0) {
+    return "Could not reach the server. Check that the backend is running and your network connection is stable.";
+  }
+
+  if (e.status === 429) {
+    const ra = (e.details as Record<string, unknown> | null)?.retry_after;
+    return typeof ra === "number"
+      ? `Too many requests. Try again in ${ra} seconds.`
+      : "Too many requests. Please wait before trying again.";
+  }
+
+  // 422 and other: Laravel already returns a clear message field.
+  return e.message || "Failed to request OTP.";
+}
+

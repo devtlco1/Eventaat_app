@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -8,8 +9,8 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { ApiErrorResponse } from "../api/client";
 import { requestOtp } from "../api/endpoints";
+import { getOtpRequestError } from "../api/errors";
 import { normalizeIraqPhone, isValidIraqPhone } from "../utils/phone";
 import { IraqPhoneInput } from "../components/IraqPhoneInput";
 import { AuthFooterLink } from "../components/auth/AuthFooterLink";
@@ -38,9 +39,7 @@ export function PhoneEntryScreen({ navigation }: Props) {
       await requestOtp(normalized);
       navigation.navigate("OtpVerify", { phone: normalized, mode: "login" });
     } catch (e) {
-      const msg =
-        e instanceof ApiErrorResponse ? e.message : "Failed to request OTP.";
-      setError(msg);
+      setError(getOtpRequestError(e));
     } finally {
       setLoading(false);
     }
@@ -115,11 +114,13 @@ function SocialBtn({ icon }: { icon: React.ComponentProps<typeof Ionicons>["name
   return (
     <Pressable
       style={ss.socialBtn}
-      disabled
+      onPress={() =>
+        Alert.alert("Not available", "Social login is not available yet.")
+      }
       accessibilityRole="button"
       accessibilityLabel={String(icon)}
     >
-      <Ionicons name={icon} size={22} color="#374151" />
+      <Ionicons name={icon} size={22} color="#9CA3AF" />
     </Pressable>
   );
 }
